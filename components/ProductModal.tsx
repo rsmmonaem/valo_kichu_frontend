@@ -21,7 +21,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
   const [isMobile, setIsMobile] = useState(false);
   const [hasImageError, setHasImageError] = useState(false);
   const [galleryId, setGalleryId] = useState(1);
-  const [preview, setPreview] = useState("");
+  const [preview, setPreview] = useState<string | null>(null);
   const modalRef = useRef<HTMLDivElement>(null);
 
   // Use Cart Context
@@ -225,7 +225,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                 <div className="relative rounded-2xl overflow-hidden bg-gray-100 group">
                   <div className="w-full aspect-square relative">
                     <img
-                      src={hasImageError ? 'https://placehold.co/600x600?text=No+Image' : preview}
+                      src={hasImageError || !preview ? 'https://placehold.co/600x600?text=No+Image' : preview}
                       alt={product.name}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                       onError={() => setHasImageError(true)}
@@ -257,7 +257,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                       >
                         <div className="relative w-full h-full">
                           <img
-                            src={g.img}
+                            src={g.img || 'https://placehold.co/60x60?text=...'}
                             alt={`Gallery ${g.id}`}
                             className="w-full h-full object-cover"
                             onError={(e) => {
@@ -377,7 +377,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                           {c.img ? (
                             <div className="relative w-full aspect-square rounded-lg overflow-hidden">
                               <img
-                                src={c.img}
+                                src={c.img || 'https://placehold.co/100x100?text=...'}
                                 alt={c.name}
                                 className="w-full h-full object-cover"
                               />
