@@ -119,7 +119,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
             meta_description: data.meta_description || "",
             meta_keywords: data.meta_keywords || ""
         }));
-        
+
         if (data.tags) setTags(Array.isArray(data.tags) ? data.tags : []);
         if (data.specifications) setSpecifications(Array.isArray(data.specifications) ? data.specifications : []);
         if (data.colors) setSelectedColors(data.colors || []);
@@ -162,7 +162,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
     // ========== FORM HANDLERS ==========
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target;
-        
+
         if (type === 'checkbox') {
             const checked = (e.target as HTMLInputElement).checked;
             setFormData(prev => ({ ...prev, [name]: checked }));
@@ -248,7 +248,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
     };
 
     const handleRemoveColor = (colorId: number) => {
-        setSelectedColors(selectedColors.filter(c => c.id !== colorId));
+        setSelectedColors(selectedColors.filter((c: any) => c.id !== colorId));
     };
 
     // ========== ATTRIBUTE HANDLERS ==========
@@ -256,7 +256,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
         const attrId = parseInt(e.target.value);
         if (!attrId) return;
 
-        const attribute = availAttributes.find(attr => attr.id === attrId);
+        const attribute = availAttributes.find((attr: any) => attr.id === attrId);
         if (!attribute) return;
 
         if (attributes.some(a => a.id === attrId)) return;
@@ -269,7 +269,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
         if (!newValue.trim()) return;
 
         setAttributes(prev =>
-            prev.map(attr => {
+            prev.map((attr: any) => {
                 if (attr.id !== attrId) return attr;
                 if (attr.values.includes(newValue.trim())) return attr;
                 return {
@@ -282,18 +282,18 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
 
     const removeAttributeValue = (attrId: number, valueToRemove: string) => {
         setAttributes(prev =>
-            prev.map(attr => {
+            prev.map((attr: any) => {
                 if (attr.id !== attrId) return attr;
                 return {
                     ...attr,
-                    values: attr.values.filter(val => val !== valueToRemove)
+                    values: attr.values.filter((val: string) => val !== valueToRemove)
                 };
             })
         );
     };
 
     const handleRemoveAttribute = (attrId: number) => {
-        setAttributes(attributes.filter(a => a.id !== attrId));
+        setAttributes(attributes.filter((a: any) => a.id !== attrId));
     };
 
     // ========== VARIATION GENERATION ==========
@@ -303,10 +303,10 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
             return;
         }
 
-        const attributesWithValues = attributes.filter(attr => attr.values && attr.values.length > 0);
-        
+        const attributesWithValues = attributes.filter((attr: any) => attr.values && attr.values.length > 0);
+
         // Generate base variations from selected colors
-        let baseVariations = selectedColors.map((color, index) => ({
+        let baseVariations = selectedColors.map((color: any, index: number) => ({
             id: index + 1,
             color: color.name,
             colorClass: color.color,
@@ -315,6 +315,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
             stock: 1,
             price: parseFloat(formData.price) || 0,
             colorId: color.id,
+            attributes: {},
         }));
 
         // If no attributes with values, set base variations
@@ -329,10 +330,10 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
         baseVariations.forEach(baseVar => {
             let variationsForThisColor = [baseVar];
 
-            attributesWithValues.forEach(attr => {
+            attributesWithValues.forEach((attr: any) => {
                 const newVariations: any[] = [];
 
-                variationsForThisColor.forEach(variation => {
+                variationsForThisColor.forEach((variation: any) => {
                     attr.values.forEach((attrValue: string) => {
                         const attributePart = attrValue.replace(/\s+/g, "-");
                         const newSku = `${variation.sku.split("-")[0]}-${variation.color.replace(/\s+/g, "-")}-${attributePart}`;
@@ -382,7 +383,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
 
     const handleVariationChange = (id: number, field: string, value: any) => {
         setVariations(prevVariations =>
-            prevVariations.map(variation =>
+            prevVariations.map((variation: any) =>
                 variation.id === id
                     ? {
                         ...variation,
@@ -417,7 +418,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
         try {
             if (field === 'gallery') {
                 setGalleryUploading(true);
-                const uploadedImages = [];
+                const uploadedImages: string[] = [];
 
                 for (const file of Array.from(files)) {
                     if (file.size > 5 * 1024 * 1024) {
@@ -433,7 +434,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
 
                     const fd = new FormData();
                     fd.append('image', file);
-                    fd.append('folder', field === 'color' ? 'products' : 'products/gallery');
+                    fd.append('folder', 'products/gallery');
 
                     const res = await authFetch('/admin/v1/upload', {
                         method: 'POST',
@@ -448,22 +449,11 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
                 }
 
                 if (uploadedImages.length > 0) {
-                    if (field === 'gallery') {
-                        setFormData(prev => ({
-                            ...prev,
-                            gallery_images: [...prev.gallery_images, ...uploadedImages]
-                        }));
-                        toast.success(`Uploaded ${uploadedImages.length} image(s)`);
-                    } else if (field === 'color' && colorId) {
-                        setSelectedColors(prev =>
-                            prev.map(color =>
-                                color.id === colorId
-                                    ? { ...color, image: uploadedImages[0] }
-                                    : color
-                            )
-                        );
-                        toast.success("Color image uploaded");
-                    }
+                    setFormData(prev => ({
+                        ...prev,
+                        gallery_images: [...prev.gallery_images, ...uploadedImages]
+                    }));
+                    toast.success(`Uploaded ${uploadedImages.length} image(s)`);
                 }
             } else {
                 const file = files[0];
@@ -479,12 +469,12 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
                 if (res.ok) {
                     const data = await res.json();
                     const imageUrl = data.path.split('/').pop();
-                    
+
                     if (field === 'image') {
                         setFormData(prev => ({ ...prev, image: imageUrl }));
                     } else if (field === 'color' && colorId) {
                         setSelectedColors(prev =>
-                            prev.map(color =>
+                            prev.map((color: any) =>
                                 color.id === colorId
                                     ? { ...color, image: imageUrl }
                                     : color
@@ -521,7 +511,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
     const handleGenerateSKU = () => {
         const randomSKU = `PROD-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
         setFormData(prev => ({ ...prev, product_sku: randomSKU }));
-        
+
         if (variations.length > 0) {
             setVariations(
                 variations.map(v => ({
@@ -592,7 +582,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
             gallery_images: formData.gallery_images || [],
 
             // Variations
-            variations: variations.map(variation => ({
+            variations: variations.map((variation: any) => ({
                 id: variation.id,
                 color: variation.color,
                 colorClass: variation.colorClass,
@@ -605,13 +595,13 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
             })),
 
             // Attributes
-            attributes: attributes.map(attr => ({
+            attributes: attributes.map((attr: any) => ({
                 name: attr.name,
                 values: attr.values || []
             })),
 
             // Colors
-            colors: selectedColors.map(color => ({
+            colors: selectedColors.map((color: any) => ({
                 id: color.id,
                 name: color.name,
                 color_class: color.color,
