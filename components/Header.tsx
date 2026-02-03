@@ -17,13 +17,18 @@ interface HeaderProps {
 // ... imports
 import { useSettings } from '@/context/SettingsContext';
 
+import { useUI } from '@/context/UIContext';
+// ... imports
+
 const Header: React.FC<HeaderProps> = ({ categories }) => {
     const { settings } = useSettings();
     const router = useRouter();
     const searchParams = useSearchParams();
     const [search, setSearch] = useState(searchParams.get('search') || '');
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const { isSidebarOpen, closeSidebar, openSidebar } = useUI();
     const [cartCount, setCartCount] = useState(0);
+
+    // ... (keep handleSearch etc)
 
     const handleSearch = () => {
         if (search.trim()) {
@@ -37,29 +42,33 @@ const Header: React.FC<HeaderProps> = ({ categories }) => {
         }
     };
 
-
     return (
         <>
             <header className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-100">
                 <div className="container mx-auto px-4 py-4">
                     <div className="flex items-center justify-between gap-4 md:gap-8">
                         {/* Logo */}
-                        <Link href="/" className="flex items-center gap-2 shrink-0 group">
-                            {settings.site_logo ? (
-                                <img
-                                    src={settings.site_logo.startsWith('http') ? settings.site_logo : `${process.env.NEXT_PUBLIC_API_URL || 'https://backend.valokichu.com'}/storage/${settings.site_logo}`}
-                                    alt={settings.site_name || "Logo"}
-                                    className="h-10 w-auto group-hover:scale-105 transition-transform object-contain"
-                                />
-                            ) : (
-                                <div className="bg-blue-600 text-white p-2 rounded-lg font-bold text-xl group-hover:scale-105 transition-transform duration-200">
-                                    {settings.site_name ? settings.site_name.charAt(0) : 'V'}
-                                </div>
-                            )}
-                            <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-blue-400">
-                                {settings.site_name || 'Valokichu'}
-                            </span>
-                        </Link>
+                        <div className="flex items-center gap-3">
+                            <button
+                                className="md:hidden p-2 -ml-2 hover:bg-gray-100 rounded-lg"
+                                onClick={openSidebar}
+                            >
+                                <Menu size={24} />
+                            </button>
+                            <Link href="/" className="flex items-center gap-2 shrink-0 group">
+                                {settings.site_logo ? (
+                                    <img
+                                        src={settings.site_logo.startsWith('http') ? settings.site_logo : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/storage/${settings.site_logo}`}
+                                        alt={settings.site_name || "Logo"}
+                                        className="h-10 w-auto group-hover:scale-105 transition-transform object-contain"
+                                    />
+                                ) : (
+                                    <div className="bg-blue-600 text-white p-2 rounded-lg font-bold text-xl group-hover:scale-105 transition-transform duration-200">
+                                        {settings.site_name ? settings.site_name.charAt(0) : 'V'}
+                                    </div>
+                                )}
+                            </Link>
+                        </div>
 
                         {/* Search Bar */}
                         <div className="flex-1 max-w-2xl relative hidden md:block group">
@@ -139,8 +148,8 @@ const Header: React.FC<HeaderProps> = ({ categories }) => {
 
             {/* Mobile Category Sidebar */}
             <MobileCategorySidebar
-                isOpen={isMobileMenuOpen}
-                onClose={() => setIsMobileMenuOpen(false)}
+                isOpen={isSidebarOpen}
+                onClose={closeSidebar}
                 categories={categories}
             />
         </>

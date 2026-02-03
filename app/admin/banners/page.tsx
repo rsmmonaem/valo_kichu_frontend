@@ -43,12 +43,17 @@ const BannersPage = () => {
                 if (uploadRes.ok) {
                     const data = await uploadRes.json();
 
+                    // Construct full URL for validation
+                    const fullUrl = data.url.startsWith('http')
+                        ? data.url
+                        : `${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}${data.url.startsWith('/') ? '' : '/'}${data.url}`;
+
                     // Create banner after upload
                     const createRes = await authFetch('/admin/v1/banners', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            image: data.path, // Assuming backend expects relative path or full URL depending on implementation
+                            image_url: fullUrl,
                             title: 'New Banner',
                             link: '#',
                             is_active: true
@@ -57,10 +62,15 @@ const BannersPage = () => {
 
                     if (createRes.ok) {
                         fetchBanners();
+                        toast.success("Banner created successfully");
+                    } else {
+                        toast.error("Failed to save banner details");
                     }
                 }
+                console.log('image uploaded successfully');
             } catch (error) {
                 console.error('Upload failed', error);
+                toast.error("Upload failed");
             }
         }
     };
@@ -99,9 +109,10 @@ const BannersPage = () => {
                     <div key={banner.id} className="relative group rounded-xl overflow-hidden shadow-sm border border-gray-100 bg-white">
                         <div className="aspect-video bg-gray-100 relative">
                             <img
-                                src={banner.image && banner.image.startsWith('http') ? banner.image : (banner.image ? `http://127.0.0.1:8000/${banner.image}` : '/placeholder.png')}
+                                src={banner.image_url} // Use image_url from DB
                                 className="w-full h-full object-cover"
-                                alt="Banner"
+                                alt={banner.title || "Banner"}
+                                onError={(e) => (e.currentTarget.src = '/placeholder.png')}
                             />
                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                 <button onClick={() => handleDelete(banner.id)} className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transform hover:scale-110 transition">

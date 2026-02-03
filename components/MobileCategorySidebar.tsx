@@ -88,17 +88,21 @@ const MobileCategorySidebar: React.FC<MobileCategorySidebarProps> = ({ isOpen, o
                                 <div className="flex items-center justify-between py-1">
                                     <Link
                                         href={`/products?category=${cat.slug || cat.id}`}
-                                        className="flex-1 py-3 px-4 text-sm font-medium text-gray-700 hover:text-blue-600 active:text-blue-600 flex items-center gap-3"
+                                        className="flex-1 py-3 px-4 text-sm font-bold text-gray-800 hover:text-blue-600 active:text-blue-600 flex items-center gap-4 transition-colors"
                                         onClick={onClose}
                                     >
-                                        <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-xs font-bold text-gray-400 overflow-hidden">
+                                        <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-sm font-bold text-gray-500 overflow-hidden border border-gray-200">
                                             {cat.image ? (
-                                                <img src={cat.image.startsWith('http') ? cat.image : `http://127.0.0.1:8000/${cat.image}`} alt="" className="w-full h-full object-cover" />
+                                                <img
+                                                    src={cat.image.startsWith('http') ? cat.image : `${process.env.NEXT_PUBLIC_API_URL}/${cat.image}`}
+                                                    alt={cat.name}
+                                                    className="w-full h-full object-cover"
+                                                />
                                             ) : (
                                                 cat.name.charAt(0)
                                             )}
                                         </div>
-                                        {cat.name}
+                                        <span className="text-base">{cat.name}</span>
                                     </Link>
 
                                     {cat.subcategories && cat.subcategories.length > 0 && (

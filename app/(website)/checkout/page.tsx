@@ -10,6 +10,12 @@ import clsx from "clsx";
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 
+interface ShippingMethod {
+    id: number;
+    name: string;
+    cost: number;
+}
+
 const CheckoutPage = () => {
     const { cart, cartTotal, clearCart } = useCart();
     const { user, loading: authLoading } = useAuth();
@@ -33,6 +39,34 @@ const CheckoutPage = () => {
     });
 
     const [shippingCost, setShippingCost] = useState(0);
+    const [shippingMethods, setShippingMethods] = useState<ShippingMethod[]>([]);
+
+    useEffect(() => {
+        const fetchShippingMethods = async () => {
+            try {
+                // Use env var, or fallback to sensible default. 
+                // Note: authFetch in api.ts uses 'http://localhost:8000' as default base.
+                const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+                const baseUrl = API_URL.endsWith('/api') ? API_URL : `${API_URL}/api`;
+
+                console.log('Fetching shipping methods from:', `${baseUrl}/shipping-methods`);
+
+                const res = await fetch(`${baseUrl}/v1/shipping-methods`);
+                console.log('Shipping fetch status:', res.status);
+
+                if (res.ok) {
+                    const data = await res.json();
+                    console.log('Shipping methods data:', data);
+                    setShippingMethods(data);
+                } else {
+                    console.error('Failed to fetch shipping methods:', await res.text());
+                }
+            } catch (error) {
+                console.error("Failed to fetch shipping methods", error);
+            }
+        };
+        fetchShippingMethods();
+    }, []);
 
     // Load user data into form when user is available
     useEffect(() => {
@@ -55,11 +89,11 @@ const CheckoutPage = () => {
         }));
 
         // Calculate shipping
+        // Calculate shipping
         if (name === "area") {
-            if (value === "Inside Dhaka") {
-                setShippingCost(60); // Default, ideally fetch from config
-            } else if (value === "Outside Dhaka") {
-                setShippingCost(120);
+            const method = shippingMethods.find(m => m.name === value);
+            if (method) {
+                setShippingCost(Number(method.cost));
             } else {
                 setShippingCost(0);
             }
@@ -70,7 +104,7 @@ const CheckoutPage = () => {
         e.preventDefault();
         setLoading(true);
 
-        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://backend.valokichu.com/api';
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
         try {
             // 1. Prepare Payload
@@ -243,8 +277,11 @@ const CheckoutPage = () => {
                                         className="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-600/20 outline-none bg-white"
                                     >
                                         <option value="">Select Area</option>
-                                        <option value="Inside Dhaka">Inside Dhaka (৳60)</option>
-                                        <option value="Outside Dhaka">Outside Dhaka (৳120)</option>
+                                        {shippingMethods.map(method => (
+                                            <option key={method.id} value={method.name}>
+                                                {method.name} (৳{Math.floor(method.cost)})
+                                            </option>
+                                        ))}
                                     </select>
                                 </div>
                                 <div>
@@ -270,7 +307,7 @@ const CheckoutPage = () => {
                                     <div key={`${item.id}-${item.variant?.id}`} className="flex justify-between items-start text-sm">
                                         <div className="flex gap-2">
                                             <div className="w-10 h-10 bg-gray-100 rounded shrink-0 overflow-hidden">
-                                                <img src={item.image && item.image.startsWith('http') ? item.image : (item.image ? `${process.env.NEXT_PUBLIC_API_URL || 'https://backend.valokichu.com'}/${item.image}` : '/placeholder.png')} className="w-full h-full object-cover" />
+                                                <img src={item.image && item.image.startsWith('http') ? item.image : (item.image ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/${item.image}` : '/placeholder.png')} className="w-full h-full object-cover" />
                                             </div>
                                             <div>
                                                 <p className="font-medium text-gray-900 line-clamp-1">{item.name}</p>

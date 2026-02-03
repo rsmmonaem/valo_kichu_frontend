@@ -139,7 +139,7 @@ const SettingsPage = () => {
                             <div className="flex items-center gap-4">
                                 <div className="w-24 h-24 bg-gray-50 border border-gray-200 rounded-lg flex items-center justify-center overflow-hidden relative">
                                     {settings.site_logo ? (
-                                        <img src={settings.site_logo.startsWith('http') ? settings.site_logo : `${process.env.NEXT_PUBLIC_API_URL || 'https://backend.valokichu.com'}/storage/${settings.site_logo}`} className="w-full h-full object-contain" />
+                                        <img src={settings.site_logo.startsWith('http') ? settings.site_logo : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/storage/${settings.site_logo}`} className="w-full h-full object-contain" />
                                     ) : (
                                         <ImageIcon className="text-gray-300" />
                                     )}

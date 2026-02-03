@@ -16,7 +16,8 @@ import {
     Folder,
     FolderOpen,
     Tags,
-    Image as ImageIcon
+    Image as ImageIcon,
+    Truck
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import clsx from 'clsx';
@@ -46,6 +47,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, setIsOpen }) => {
         { path: '/admin/brands', label: 'Brands', icon: Tags },
         { path: '/admin/banners', label: 'Banners', icon: ImageIcon },
         { path: '/admin/customers', label: 'Customers', icon: Users },
+        { path: '/admin/shipping', label: 'Shipping', icon: Truck },
         { path: '/admin/settings', label: 'Settings', icon: Settings },
     ];
 

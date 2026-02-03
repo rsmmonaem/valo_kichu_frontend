@@ -19,8 +19,8 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
     // Parse Images
     const rawGallery = product.gallery_images || [];
     const galleryImages = parseGalleryImages(rawGallery);
-    const mainImage = product.image?.startsWith('http') ? product.image : `http://127.0.0.1:8000/storage/${product.image}`;
-    const allImages = [mainImage, ...galleryImages.map(img => img.startsWith('http') ? img : `http://127.0.0.1:8000/storage/${img}`)];
+    const mainImage = product.image?.startsWith('http') ? product.image : `${process.env.NEXT_PUBLIC_API_URL}/storage/products/${product.image}`;
+    const allImages = [mainImage, ...galleryImages.map(img => img.startsWith('http') ? img : `${process.env.NEXT_PUBLIC_API_URL}/storage/products/${img}`)];
 
     const [selectedImage, setSelectedImage] = useState(0);
     const [quantity, setQuantity] = useState(1);
@@ -179,7 +179,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
                                             >
                                                 {c.img ? (
                                                     <div className="w-10 h-10 rounded overflow-hidden">
-                                                        <img src={c.img.startsWith('http') ? c.img : `http://127.0.0.1:8000/storage/${c.img}`} alt={c.name} className="w-full h-full object-cover" />
+                                                        <img src={c.img.startsWith('http') ? c.img : `${process.env.NEXT_PUBLIC_API_URL}/storage/${c.img}`} alt={c.name} className="w-full h-full object-cover" />
                                                     </div>
                                                 ) : (
                                                     <div className="px-3 py-1 bg-gray-100 text-sm font-medium text-gray-700 min-w-[2rem] text-center">{c.name}</div>

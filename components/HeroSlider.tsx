@@ -40,12 +40,23 @@ const HeroSlider: React.FC<HeroSliderProps> = ({ banners }) => {
                         index === currentIndex ? "opacity-100 z-10" : "opacity-0 z-0"
                     )}
                 >
-                    <img
-                        src={banner.image_url || ((banner.image && banner.image.startsWith('http')) ? banner.image : `http://127.0.0.1:8000/storage/${banner.image}`)}
-                        alt={banner.title || 'Banner'}
-                        className="w-full h-full object-cover"
-                        onError={(e) => (e.currentTarget.style.display = 'none')}
-                    />
+                    {banner.link ? (
+                        <Link href={banner.link} className="absolute inset-0 z-0">
+                            <img
+                                src={banner.image_url || ((banner.image && banner.image.startsWith('http')) ? banner.image : `${process.env.NEXT_PUBLIC_API_URL}/storage/${banner.image}`)}
+                                alt={banner.title || 'Banner'}
+                                className="w-full h-full object-cover"
+                                onError={(e) => (e.currentTarget.style.display = 'none')}
+                            />
+                        </Link>
+                    ) : (
+                        <img
+                            src={banner.image_url || ((banner.image && banner.image.startsWith('http')) ? banner.image : `${process.env.NEXT_PUBLIC_API_URL}/storage/${banner.image}`)}
+                            alt={banner.title || 'Banner'}
+                            className="w-full h-full object-cover"
+                            onError={(e) => (e.currentTarget.style.display = 'none')}
+                        />
+                    )}
                     <div className="absolute inset-0 bg-black/20 flex flex-col justify-center px-6 md:px-16 text-white text-left">
                         {banner.title && (
                             <h2 className="text-2xl md:text-5xl font-extrabold max-w-lg leading-tight uppercase drop-shadow-md">

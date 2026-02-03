@@ -41,7 +41,7 @@ const CartPage = () => {
                                 <div className="col-span-6 flex gap-4">
                                     <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden shrink-0">
                                         <img
-                                            src={item.image && item.image.startsWith('http') ? item.image : (item.image ? `http://127.0.0.1:8000/${item.image}` : '/placeholder.png')}
+                                            src={item.image && item.image.startsWith('http') ? item.image : (item.image ? `${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}/${item.image}` : '/placeholder.png')}
                                             alt={item.name}
                                             className="w-full h-full object-cover"
                                         />

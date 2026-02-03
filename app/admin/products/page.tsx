@@ -107,7 +107,7 @@ const AdminProductsPage = () => {
                                             <div className="flex items-center gap-3">
                                                 <div className="w-10 h-10 bg-gray-100 rounded shrink-0 overflow-hidden">
                                                     <img
-                                                        src={product.image && product.image.startsWith('http') ? product.image : (product.image ? `http://127.0.0.1:8000/${product.image}` : '/placeholder.png')}
+                                                        src={product.image && product.image.startsWith('http') ? product.image : (product.image ? `${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}/${product.image}` : '/placeholder.png')}
                                                         alt={product.name}
                                                         className="w-full h-full object-cover"
                                                     />

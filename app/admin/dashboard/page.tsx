@@ -60,7 +60,7 @@ const AdminDashboard = () => {
                     recent_orders: [],
                     trending_products: []
                 });
-                // setError('Failed to load dashboard data');
+                // setError('Failed to load dashboard data'); 
             } finally {
                 setLoading(false);
             }
@@ -68,8 +68,8 @@ const AdminDashboard = () => {
 
         // For now, let's use the URL from valid code: `/admin/v1/dashboard/stats`
         // But `authFetch` prepends `NEXT_PUBLIC_API_URL`.
-        // If `NEXT_PUBLIC_API_URL` is `https://backend.valokichu.com/api`, then we need `admin/dashboard/stats` maybe?
-        // Let's stick with what was in `Dashboard.jsx`: `/admin/v1/dashboard/stats`.
+        // If `NEXT_PUBLIC_API_URL` is `http://localhost:8000/api`, then we need `admin/dashboard/stats` maybe?
+        // Let's stick with what was in `Dashboard.jsx`: `/admin/v1/dashboard/stats`. 
         // Wait, `Dashboard.jsx` used `api.get('/admin/v1/dashboard/stats')`.
         fetchStats();
     }, []);
@@ -153,7 +153,7 @@ const AdminDashboard = () => {
                                 <div key={index} className="flex items-center gap-4 pb-4 border-b last:border-0 last:pb-0">
                                     <div className="w-10 h-10 rounded bg-gray-100 overflow-hidden">
                                         <img
-                                            src={item.image && item.image.startsWith('http') ? item.image : (item.image ? `http://127.0.0.1:8000/${item.image}` : '/placeholder.png')}
+                                            src={item.image && item.image.startsWith('http') ? item.image : (item.image ? `${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}/${item.image}` : '/placeholder.png')}
                                             alt={item.name}
                                             className="w-full h-full object-cover"
                                         />

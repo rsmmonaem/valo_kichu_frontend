@@ -40,7 +40,7 @@ const CategoryCarousel: React.FC<CategoryCarouselProps> = ({ categories }) => {
                 >
                     <div className="w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden bg-gray-50 mb-3 border border-gray-100 group-hover:scale-105 transition-transform">
                         {cat.image || cat.icon ? (
-                            <img src={cat.image?.startsWith('http') ? cat.image : `http://127.0.0.1:8000/storage/${cat.image}`} alt={cat.name} className="w-full h-full object-cover" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                            <img src={cat.image?.startsWith('http') ? cat.image : `${process.env.NEXT_PUBLIC_API_URL}/storage/${cat.image}`} alt={cat.name} className="w-full h-full object-cover" onError={(e) => (e.currentTarget.style.display = 'none')} />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center text-blue-600/10 bg-blue-600/5 text-2xl font-bold text-blue-600 uppercase">
                                 {cat.name.charAt(0)}

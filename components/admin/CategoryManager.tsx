@@ -93,7 +93,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ title, level }) => {
         if (level === 'sub') {
             return categories; // Main categories are parents
         } else if (level === 'sub-sub') {
-            // Need to select Main first, then Sub.
+            // Need to select Main first, then Sub. 
             // This helper returns Main categories, logic in form handles sub-selection
             return categories;
         }
@@ -246,7 +246,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ title, level }) => {
                             ) : displayCategories.length > 0 ? (
                                 displayCategories.map((cat) => {
                                     // Find parent name for display
-                                    // This is expensive O(N^2) but ok for small lists.
+                                    // This is expensive O(N^2) but ok for small lists. 
                                     // Better: create a lookup map.
                                     // For now, let's just display what we have. API might not return parent object, just ID.
 
@@ -257,7 +257,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ title, level }) => {
                                                 <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden border border-gray-200">
                                                     {cat.image ? (
                                                         <img
-                                                            src={cat.image.startsWith('http') ? cat.image : `${process.env.NEXT_PUBLIC_API_URL || 'https://backend.valokichu.com'}/storage/${cat.image}`}
+                                                            src={cat.image.startsWith('http') ? cat.image : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/storage/${cat.image}`}
                                                             alt={cat.name}
                                                             className="w-full h-full object-cover"
                                                         />
@@ -400,7 +400,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ title, level }) => {
                                     </label>
                                     {formData.image && (
                                         <div className="w-16 h-16 rounded-lg border border-gray-200 overflow-hidden shrink-0">
-                                            <img src={formData.image.startsWith('http') ? formData.image : `${process.env.NEXT_PUBLIC_API_URL || 'https://backend.valokichu.com'}/storage/${formData.image}`} className="w-full h-full object-cover" />
+                                            <img src={formData.image.startsWith('http') ? formData.image : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/storage/${formData.image}`} className="w-full h-full object-cover" />
                                         </div>
                                     )}
                                 </div>
