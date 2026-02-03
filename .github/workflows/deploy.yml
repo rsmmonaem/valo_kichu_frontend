@@ -32,9 +32,9 @@ jobs:
       - name: Rebuild & Restart Docker on Server
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: valokichu.com
-          username: valok5857
-          password: admin_valokichu
+          host: rsmmonaem.me
+          username: root
+          password: RsmMonaem66@@
           script: |
             cd /home/valokichu.com/public_html/frontend
             docker-compose down
