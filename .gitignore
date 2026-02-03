@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+.github/workflows/deploy.yml
+upload-source.sh
+upload-source.sh
