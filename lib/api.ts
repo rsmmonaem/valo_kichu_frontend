@@ -1,12 +1,12 @@
 const getApiUrl = () => {
-  const base = process.env.NEXT_PUBLIC_API_URL || 'https://backend.valokichu.com';
+  const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
   return base.endsWith('/api') ? base : `${base}/api`;
 };
 
 const API_URL = getApiUrl();
 
 
-// const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://backend.valokichu.com/api/v2';
+// const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v2';
 
 export interface Product {
   id: number;
@@ -36,6 +36,13 @@ export interface Product {
   sold_count?: number;
   attributes?: any; // JSON string or list from API
   gallery_images?: any; // JSON string or list from API
+  tags?: string[] | string; // array or comma-sep string
+  video_link?: string;
+  key_features?: string[];
+  rating_count?: number;
+  loyalty_points?: number;
+  current_stock?: number; // admin products page uses this
+  status?: string; // admin products page uses this
 }
 
 export const authFetch = async (endpoint: string, options: RequestInit = {}) => {
