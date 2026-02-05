@@ -7,6 +7,26 @@ import { CartProvider } from '@/context/CartContext';
 export const metadata: Metadata = {
   title: 'Valokichu - Premium Wholesale Marketplace',
   description: 'Connect directly with best manufacturers.',
+  keywords: [
+    'wholesale marketplace',
+    'b2b marketplace',
+    'bulk products',
+    'wholesale ecommerce',
+    'manufacturer to retailer',
+    'direct from manufacturers',
+    'online wholesale platform',
+    'business to business ecommerce',
+    'global wholesale market',
+    'bulk buying platform',
+    'supplier marketplace',
+    'wholesale suppliers',
+    'trade marketplace',
+    'Valokichu',
+  ].join(', '),
+
+  verification: {
+    google: 'wBgt_-cjgzjf8qCBOdlubW9YH3IJwzBouZ9w_FFq6i0',
+  },
   icons: {
     icon: '/fav.png',  // PNG file
     apple: '/fav.png', // optional for iOS devices
