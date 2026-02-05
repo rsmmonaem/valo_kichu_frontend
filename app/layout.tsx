@@ -21,8 +21,8 @@ export const metadata: Metadata = {
     'supplier marketplace',
     'wholesale suppliers',
     'trade marketplace',
-    'Valokichu',
-  ].join(', '),
+    'Valokichu'
+  ],
 
   verification: {
     google: 'wBgt_-cjgzjf8qCBOdlubW9YH3IJwzBouZ9w_FFq6i0',
