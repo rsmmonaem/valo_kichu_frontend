@@ -28,9 +28,24 @@ export const metadata: Metadata = {
     google: 'wBgt_-cjgzjf8qCBOdlubW9YH3IJwzBouZ9w_FFq6i0',
   },
   icons: {
-    icon: '/fav.png',  // PNG file
-    apple: '/fav.png', // optional for iOS devices
+    icon: '/fav.png',
+    apple: '/icon-192x192.png',
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Valokichu',
+  },
+  formatDetection: {
+    telephone: false,
+  },
+};
+
+export const viewport = {
+  themeColor: '#f97316',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
 };
 
 import { Inter } from 'next/font/google';
