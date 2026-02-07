@@ -25,11 +25,15 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
 
   // Use Cart Context
-  const { addToCart } = useCart?.() || { addToCart: () => { } };
+  const { addToCart } = useCart?.() || { addToCart: () => {} };
 
   // ---------------- PARSE DATA ----------------
-  const galleryArray = product ? parseGalleryImages(product.gallery_images) || [] : [];
-  const productAttributes = product ? parseAttributes(product.attributes) || [] : [];
+  const galleryArray = product
+    ? parseGalleryImages(product.gallery_images) || []
+    : [];
+  const productAttributes = product
+    ? parseAttributes(product.attributes) || []
+    : [];
 
   // Extract size and color from attributes
   const sizeData =
@@ -55,12 +59,15 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
       })) || [];
 
   // Gallery images for thumbnails
-  const galleryImages = galleryArray.map((image, index) => ({
-    id: index + 1,
-    img: image.startsWith("http")
-      ? image
-      : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/storage/products/${image.replace(/^\/?storage\//, '')}`,
-  })) || [];
+  const galleryImages =
+    galleryArray.map((image, index) => ({
+      id: index + 1,
+      img: image.startsWith("http")
+        ? image
+        : `${
+            process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+          }/storage/products/${image.replace(/^\/?storage\//, "")}`,
+    })) || [];
 
   // Initialize states
   const [size, setSize] = useState(sizeData[0] || "");
@@ -71,11 +78,17 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
   useEffect(() => {
     if (!product) return;
     // Initialize preview
-    const mainImage = product.image || product.thumbnail || galleryArray[0] || '';
-    const initialPreview = galleryImages[0]?.img ||
-      (mainImage.startsWith("http") ? mainImage : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/storage/products/${mainImage.replace(/^\/?storage\//, '')}`);
+    const mainImage =
+      product.image || product.thumbnail || galleryArray[0] || "";
+    const initialPreview =
+      galleryImages[0]?.img ||
+      (mainImage.startsWith("http")
+        ? mainImage
+        : `${
+            process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+          }/storage/products/${mainImage.replace(/^\/?storage\//, "")}`);
 
-    setPreview(initialPreview || 'https://placehold.co/600x600?text=No+Image');
+    setPreview(initialPreview || "https://placehold.co/600x600?text=No+Image");
     setHasImageError(false);
   }, [product]);
 
@@ -121,13 +134,13 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
       name: product.name,
       slug: product.slug,
       price: displayPrice,
-      image: product.image || product.thumbnail || '',
+      image: product.image || product.thumbnail || "",
       quantity: quantity,
       variant: {
-        size: typeof size === 'string' ? size : '',
+        size: typeof size === "string" ? size : "",
         color: color?.name,
-        weight: typeof weight === 'string' ? weight : weight?.name
-      }
+        weight: typeof weight === "string" ? weight : weight?.name,
+      },
     };
     // @ts-ignore
     addToCart(cartItem);
@@ -141,13 +154,13 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
       name: product.name,
       slug: product.slug,
       price: displayPrice,
-      image: product.image || product.thumbnail || '',
+      image: product.image || product.thumbnail || "",
       quantity: quantity,
       variant: {
-        size: typeof size === 'string' ? size : '',
+        size: typeof size === "string" ? size : "",
         color: color?.name,
-        weight: typeof weight === 'string' ? weight : weight?.name
-      }
+        weight: typeof weight === "string" ? weight : weight?.name,
+      },
     };
     // @ts-ignore
     addToCart(cartItem);
@@ -155,40 +168,47 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
     onClose();
   };
 
-  const handleQuantityChange = (type: 'increment' | 'decrement') => {
-    if (type === 'increment') {
-      setQuantity(prev => prev + 1);
+  const handleQuantityChange = (type: "increment" | "decrement") => {
+    if (type === "increment") {
+      setQuantity((prev) => prev + 1);
     } else {
-      setQuantity(prev => Math.max(1, prev - 1));
+      setQuantity((prev) => Math.max(1, prev - 1));
     }
   };
 
   // Format price
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-BD', {
-      style: 'currency',
-      currency: 'BDT',
+    return new Intl.NumberFormat("en-BD", {
+      style: "currency",
+      currency: "BDT",
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(price).replace('BDT', '৳');
+    })
+      .format(price)
+      .replace("BDT", "৳");
   };
 
   // Video URL conversion for iframe
   const getEmbedVideoUrl = (url: string) => {
-    if (!url) return '';
-    if (url.includes('youtube.com')) {
-      return url.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/');
+    if (!url) return "";
+    if (url.includes("youtube.com")) {
+      return url
+        .replace("watch?v=", "embed/")
+        .replace("youtu.be/", "youtube.com/embed/");
     }
-    if (url.includes('vimeo.com')) {
-      const videoId = url.split('/').pop();
+    if (url.includes("vimeo.com")) {
+      const videoId = url.split("/").pop();
       return `https://player.vimeo.com/video/${videoId}`;
     }
     return url;
   };
 
   // Calculate price from your ProductCard logic
-  const basePrice = product ? parseFloat(product.base_price || product.price || '0') : 0;
-  const salePrice = product && product.sale_price ? parseFloat(product.sale_price) : null;
+  const basePrice = product
+    ? parseFloat(product.base_price || product.price || "0")
+    : 0;
+  const salePrice =
+    product && product.sale_price ? parseFloat(product.sale_price) : null;
   const hasDiscount = salePrice && salePrice > 0 && salePrice < basePrice;
   const displayPrice = hasDiscount && salePrice ? salePrice : basePrice;
 
@@ -205,7 +225,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
       <div className="fixed inset-0 z-50 flex items-center justify-center p-2 md:p-6">
         <div
           ref={modalRef}
-          className="relative w-full max-w-6xl max-h-[80vh] md:max-h-[92vh] bg-white border border-yellow-600 rounded-3xl shadow-[0_30px_80px_rgba(0,0,0,0.35)] animate-in fade-in zoom-in-95 duration-300 overflow-hidden flex flex-col"
+          className="relative w-full max-w-6xl max-h-[75vh] md:max-h-[92vh] bg-white border border-yellow-600 rounded-3xl shadow-[0_30px_80px_rgba(0,0,0,0.35)] animate-in fade-in zoom-in-95 duration-300 overflow-hidden flex flex-col"
         >
           {/* Close Button */}
           <button
@@ -225,17 +245,23 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                 <div className="relative rounded-2xl overflow-hidden bg-gray-100 group">
                   <div className="w-full aspect-square relative">
                     <img
-                      src={hasImageError || !preview ? 'https://placehold.co/600x600?text=No+Image' : preview}
+                      src={
+                        hasImageError || !preview
+                          ? "https://placehold.co/600x600?text=No+Image"
+                          : preview
+                      }
                       alt={product.name}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                       onError={() => setHasImageError(true)}
                     />
                   </div>
-                  {product.tags && Array.isArray(product.tags) && product.tags.includes('best_seller') && (
-                    <span className="absolute top-4 left-4 px-4 py-1 text-sm font-semibold text-white rounded-full bg-[#FFAC1C] shadow-lg">
-                      Best Seller
-                    </span>
-                  )}
+                  {product.tags &&
+                    Array.isArray(product.tags) &&
+                    product.tags.includes("best_seller") && (
+                      <span className="absolute top-4 left-4 px-4 py-1 text-sm font-semibold text-white rounded-full bg-[#FFAC1C] shadow-lg">
+                        Best Seller
+                      </span>
+                    )}
                 </div>
 
                 {/* Gallery Thumbnails */}
@@ -250,19 +276,20 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                           setHasImageError(false);
                         }}
                         className={`flex-shrink-0 h-16 w-16 rounded-xl overflow-hidden border-2 transition
-                          ${g.id === galleryId
-                            ? "border-[#FFAC1C] ring-2 ring-[#FFAC1C]/40"
-                            : "border-gray-200 hover:border-[#FFAC1C]"
+                          ${
+                            g.id === galleryId
+                              ? "border-[#FFAC1C] ring-2 ring-[#FFAC1C]/40"
+                              : "border-gray-200 hover:border-[#FFAC1C]"
                           }`}
                       >
                         <div className="relative w-full h-full">
                           <img
-                            src={g.img || 'https://placehold.co/60x60?text=...'}
+                            src={g.img || "https://placehold.co/60x60?text=..."}
                             alt={`Gallery ${g.id}`}
                             className="w-full h-full object-cover"
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
-                              target.style.display = 'none';
+                              target.style.display = "none";
                             }}
                           />
                         </div>
@@ -277,11 +304,20 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                     <h3 className="text-lg font-bold mb-4">Specifications</h3>
                     <div className="space-y-2">
                       {productAttributes.map((attr, i) => (
-                        <div key={i} className="flex justify-between border-b border-gray-200 pb-2 last:border-0">
-                          <span className="text-gray-600 font-medium">{attr.name}</span>
+                        <div
+                          key={i}
+                          className="flex justify-between border-b border-gray-200 pb-2 last:border-0"
+                        >
+                          <span className="text-gray-600 font-medium">
+                            {attr.name}
+                          </span>
                           <span className="text-gray-800 font-semibold text-right">
                             {Array.isArray(attr.values)
-                              ? attr.values.map((v: any) => (typeof v === 'object' ? v.name : v)).join(', ')
+                              ? attr.values
+                                  .map((v: any) =>
+                                    typeof v === "object" ? v.name : v
+                                  )
+                                  .join(", ")
                               : attr.values}
                           </span>
                         </div>
@@ -307,7 +343,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
               {/* RIGHT COLUMN - Product Details */}
               <div>
                 {/* Product Name */}
-                <h2 className="text-2xl md:text-3xl font-extrabold mb-3">
+                <h2 className="text-2xl md:text-3xl font-extrabold mb-3 md:max-w-[calc(100%-3rem)] overflow-hidden">
                   {product.name}
                 </h2>
 
@@ -369,15 +405,19 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                               setHasImageError(false);
                             }
                           }}
-                          className={`p-3 rounded-xl cursor-pointer transition hover:scale-105 ${c.id === color?.id
-                            ? "bg-[#FFAC1C] text-white shadow-lg"
-                            : "bg-gray-100"
-                            }`}
+                          className={`p-3 rounded-xl cursor-pointer transition hover:scale-105 ${
+                            c.id === color?.id
+                              ? "bg-[#FFAC1C] text-white shadow-lg"
+                              : "bg-gray-100"
+                          }`}
                         >
                           {c.img ? (
                             <div className="relative w-full aspect-square rounded-lg overflow-hidden">
                               <img
-                                src={c.img || 'https://placehold.co/100x100?text=...'}
+                                src={
+                                  c.img ||
+                                  "https://placehold.co/100x100?text=..."
+                                }
                                 alt={c.name}
                                 className="w-full h-full object-cover"
                               />
@@ -402,10 +442,11 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                         <button
                           key={w.id}
                           onClick={() => setWeight(w)}
-                          className={`p-3 text-center rounded-xl cursor-pointer transition hover:scale-105 ${(w.id === weight?.id || w === weight)
-                            ? "bg-[#FFAC1C] text-white shadow-lg"
-                            : "bg-gray-100"
-                            }`}
+                          className={`p-3 text-center rounded-xl cursor-pointer transition hover:scale-105 ${
+                            w.id === weight?.id || w === weight
+                              ? "bg-[#FFAC1C] text-white shadow-lg"
+                              : "bg-gray-100"
+                          }`}
                         >
                           {w.name || w}
                         </button>
@@ -423,10 +464,11 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                         <button
                           key={s}
                           onClick={() => setSize(s)}
-                          className={`p-3 text-center rounded-xl cursor-pointer transition hover:scale-105 ${s === size
-                            ? "bg-[#FFAC1C] text-white shadow-lg"
-                            : "bg-gray-100"
-                            }`}
+                          className={`p-3 text-center rounded-xl cursor-pointer transition hover:scale-105 ${
+                            s === size
+                              ? "bg-[#FFAC1C] text-white shadow-lg"
+                              : "bg-gray-100"
+                          }`}
                         >
                           {s}
                         </button>
@@ -441,7 +483,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                   <div className="flex items-center border rounded-xl overflow-hidden">
                     <button
                       className="px-4 py-3 hover:bg-gray-100 active:bg-gray-200 disabled:opacity-50"
-                      onClick={() => handleQuantityChange('decrement')}
+                      onClick={() => handleQuantityChange("decrement")}
                       disabled={quantity <= 1}
                     >
                       <Minus size={16} />
@@ -451,7 +493,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                     </span>
                     <button
                       className="px-4 py-3 hover:bg-gray-100 active:bg-gray-200"
-                      onClick={() => handleQuantityChange('increment')}
+                      onClick={() => handleQuantityChange("increment")}
                     >
                       <Plus size={16} />
                     </button>
@@ -459,19 +501,25 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                 </div>
 
                 {/* Mobile Key Features */}
-                {isMobile && product.key_features && Array.isArray(product.key_features) && product.key_features.length > 0 && (
-                  <div className="mt-6 bg-gray-50 rounded-2xl p-6 shadow-inner">
-                    <h3 className="text-lg font-bold mb-4">Key Features</h3>
-                    <ul className="space-y-3">
-                      {product.key_features.map((f, i) => (
-                        <li key={i} className="flex items-start gap-3 text-gray-700">
-                          <span className="mt-2 h-2 w-2 rounded-full bg-[#FFAC1C]" />
-                          {f}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                {isMobile &&
+                  product.key_features &&
+                  Array.isArray(product.key_features) &&
+                  product.key_features.length > 0 && (
+                    <div className="mt-6 bg-gray-50 rounded-2xl p-6 shadow-inner">
+                      <h3 className="text-lg font-bold mb-4">Key Features</h3>
+                      <ul className="space-y-3">
+                        {product.key_features.map((f, i) => (
+                          <li
+                            key={i}
+                            className="flex items-start gap-3 text-gray-700"
+                          >
+                            <span className="mt-2 h-2 w-2 rounded-full bg-[#FFAC1C]" />
+                            {f}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
 
                 {/* Mobile Video */}
                 {isMobile && product.video_link && (
@@ -494,7 +542,8 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                 <div
                   className="text-gray-700 leading-relaxed prose prose-sm max-w-none"
                   dangerouslySetInnerHTML={{
-                    __html: product.description || "<p>No description available.</p>"
+                    __html:
+                      product.description || "<p>No description available.</p>",
                   }}
                 />
               </div>
@@ -531,7 +580,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
           border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #FFAC1C;
+          background: #ffac1c;
           border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {

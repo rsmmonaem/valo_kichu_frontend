@@ -56,7 +56,7 @@ export const authFetch = async (endpoint: string, options: RequestInit = {}) => 
   if (!(options.body instanceof FormData)) {
     headers['Content-Type'] = 'application/json';
   }
-
+  console.log(`${API_URL}${endpoint}`);
   const res = await fetch(`${API_URL}${endpoint}`, {
     ...options,
     headers,

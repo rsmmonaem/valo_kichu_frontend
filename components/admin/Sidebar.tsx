@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import clsx from 'clsx';
+import path from 'path';
 
 interface AdminSidebarProps {
     isOpen: boolean;
@@ -48,6 +49,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, setIsOpen }) => {
         { path: '/admin/banners', label: 'Banners', icon: ImageIcon },
         { path: '/admin/customers', label: 'Customers', icon: Users },
         { path: '/admin/shipping', label: 'Shipping', icon: Truck },
+        {path:'/admin/dropshippers', label:'Dropshippers', icon: Users},
         { path: '/admin/settings', label: 'Settings', icon: Settings },
     ];
 
