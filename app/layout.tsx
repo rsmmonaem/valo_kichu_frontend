@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     google: 'wBgt_-cjgzjf8qCBOdlubW9YH3IJwzBouZ9w_FFq6i0',
   },
   icons: {
-    icon: '/fav.png',
+    icon: '/fav1.png',
     apple: '/icon-192x192.png',
   },
   appleWebApp: {

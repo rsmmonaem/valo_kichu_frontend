@@ -434,7 +434,8 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
 
                     const fd = new FormData();
                     fd.append('image', file);
-                    fd.append('folder', 'products/gallery');
+                    // fd.append('folder', 'products/gallery');
+                    fd.append('folder', 'products');
 
                     const res = await authFetch('/admin/v1/upload', {
                         method: 'POST',
@@ -1578,7 +1579,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
                                             <div key={index} className="relative group">
                                                 <div className="aspect-square overflow-hidden rounded-lg border border-gray-300 bg-gray-100">
                                                     <img
-                                                        src={`${process.env.NEXT_PUBLIC_API_URL}/storage/products/gallery/${image}`}
+                                                        src={`${process.env.NEXT_PUBLIC_API_URL}/storage/products/${image}`}
                                                         alt={`Gallery Image ${index + 1}`}
                                                         className="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
                                                     />

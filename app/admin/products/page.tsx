@@ -44,7 +44,7 @@ const AdminProductsPage = () => {
         if (!window.confirm("Are you sure you want to delete this product?")) return;
 
         try {
-            const res = await authFetch(`/v1/admin/products/${id}`, { method: 'DELETE' });
+            const res = await authFetch(`/admin/v1/products/${id}`, { method: 'DELETE' });
             if (res.ok) {
                 toast.success("Product deleted successfully");
                 fetchProducts(currentPage);
@@ -107,7 +107,7 @@ const AdminProductsPage = () => {
                                             <div className="flex items-center gap-3">
                                                 <div className="w-10 h-10 bg-gray-100 rounded shrink-0 overflow-hidden">
                                                     <img
-                                                        src={product.image && product.image.startsWith('http') ? product.image : (product.image ? `${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}/${product.image}` : '/placeholder.png')}
+                                                        src={product.image && product.image.startsWith('http') ? product.image : (product.image ? `${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}/storage/products/${product.image}` : '/placeholder.png')}
                                                         alt={product.name}
                                                         className="w-full h-full object-cover"
                                                     />
