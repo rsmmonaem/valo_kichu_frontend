@@ -113,7 +113,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
             shipping_multiply: data.shipping_multiply !== undefined ? data.shipping_multiply : true,
             loyalty_point: data.loyalty_point || 0,
             image: data.image || "",
-            gallery_images: data.gallery_images || [],
+            gallery_images: Array.isArray(data.gallery_images) ? data.gallery_images : [],
             status: data.status || "active",
             meta_title: data.meta_title || "",
             meta_description: data.meta_description || "",
@@ -122,9 +122,9 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
 
         if (data.tags) setTags(Array.isArray(data.tags) ? data.tags : []);
         if (data.specifications) setSpecifications(Array.isArray(data.specifications) ? data.specifications : []);
-        if (data.colors) setSelectedColors(data.colors || []);
-        if (data.variations) setVariations(data.variations || []);
-        if (data.attributes) setAttributes(data.attributes || []);
+        if (data.colors) setSelectedColors(Array.isArray(data.colors) ? data.colors : []);
+        if (data.variations) setVariations(Array.isArray(data.variations) ? data.variations : []);
+        if (data.attributes) setAttributes(Array.isArray(data.attributes) ? data.attributes : []);
     };
 
     const fetchCategories = async () => {
@@ -367,12 +367,33 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
             }
         });
 
-        // Assign proper IDs
-        const finalVariations = uniqueVariations.map((variation, index) => ({
-            ...variation,
-            id: index + 1,
-            price: variation.price || parseFloat(formData.price) || 0,
-        }));
+        // Assign proper IDs and PRESERVE existing data if possible
+        const finalVariations = uniqueVariations.map((variation, index) => {
+            // Try to find if this variation already exists (by color and attributes)
+            const existing = (variations || []).find(v => {
+                if (v.color !== variation.color) return false;
+                const vAttrs = v.attributes || {};
+                const varAttrs = variation.attributes || {};
+                if (Object.keys(vAttrs).length !== Object.keys(varAttrs).length) return false;
+                return Object.entries(varAttrs).every(([key, val]) => vAttrs[key] === val);
+            });
+
+            if (existing) {
+                return {
+                    ...variation,
+                    id: index + 1,
+                    sku: existing.sku || variation.sku,
+                    stock: existing.stock !== undefined ? existing.stock : variation.stock,
+                    price: existing.price !== undefined ? existing.price : (variation.price || parseFloat(formData.price) || 0),
+                };
+            }
+
+            return {
+                ...variation,
+                id: index + 1,
+                price: variation.price || parseFloat(formData.price) || 0,
+            };
+        });
 
         setVariations(finalVariations);
     }, [selectedColors, attributes, formData.price, formData.product_sku]);
@@ -589,8 +610,8 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
                 colorClass: variation.colorClass,
                 code: variation.code,
                 sku: variation.sku,
-                stock: parseInt(variation.stock) || 1,
-                price: parseFloat(variation.price) || finalPrice,
+                stock: (variation.stock !== undefined && variation.stock !== null && variation.stock !== "") ? parseInt(variation.stock) : 0,
+                price: (variation.price !== undefined && variation.price !== null && variation.price !== "") ? parseFloat(variation.price) : finalPrice,
                 color_image: selectedColors.find(c => c.name === variation.color)?.image || null,
                 attributes: variation.attributes || {},
             })),
@@ -771,9 +792,9 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
                         <div className="space-y-4">
                             {/* Display Added Specifications */}
                             <div className="flex flex-wrap gap-2 mb-3">
-                                {specifications.map((spec, index) => (
+                                {(Array.isArray(specifications) ? specifications : []).map((spec, index) => (
                                     <span
-                                        key={index}
+                                        key={`spec-${index}`}
                                         className="inline-flex items-center gap-2 px-3 py-2 bg-green-50 text-green-700 rounded-lg text-sm"
                                     >
                                         {spec}
@@ -833,8 +854,8 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
                                         required
                                     >
                                         <option value="">Select category</option>
-                                        {categories.map((cat) => (
-                                            <option key={cat.id} value={cat.id}>
+                                        {(Array.isArray(categories) ? categories : []).map((cat) => (
+                                            <option key={`cat-${cat.id}`} value={cat.id}>
                                                 {cat.name}
                                             </option>
                                         ))}
@@ -856,8 +877,8 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
                                             onChange={handleSubCategoryChange}
                                         >
                                             <option value="">Select Sub Category</option>
-                                            {subCategories.map((sub) => (
-                                                <option key={sub.id} value={sub.id}>
+                                            {(Array.isArray(subCategories) ? subCategories : []).map((sub) => (
+                                                <option key={`sub-${sub.id}`} value={sub.id}>
                                                     {sub.name}
                                                 </option>
                                             ))}
@@ -880,8 +901,8 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
                                             onChange={handleSubSubCategoryChange}
                                         >
                                             <option value="">Select Sub Sub Category</option>
-                                            {subSubCategories.map((sub) => (
-                                                <option key={sub.id} value={sub.id}>
+                                            {(Array.isArray(subSubCategories) ? subSubCategories : []).map((sub) => (
+                                                <option key={`subsub-${sub.id}`} value={sub.id}>
                                                     {sub.name}
                                                 </option>
                                             ))}
@@ -905,8 +926,8 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
                                     onChange={handleInputChange}
                                 >
                                     <option value="">Select Brand</option>
-                                    {brands.map((brand) => (
-                                        <option key={brand.id} value={brand.id}>
+                                    {(Array.isArray(brands) ? brands : []).map((brand) => (
+                                        <option key={`brand-${brand.id}`} value={brand.id}>
                                             {brand.name}
                                         </option>
                                     ))}
@@ -1244,8 +1265,8 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
                                             defaultValue=""
                                         >
                                             <option value="">Select Color</option>
-                                            {availableColors.map((color) => (
-                                                <option key={color.id} value={color.id}>
+                                            {(availableColors || []).map((color) => (
+                                                <option key={`avail-color-${color.id}`} value={color.id}>
                                                     {color.name}
                                                 </option>
                                             ))}
@@ -1255,9 +1276,9 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
 
                                     {/* Selected Colors Display */}
                                     <div className="flex flex-wrap gap-3 mt-4">
-                                        {selectedColors.map((color) => (
+                                        {(Array.isArray(selectedColors) ? selectedColors : []).map((color, index) => (
                                             <div
-                                                key={color.id}
+                                                key={`selected-color-${color.id || index}`}
                                                 className="flex items-center gap-2 px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg"
                                             >
                                                 <div className={`w-4 h-4 ${color.color} rounded-full`}></div>
@@ -1288,8 +1309,8 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
                                             defaultValue=""
                                         >
                                             <option value="">Select attributes</option>
-                                            {availAttributes.map((attr) => (
-                                                <option key={attr.id} value={attr.id}>
+                                            {(availAttributes || []).map((attr) => (
+                                                <option key={`avail-attr-${attr.id}`} value={attr.id}>
                                                     {attr.name}
                                                 </option>
                                             ))}
@@ -1299,9 +1320,9 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
 
                                     {/* Selected Attribute Display */}
                                     <div className="flex flex-wrap gap-3 mt-4">
-                                        {attributes.map((attr) => (
+                                        {(Array.isArray(attributes) ? attributes : []).map((attr, index) => (
                                             <div
-                                                key={attr.id}
+                                                key={`attr-display-${attr.id || attr.name || index}`}
                                                 className="flex items-center gap-2 px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg"
                                             >
                                                 <div className="w-4 h-4 rounded-full bg-blue-200"></div>
@@ -1352,9 +1373,9 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
 
                                             {/* Display entered values */}
                                             <div className="flex flex-wrap gap-2 mt-2">
-                                                {attr.values?.map((val: string, index: number) => (
+                                                {Array.isArray(attr.values) && attr.values.map((val: string, index: number) => (
                                                     <span
-                                                        key={index}
+                                                        key={`${attr.id}-val-${index}`}
                                                         className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-700 rounded-lg text-sm"
                                                     >
                                                         {val}
@@ -1409,9 +1430,9 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
                                         </div>
 
                                         {/* Variation Rows */}
-                                        {variations.map((variation, index) => (
+                                        {(Array.isArray(variations) ? variations : []).map((variation, index) => (
                                             <div
-                                                key={variation.id}
+                                                key={`variation-${variation.id || index}`}
                                                 className="grid grid-cols-12 gap-4 mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200"
                                             >
                                                 <div className="col-span-1 flex items-center">
@@ -1575,8 +1596,8 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
                                         </button>
                                     </div>
                                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                                        {formData.gallery_images.map((image, index) => (
-                                            <div key={index} className="relative group">
+                                        {(Array.isArray(formData.gallery_images) ? formData.gallery_images : []).map((image, index) => (
+                                            <div key={`gallery-${index}`} className="relative group">
                                                 <div className="aspect-square overflow-hidden rounded-lg border border-gray-300 bg-gray-100">
                                                     <img
                                                         src={`${process.env.NEXT_PUBLIC_API_URL}/storage/products/${image}`}
@@ -1705,9 +1726,9 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
                         </h2>
                         <div className="space-y-4">
                             <div className="flex flex-wrap gap-2 mb-3">
-                                {tags.map((tag, index) => (
+                                {(Array.isArray(tags) ? tags : []).map((tag, index) => (
                                     <span
-                                        key={index}
+                                        key={`tag-${index}`}
                                         className="inline-flex items-center gap-2 px-3 py-2 bg-blue-50 text-blue-700 rounded-lg text-sm"
                                     >
                                         {tag}
