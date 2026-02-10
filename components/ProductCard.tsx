@@ -13,13 +13,13 @@ interface ProductCardProps {
 const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    console.log('Product in ProductCard:', product.image);
-    if (!product.image) {
-        console.log('No image found for product:', product.name);
-    }
-    else {
-        console.log('Image found for product:', product.name, product.image);
-    }
+    
+    // if (!product.image) {
+    //     console.log('No image found for product:', product.name);
+    // }
+    // else {
+    //     console.log('Image found for product:', product.name, product.image);
+    // }
     // Image handling logic ported from React app
     let displayImage: string | null = null;
 
@@ -53,7 +53,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     const handleEyeClick = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        console.log('Eye icon clicked for:', product.name);
+        // console.log('Eye icon clicked for:', product.name);
         setIsModalOpen(true);
     };
 
@@ -68,7 +68,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                 <Link href={`/products/${product.slug}`} className="absolute inset-0 z-0" aria-label={product.name} />
 
                 <div className="aspect-square bg-gray-100 relative overflow-hidden">
-                    <div className="relative overflow-hidden group w-full h-full">
+                    <div className="relative overflow-hidden group w-full h-full" onClick={handleEyeClick}>
                         <img
                             src={finalImage}
                             alt={product.name}
@@ -78,7 +78,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                     </div>
 
                     {/* Quick View Button - Z-index higher than overlay link */}
-                    <button
+                    {/* <button
                         className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black/40 text-white rounded-full p-3 opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-black/60 hover:scale-110 flex items-center justify-center cursor-pointer border-0 focus:outline-none focus:ring-2 focus:ring-blue-500 z-10"
                         onClick={handleEyeClick}
                         type="button"
@@ -104,7 +104,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                                 d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
                             />
                         </svg>
-                    </button>
+                    </button> */}
 
                     {hasDiscount && salePrice && (
                         <div className="absolute top-2 left-2 bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm pointer-events-none z-10">

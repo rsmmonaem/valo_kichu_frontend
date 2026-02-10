@@ -9,6 +9,7 @@ import { useCart } from "@/context/CartContext";
 import { parseGalleryImages } from "@/lib/utils/parseGalleryImages";
 import { parseAttributes } from "@/lib/utils/parseAttributes";
 import { Product } from "@/lib/api"; // Import the same Product type
+import AddtocartToster from "./AddtocartToster";
 
 interface ProductModalProps {
   product: Product | null;
@@ -23,6 +24,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
   const [galleryId, setGalleryId] = useState(1);
   const [preview, setPreview] = useState<string | null>(null);
   const modalRef = useRef<HTMLDivElement>(null);
+  const [showCartAnimation, setShowCartAnimation] = useState(false); // ADDED: Animation state
 
   // Use Cart Context
   const { addToCart } = useCart?.() || { addToCart: () => {} };
@@ -144,7 +146,17 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
     };
     // @ts-ignore
     addToCart(cartItem);
-    onClose();
+
+    // ADDED: Show animation
+    setShowCartAnimation(true);
+
+    // ADDED: Hide animation after 2 seconds
+    setTimeout(() => {
+      setShowCartAnimation(false);
+    }, 2000);
+
+    // Don't close modal immediately
+    // onClose(); // Commented out to keep modal open with animation
   };
 
   const handleBuyNow = () => {
@@ -164,8 +176,17 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
     };
     // @ts-ignore
     addToCart(cartItem);
+
+    // ADDED: Show animation
+    // setShowCartAnimation(true);
+
+    // ADDED: Navigate after animation
+    // setTimeout(() => {
+    //   setShowCartAnimation(false);
+    //   router.push("/checkout");
+    //   onClose();
+    // }, 2000);
     router.push("/checkout");
-    onClose();
   };
 
   const handleQuantityChange = (type: "increment" | "decrement") => {
@@ -217,7 +238,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
   return (
     <>
       <div
-        className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 animate-in fade-in duration-300"
+        className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 animate-in fade-in duration-300 "
         onClick={onClose}
       />
 
@@ -230,11 +251,22 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
           {/* Close Button */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 z-50 p-2.5 rounded-full bg-white/90 backdrop-blur-sm shadow-lg hover:bg-white transition-all hover:scale-105 active:scale-95"
+            className="absolute top-4 right-4 z-50 p-2.5 rounded-full bg-white/90 backdrop-blur-sm shadow-lg hover:bg-white transition-all hover:scale-105 active:scale-95 cursor-pointer"
             aria-label="Close modal"
           >
             <X size={20} className="text-gray-800" />
           </button>
+
+          {/* ADDED: Cart Animation
+          {showCartAnimation && (
+//             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50">
+// <AddtocartToster />
+//             </div> */}
+          {/* <div className="absolute top-1/2 left-[60%] transform -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md px-4">
+    <AddtocartToster />
+</div>
+            
+          )} */}
 
           {/* Scrollable Content */}
           <div className="overflow-y-auto flex-1 custom-scrollbar">
@@ -551,7 +583,16 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
           </div>
 
           {/* Sticky CTA Buttons */}
-          <div className="sticky bottom-0 bg-white border-t p-4 flex gap-4 z-40">
+
+          {/* <div className="sticky bottom-0 bg-white border-t p-4 flex gap-4 z-40">
+            {showCartAnimation && (
+              //             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50">
+              // <AddtocartToster />
+              //             </div>
+              <div className="">
+                <AddtocartToster />
+              </div>
+            )}
             <button
               onClick={handleAddToCart}
               className="flex-1 py-3 rounded-xl text-md font-semibold bg-[#FFAC1C] text-white shadow-lg hover:opacity-90 transition flex items-center justify-center gap-2"
@@ -566,7 +607,49 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
             >
               Buy Now
             </button>
-          </div>
+          </div> */}
+          {/* <div className="sticky bottom-0 bg-white border-t p-4 flex gap-4 z-40 ">
+            {showCartAnimation && <AddtocartToster />}
+
+            <button
+              onClick={handleAddToCart}
+              className="flex-1 py-3 rounded-xl text-md font-semibold bg-[#FFAC1C] text-white shadow-lg hover:opacity-90 transition flex items-center justify-center gap-2"
+            >
+              <ShoppingCart size={18} />
+              Add to Cart
+            </button>
+
+            <button
+              onClick={handleBuyNow}
+              className="flex-1 py-3 rounded-xl text-md font-semibold bg-[#FFAC1C] text-white shadow-lg hover:opacity-90 transition"
+            >
+              Buy Now
+            </button>
+          </div> */}
+          <div className="sticky bottom-0 bg-white border-t p-4 flex gap-4 z-40">
+  
+  {/* Add to Cart Button Wrapper */}
+  <div className="flex-1 relative">
+    {showCartAnimation && <AddtocartToster />}
+
+    <button
+      onClick={handleAddToCart}
+      className="w-full py-3 rounded-xl text-md font-semibold bg-[#FFAC1C] text-white shadow-lg hover:opacity-90 transition flex items-center justify-center gap-2 cursor-pointer"
+    >
+      <ShoppingCart size={18} />
+      Add to Cart
+    </button>
+  </div>
+
+  {/* Buy Now Button */}
+  <button
+    onClick={handleBuyNow}
+    className="flex-1 py-3 rounded-xl text-md font-semibold bg-[#FFAC1C] text-white shadow-lg hover:opacity-90 transition cursor-pointer"
+  >
+    Buy Now
+  </button>
+</div>
+
         </div>
       </div>
 

@@ -10,10 +10,77 @@ interface Setting {
     value: string;
 }
 
+const LinkEditor = ({ title, links, onUpdate, fieldKey }: {
+    title: string,
+    links: { label: string, url: string }[],
+    onUpdate: (key: any, links: any[]) => void,
+    fieldKey: string
+}) => {
+    const addLink = () => onUpdate(fieldKey, [...links, { label: '', url: '' }]);
+    const removeLink = (index: number) => onUpdate(fieldKey, links.filter((_, i) => i !== index));
+    const updateLink = (index: number, field: 'label' | 'url', value: string) => {
+        const newLinks = [...links];
+        newLinks[index] = { ...newLinks[index], [field]: value };
+        onUpdate(fieldKey, newLinks);
+    };
+
+    return (
+        <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div className="flex justify-between items-center mb-4">
+                <h3 className="font-bold text-gray-700 text-sm">{title}</h3>
+                <button
+                    type="button"
+                    onClick={addLink}
+                    className="text-[10px] bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 transition"
+                >
+                    + Add Link
+                </button>
+            </div>
+            <div className="space-y-3">
+                {links.map((link, index) => (
+                    <div key={index} className="flex gap-2 items-start bg-white p-2 rounded border border-gray-100 shadow-sm relative group">
+                        <div className="flex-1 space-y-2">
+                            <input
+                                type="text"
+                                placeholder="Label (e.g. Help Center)"
+                                value={link.label}
+                                onChange={(e) => updateLink(index, 'label', e.target.value)}
+                                className="w-full border border-gray-200 rounded px-2 py-1 text-xs outline-none focus:border-blue-500"
+                            />
+                            <input
+                                type="text"
+                                placeholder="URL (e.g. /help)"
+                                value={link.url}
+                                onChange={(e) => updateLink(index, 'url', e.target.value)}
+                                className="w-full border border-gray-200 rounded px-2 py-1 text-xs outline-none focus:border-blue-500"
+                            />
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => removeLink(index)}
+                            className="text-red-400 hover:text-red-600 p-1 flex items-center justify-center w-6 h-6 rounded-full hover:bg-red-50 transition-colors mt-0.5"
+                            title="Remove link"
+                        >
+                            <span className="text-lg leading-none">&times;</span>
+                        </button>
+                    </div>
+                ))}
+                {links.length === 0 && (
+                    <div className="text-center py-4 bg-gray-100/50 rounded-lg border border-dashed border-gray-200">
+                        <p className="text-[10px] text-gray-400 italic">No links added yet</p>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
 const SettingsPage = () => {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [settings, setSettings] = useState<Record<string, string>>({});
+    const [customerServiceLinks, setCustomerServiceLinks] = useState<{ label: string, url: string }[]>([]);
+    const [quickLinks, setQuickLinks] = useState<{ label: string, url: string }[]>([]);
 
     const fields = [
         { key: 'site_name', label: 'Site Name', type: 'text' },
@@ -38,6 +105,15 @@ const SettingsPage = () => {
                 const settingsMap: Record<string, string> = {};
                 data.forEach(s => settingsMap[s.key] = s.value);
                 setSettings(settingsMap);
+
+                // Initialize dynamic link arrays
+                try {
+                    setCustomerServiceLinks(JSON.parse(settingsMap.footer_customer_service_links || '[]'));
+                } catch (e) { setCustomerServiceLinks([]); }
+
+                try {
+                    setQuickLinks(JSON.parse(settingsMap.footer_quick_links || '[]'));
+                } catch (e) { setQuickLinks([]); }
             }
         } catch (error) {
             console.error(error);
@@ -84,6 +160,13 @@ const SettingsPage = () => {
             }
         }
     };
+
+    const updateLinkField = (key: 'footer_customer_service_links' | 'footer_quick_links', newLinks: { label: string, url: string }[]) => {
+        if (key === 'footer_customer_service_links') setCustomerServiceLinks(newLinks);
+        else setQuickLinks(newLinks);
+        handleChange(key, JSON.stringify(newLinks));
+    };
+
 
     const handleSave = async () => {
         setSaving(true);
@@ -278,6 +361,112 @@ const SettingsPage = () => {
                                     className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500/20 outline-none"
                                 />
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Footer Configuration Section */}
+                <div className="border-t border-gray-100 pt-6">
+                    <h2 className="text-lg font-semibold text-gray-800 mb-4 text-blue-600">Footer Configuration</h2>
+                    <div className="space-y-6">
+                        {/* Company Info */}
+                        <div className="grid md:grid-cols-2 gap-6 p-4 bg-blue-50/30 rounded-lg border border-blue-100">
+                            <div className="md:col-span-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Footer About Text</label>
+                                <textarea
+                                    rows={2}
+                                    value={settings.footer_about_text || ''}
+                                    onChange={(e) => handleChange('footer_about_text', e.target.value)}
+                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500/20 outline-none"
+                                    placeholder="Premium wholesale marketplace..."
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Footer Phone</label>
+                                <input
+                                    type="text"
+                                    value={settings.footer_phone || ''}
+                                    onChange={(e) => handleChange('footer_phone', e.target.value)}
+                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none"
+                                    placeholder="+8801943-707070"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Footer Email</label>
+                                <input
+                                    type="email"
+                                    value={settings.footer_email || ''}
+                                    onChange={(e) => handleChange('footer_email', e.target.value)}
+                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none"
+                                    placeholder="support@valokichu.com"
+                                />
+                            </div>
+                            <div className="md:col-span-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Copyright Text</label>
+                                <input
+                                    type="text"
+                                    value={settings.footer_copyright_text || ''}
+                                    onChange={(e) => handleChange('footer_copyright_text', e.target.value)}
+                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none"
+                                    placeholder="© 2026 Valokichu Commerce. All rights reserved."
+                                />
+                            </div>
+                        </div>
+
+                        {/* Social & App Links */}
+                        <div className="grid md:grid-cols-2 gap-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                            <div>
+                                <label className="block text-[10px] font-bold text-gray-400 uppercase mb-2">Social Platform Links</label>
+                                <div className="space-y-3">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-xs font-medium w-20 text-blue-600">Facebook</span>
+                                        <input type="text" className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-xs outline-none" value={settings.footer_facebook_url || ''} onChange={(e) => handleChange('footer_facebook_url', e.target.value)} />
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-xs font-medium w-20 text-red-600">YouTube</span>
+                                        <input type="text" className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-xs outline-none" value={settings.footer_youtube_url || ''} onChange={(e) => handleChange('footer_youtube_url', e.target.value)} />
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-xs font-medium w-20 text-pink-600">Instagram</span>
+                                        <input type="text" className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-xs outline-none" value={settings.footer_instagram_url || ''} onChange={(e) => handleChange('footer_instagram_url', e.target.value)} />
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-xs font-medium w-20 text-sky-500">Twitter</span>
+                                        <input type="text" className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-xs outline-none" value={settings.footer_twitter_url || ''} onChange={(e) => handleChange('footer_twitter_url', e.target.value)} />
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-bold text-gray-400 uppercase mb-4">Mobile App</label>
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-700 mb-1">Google Play Store URL</label>
+                                        <input
+                                            type="text"
+                                            value={settings.footer_play_store_url || ''}
+                                            onChange={(e) => handleChange('footer_play_store_url', e.target.value)}
+                                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none"
+                                            placeholder="https://play.google.com/store/apps/details?id=..."
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Link Columns (Dynamic Editor) */}
+                        <div className="grid md:grid-cols-2 gap-6">
+                            <LinkEditor
+                                title="Customer Service Links"
+                                links={customerServiceLinks}
+                                onUpdate={updateLinkField}
+                                fieldKey="footer_customer_service_links"
+                            />
+                            <LinkEditor
+                                title="Quick Links"
+                                links={quickLinks}
+                                onUpdate={updateLinkField}
+                                fieldKey="footer_quick_links"
+                            />
                         </div>
                     </div>
                 </div>

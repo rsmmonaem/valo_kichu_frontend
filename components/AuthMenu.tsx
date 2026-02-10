@@ -26,7 +26,14 @@ const AuthMenu = () => {
                 onBlur={() => setTimeout(() => setIsOpen(false), 200)}
             >
                 <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs uppercase">
-                    {user.name ? user.name.charAt(0) : 'U'}
+                    {user.name ? user.name.charAt(0) : (
+                            <img
+                            src='/fav1.png'
+                            alt="Profile"
+                            className="w-full h-full object-cover"
+                          />
+                    )}
+                    {/* {user.name ? user.name.charAt(0) : ()} */}
                 </div>
                 <span className="text-[10px] font-medium max-w-[60px] truncate">{user.name}</span>
             </button>

@@ -4,10 +4,20 @@ import React from 'react';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
 import { Trash2, Plus, Minus, ShoppingBag } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+
 
 const CartPage = () => {
     const { cart, removeFromCart, updateQuantity, cartTotal, clearCart } = useCart();
+    const router = useRouter();
 
+    useEffect(() => {
+        if (cart.length === 0) {
+            router.replace('/');
+        }
+    }, [cart.length, router]);
+    
     if (cart.length === 0) {
         return (
             <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-4">
@@ -69,7 +79,7 @@ const CartPage = () => {
                                     ৳{item.price}
                                 </div>
 
-                                <div className="col-span-2 flex items-center justify-between md:justify-center bg-gray-50 rounded-lg p-1 md:p-0">
+                                {/* <div className="col-span-2 flex items-center justify-between md:justify-center bg-gray-50 rounded-lg p-1 md:p-0">
                                     <span className="text-sm font-medium text-gray-500 md:hidden px-2">Qty:</span>
                                     <div className="flex items-center gap-3">
                                         <button
@@ -87,7 +97,29 @@ const CartPage = () => {
                                             <Plus size={14} />
                                         </button>
                                     </div>
-                                </div>
+                                </div> */}
+                                <div className="col-span-2 flex items-center justify-start md:justify-center">
+    <div className="flex items-center gap-1 bg-gray-50 rounded-lg p-1 w-fit">
+        <span className="text-sm font-medium text-gray-500 md:hidden px-2">Qty:</span>
+        <div className="flex items-center gap-2">
+            <button
+                onClick={() => updateQuantity(item.id, item.quantity - 1, item.variant?.id)}
+                className="p-1 hover:bg-white rounded shadow-sm disabled:opacity-50 bg-transparent"
+                disabled={item.quantity <= 1}
+            >
+                <Minus size={14} />
+            </button>
+            <span className="font-medium w-6 text-center text-sm">{item.quantity}</span>
+            <button
+                onClick={() => updateQuantity(item.id, item.quantity + 1, item.variant?.id)}
+                className="p-1 hover:bg-white rounded shadow-sm bg-transparent"
+            >
+                <Plus size={14} />
+            </button>
+        </div>
+    </div>
+</div>
+                                
 
                                 <div className="col-span-2 text-right font-bold text-gray-900 hidden md:block">
                                     ৳{item.price * item.quantity}

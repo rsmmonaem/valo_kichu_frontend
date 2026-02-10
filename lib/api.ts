@@ -13,6 +13,8 @@ export interface Product {
   name: string;
   slug: string;
   description: string;
+  short_description?: string | null;
+  specifications?: string | null; // JSON string or HTML from API
   base_price: string;
   price?: string; // fallback
   sale_price: string;
@@ -56,7 +58,7 @@ export const authFetch = async (endpoint: string, options: RequestInit = {}) => 
   if (!(options.body instanceof FormData)) {
     headers['Content-Type'] = 'application/json';
   }
-  console.log(`${API_URL}${endpoint}`);
+  // console.log(`${API_URL}${endpoint}`);
   const res = await fetch(`${API_URL}${endpoint}`, {
     ...options,
     headers,
@@ -71,6 +73,9 @@ export interface Category {
   slug: string;
   image?: string;
   icon?: string;
+  show_in_bar?: boolean;
+  bar_icon?: string;
+  custom_icon?: string;
   subcategories?: Category[];
 }
 
@@ -239,5 +244,16 @@ export const getSettings = async (options: RequestInit = { cache: 'no-store' }):
     return settingsMap;
   } catch (e) {
     return {};
+  }
+};
+
+export const getCategoryBar = async (): Promise<SingleResponse<Category[]>> => {
+  try {
+    const res = await fetch(`${API_URL}/v1/category-bar`, { cache: 'no-store' });
+    if (!res.ok) return { status: false, data: [] };
+    const data = await res.json();
+    return { status: true, data: Array.isArray(data) ? data : (data.data || []) };
+  } catch (e) {
+    return { status: false, data: [] };
   }
 };

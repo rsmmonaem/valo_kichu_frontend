@@ -67,7 +67,7 @@ const BannersPage = () => {
                         toast.error("Failed to save banner details");
                     }
                 }
-                console.log('image uploaded successfully');
+               
             } catch (error) {
                 console.error('Upload failed', error);
                 toast.error("Upload failed");

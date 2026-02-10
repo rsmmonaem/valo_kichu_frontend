@@ -49,7 +49,7 @@ function FetchData1() {
     setFailedProducts([]);
 
     try {
-      console.log("Starting import...");
+     
 
       // Using authFetch instead of api.post
       const res = await authFetch("/admin/v1/mohasagor/import", {
@@ -61,7 +61,7 @@ function FetchData1() {
       }
 
       const responseData = await res.json();
-      console.log("Import response:", responseData);
+     
 
       if (responseData.success) {
         const { stats, data } = responseData;
@@ -115,7 +115,7 @@ function FetchData1() {
       }
 
       const data = await res.json();
-      console.log("Database debug info:", data);
+     
       alert("Check console for database structure information.");
     } catch (error: any) {
       console.error("Debug failed:", error);

@@ -19,8 +19,10 @@ import { useAuth } from "@/context/AuthContext";
 import { Category } from "@/lib/api";
 import CategoryDropdown from "./CategoryDropdown";
 import MobileCategorySidebar from "./MobileCategorySidebar";
+import CategoryBar from "./CategoryBar";
 import AuthMenu from "./AuthMenu";
 import { authFetch } from '@/lib/api';
+import { useCart } from "@/context/CartContext";
 
 interface HeaderProps {
   categories: Category[];
@@ -38,8 +40,13 @@ const Header: React.FC<HeaderProps> = ({ categories }) => {
   const searchParams = useSearchParams();
   const [search, setSearch] = useState(searchParams.get("search") || "");
   const { isSidebarOpen, closeSidebar, openSidebar } = useUI();
-  const [cartCount, setCartCount] = useState(0);
-   const { user} = useAuth();
+
+  const { user } = useAuth();
+
+
+  // Safe access to cart context
+  const cartContext = useCart ? useCart() : { cartCount: 0 };
+  const cartCount = cartContext?.cartCount || 0;
 
   // ... (keep handleSearch etc)
 
@@ -57,28 +64,28 @@ const Header: React.FC<HeaderProps> = ({ categories }) => {
 
 
   async function dropShiperHandler() {
-    console.log("DropShiper Clicked");
-    router.push("/dropshipperform");
-//     const userChoice= confirm("Are you sure? applied for dropshipper account?");
-//     if(userChoice){
-//     //   router.push("/dropshipper/application");
-//     console.log(user);
-//     const userData={
-//         customer_id:user?.id || 1,
-//         name:user?.first_name+' '+(user?.last_name || ''),
-//         email:user?.email,
-//         phone:user?.phone_number,
-//     }
-//     console.log("User Data:",userData);
-//     const res = await authFetch('/dropshiper/create', {
-//       method: 'POST',
-//       body: JSON.stringify(userData),
-//     });
     
-//     const data = await res.json();
-//     console.log(data);
+    router.push("/dropshipperform");
+    //     const userChoice= confirm("Are you sure? applied for dropshipper account?");
+    //     if(userChoice){
+    //     //   router.push("/dropshipper/application");
+    //     console.log(user);
+    //     const userData={
+    //         customer_id:user?.id || 1,
+    //         name:user?.first_name+' '+(user?.last_name || ''),
+    //         email:user?.email,
+    //         phone:user?.phone_number,
+    //     }
+    //     console.log("User Data:",userData);
+    //     const res = await authFetch('/dropshiper/create', {
+    //       method: 'POST',
+    //       body: JSON.stringify(userData),
+    //     });
 
-// }
+    //     const data = await res.json();
+    //     console.log(data);
+
+    // }
   }
 
   return (
@@ -100,17 +107,21 @@ const Header: React.FC<HeaderProps> = ({ categories }) => {
                     src={
                       settings.site_logo.startsWith("http")
                         ? settings.site_logo
-                        : `${
-                            process.env.NEXT_PUBLIC_API_URL ||
-                            "http://localhost:8000"
-                          }/storage/${settings.site_logo}`
+                        : `${process.env.NEXT_PUBLIC_API_URL ||
+                        "http://localhost:8000"
+                        }/storage/${settings.site_logo}`
                     }
                     alt={settings.site_name || "Logo"}
-                    className="h-10 w-auto group-hover:scale-105 transition-transform object-contain"
+                    className="h-14 w-auto group-hover:scale-105 transition-transform object-contain"
                   />
                 ) : (
                   <div className="bg-blue-600 text-white p-2 rounded-lg font-bold text-xl group-hover:scale-105 transition-transform duration-200">
-                    {settings.site_name ? settings.site_name.charAt(0) : "V"}
+                    {/* {settings.site_name ? settings.site_name.charAt(0) : "V"} */}
+                    <img
+                    src={`/fav1.png`}
+                    alt={settings.site_name || "Logo"}
+                    className="h-10 w-auto group-hover:scale-105 transition-transform object-contain"
+                  />
                   </div>
                 )}
               </Link>
@@ -129,7 +140,7 @@ const Header: React.FC<HeaderProps> = ({ categories }) => {
                 />
                 <button
                   onClick={handleSearch}
-                  className="absolute right-1 top-1 bottom-1 bg-blue-600 text-white w-10 h-10 rounded-full hover:bg-blue-700 transition-transform hover:scale-105 flex items-center justify-center shadow-md shadow-blue-500/30"
+                  className="absolute right-0 top-0 bottom-1 bg-blue-600 text-white w-11 h-11 rounded-full hover:bg-blue-700 transition-transform hover:scale-105 flex items-center justify-center shadow-md shadow-blue-500/30"
                 >
                   <Search size={18} />
                 </button>
@@ -139,8 +150,8 @@ const Header: React.FC<HeaderProps> = ({ categories }) => {
             {/* Actions */}
             <div className="flex items-center gap-6 flex-shrink-0">
               <div
-                
-                className="relative text-gray-600 hover:text-green-600 transition-colors flex flex-col items-center gap-0.5 group"
+
+                className="relative text-gray-600 hover:text-green-600 transition-colors flex flex-col items-center gap-0.5 group hidden md:block md:flex cursor-pointer"
               >
                 <div className="relative" onClick={() => dropShiperHandler()}>
                   <Truck
@@ -176,9 +187,13 @@ const Header: React.FC<HeaderProps> = ({ categories }) => {
                     size={24}
                     className="group-hover:fill-blue-600/10 transition-colors"
                   />
-                  {cartCount > 0 && (
+                  {cartCount > 0 ? (
                     <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">
                       {cartCount}
+                    </span>
+                  ) : (
+                    <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">
+                      {0}
                     </span>
                   )}
                 </div>
@@ -198,24 +213,14 @@ const Header: React.FC<HeaderProps> = ({ categories }) => {
               <div className="relative group cursor-pointer z-50">
                 <div className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-md hover:bg-gray-800 transition-colors">
                   <Menu size={18} />
-                  <span>All Categories</span>
+                  <span>Categories</span>
                   <ChevronDown size={14} />
                 </div>
                 <CategoryDropdown categories={categories} />
               </div>
 
-              {/* Pinned/Top Categories */}
-              <div className="flex items-center gap-4 overflow-x-auto no-scrollbar">
-                {categories.slice(0, 8).map((cat) => (
-                  <Link
-                    key={cat.id}
-                    href={`/products?category=${cat.slug || cat.id}`}
-                    className="hover:text-blue-600 whitespace-nowrap flex items-center gap-1.5 px-2 py-1 hover:bg-blue-50 rounded-md transition-colors"
-                  >
-                    <span>{cat.name}</span>
-                  </Link>
-                ))}
-              </div>
+              {/* Dynamic Category Bar */}
+              <CategoryBar />
             </div>
           </div>
         </div>

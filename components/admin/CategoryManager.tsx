@@ -6,6 +6,18 @@ import { authFetch } from '@/lib/api';
 import clsx from 'clsx';
 import { toast } from 'react-hot-toast';
 
+// interface Category {
+//     id: number;
+//     name: string;
+//     slug: string;
+//     image: string | null;
+//     parent_id: number | null;
+//     children?: Category[];
+//     priority?: number;
+//     is_active: boolean;
+//     show_in_bar?: boolean;
+//     bar_icon?: string;
+// }
 interface Category {
     id: number;
     name: string;
@@ -15,6 +27,9 @@ interface Category {
     children?: Category[];
     priority?: number;
     is_active: boolean;
+    show_in_bar?: boolean;
+    bar_icon?: string;
+    custom_icon?: string | null; // Add this line
 }
 
 interface CategoryManagerProps {
@@ -37,6 +52,9 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ title, level }) => {
         parent_id: '' as string | number,
         main_id: '' as string | number, // For sub-sub level to filter sub-cats
         priority: 0,
+        show_in_bar: false,
+        bar_icon: '',
+        custom_icon: '',
         meta_title: '',
         meta_description: '',
         meta_keywords: ''
@@ -122,7 +140,20 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ title, level }) => {
 
     const openCreate = () => {
         setEditingCategory(null);
-        setFormData({ name: '', image: '', is_active: true, parent_id: '', main_id: '', priority: 0, meta_title: '', meta_description: '', meta_keywords: '' });
+        setFormData({
+            name: '',
+            image: '',
+            is_active: true,
+            parent_id: '',
+            main_id: '',
+            priority: 0,
+            show_in_bar: false,
+            bar_icon: '',
+            custom_icon: '',
+            meta_title: '',
+            meta_description: '',
+            meta_keywords: ''
+        });
         setShowModal(true);
     };
 
@@ -141,6 +172,9 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ title, level }) => {
             parent_id: cat.parent_id || '',
             main_id: mainId,
             priority: cat.priority || 0,
+            show_in_bar: cat.show_in_bar || false,
+            bar_icon: cat.bar_icon || '',
+            custom_icon: cat.custom_icon || '',
             meta_title: (cat as any).meta_title || '',
             meta_description: (cat as any).meta_description || '',
             meta_keywords: (cat as any).meta_keywords || ''
@@ -148,7 +182,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ title, level }) => {
         setShowModal(true);
     };
 
-    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, field: 'image' | 'custom_icon' = 'image') => {
         if (e.target.files && e.target.files[0]) {
             const formData = new FormData();
             formData.append('image', e.target.files[0]);
@@ -161,7 +195,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ title, level }) => {
                 });
                 if (res.ok) {
                     const data = await res.json();
-                    setFormData(prev => ({ ...prev, image: data.path })); // Store relative path
+                    setFormData(prev => ({ ...prev, [field]: data.path })); // Store relative path
                 }
             } catch (error) {
                 console.error('Upload failed', error);
@@ -404,6 +438,65 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ title, level }) => {
                                         </div>
                                     )}
                                 </div>
+                            </div>
+
+                            <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100 flex flex-col gap-3">
+                                <div className="flex items-center gap-3">
+                                    <input
+                                        type="checkbox"
+                                        id="show_in_bar"
+                                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+                                        checked={formData.show_in_bar}
+                                        onChange={(e) => setFormData({ ...formData, show_in_bar: e.target.checked })}
+                                    />
+                                    <label htmlFor="show_in_bar" className="text-sm font-semibold text-gray-800 cursor-pointer">
+                                        Show in Frontend Category Bar?
+                                    </label>
+                                </div>
+
+                                {formData.show_in_bar && (
+                                    <div className="animate-in fade-in slide-in-from-top-1 duration-200 space-y-3">
+                                        <div>
+                                            <label className="block text-xs font-bold text-gray-600 mb-1 uppercase tracking-tight">Bar Icon (Lucide Icon Name)</label>
+                                            <input
+                                                type="text"
+                                                className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm"
+                                                value={formData.bar_icon}
+                                                onChange={(e) => setFormData({ ...formData, bar_icon: e.target.value })}
+                                                placeholder="e.g. Smartphone, Shirt, Watch"
+                                            />
+                                            <p className="text-[10px] text-gray-500 mt-1">
+                                                Use names from <a href="https://lucide.dev/icons" target="_blank" rel="noreferrer" className="text-blue-600 underline">Lucide Icons</a>
+                                            </p>
+                                        </div>
+
+                                        <div className="border-t border-blue-100 pt-2">
+                                            <label className="block text-xs font-bold text-gray-600 mb-2 uppercase tracking-tight">OR Upload Custom Icon Image</label>
+                                            <div className="flex gap-3">
+                                                <label className="flex-1 cursor-pointer">
+                                                    <div className="border border-gray-300 border-dashed rounded-lg p-3 text-center hover:bg-white transition-colors">
+                                                        <span className="text-[10px] text-gray-500">Choose custom icon</span>
+                                                        <input type="file" className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, 'custom_icon')} />
+                                                    </div>
+                                                </label>
+                                                {formData.custom_icon && (
+                                                    <div className="w-12 h-12 rounded-lg border border-gray-200 overflow-hidden shrink-0 bg-white p-1">
+                                                        <img src={formData.custom_icon.startsWith('http') ? formData.custom_icon : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/storage/${formData.custom_icon}`} className="w-full h-full object-contain" />
+                                                    </div>
+                                                )}
+                                            </div>
+                                            {formData.custom_icon && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setFormData(prev => ({ ...prev, custom_icon: '' }))}
+                                                    className="text-[10px] text-red-500 hover:text-red-600 mt-1 font-medium"
+                                                >
+                                                    Remove Custom Icon
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="border-t border-gray-100 pt-4">
