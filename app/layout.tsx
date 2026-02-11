@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: '/fav1.png',
-    apple: '/icon-192x192.png',
+    apple: '/fav1.png',
   },
   appleWebApp: {
     capable: true,
