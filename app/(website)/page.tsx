@@ -4,7 +4,6 @@ import { ChevronRight } from 'lucide-react';
 import {
   getCategoryList,
   getBanners,
-  getCategorySections,
   getNewArrivals,
   getRecommendedProducts
 } from '@/lib/api';
@@ -12,19 +11,18 @@ import CategorySidebar from '@/components/CategorySidebar';
 import HeroSlider from '@/components/HeroSlider';
 import CategoryCarousel from '@/components/CategoryCarousel';
 import ProductCard from '@/components/ProductCard';
-import CategorySection from '@/components/CategorySection';
+import HomeFeeds from '@/components/HomeFeeds'; // New Client Component
 
 export default async function Home() {
+  // Parallel Fetching for Critical Content only
   const [
     categoriesRes,
     banners,
-    categorySections,
     newArrivals,
     recommendedProducts
   ] = await Promise.all([
     getCategoryList(),
     getBanners(),
-    getCategorySections(),
     getNewArrivals(),
     getRecommendedProducts()
   ]);
@@ -48,7 +46,7 @@ export default async function Home() {
         </div>
       </div>
 
-      {/* Category Carousel */}
+      {/* Category Carousel - Critical Path */}
       <section className="py-8 bg-white mb-4">
         <div className="container mx-auto px-4">
           <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
@@ -59,7 +57,7 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* New Arrivals Section */}
+      {/* New Arrivals Section - Critical Path */}
       <section className="py-8 bg-white mb-4">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between mb-6">
@@ -74,7 +72,7 @@ export default async function Home() {
 
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {newArrivals.length > 0 ? (
-              newArrivals.map(product => <ProductCard key={product.id} product={product} />)
+              newArrivals.map((product: any) => <ProductCard key={product.id} product={product} />)
             ) : (
               <div className="col-span-full py-8 text-center text-gray-400 bg-gray-50 rounded-lg">
                 No new arrivals yet.
@@ -84,17 +82,14 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Dynamic Category Sections */}
-      {categorySections.map((section, index) => (
-        <CategorySection
-          key={section.category.id || index}
-          title={section.category.name}
-          categorySlug={section.category.slug || section.category.id.toString()}
-          products={section.products || []}
-        />
-      ))}
+      {/* Dynamic Category Sections - Client Loaded for Non-Blocking UX */}
+      <section className="py-4">
+        <div className="container mx-auto px-4">
+          <HomeFeeds />
+        </div>
+      </section>
 
-      {/* Recommended Section */}
+      {/* Recommended Section - Lower Priority but can stay SSR or move to client if heavy */}
       <section className="py-12 bg-gray-100">
         <div className="container mx-auto px-4">
           <div className="text-center mb-10">
@@ -107,7 +102,7 @@ export default async function Home() {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {recommendedProducts.map(product => <ProductCard key={product.id} product={product} />)}
+            {recommendedProducts.map((product: any) => <ProductCard key={product.id} product={product} />)}
           </div>
 
           {recommendedProducts.length > 0 && (

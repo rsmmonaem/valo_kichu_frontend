@@ -72,3 +72,24 @@ body {
   animation: cart-alert 2.2s ease-in-out forwards;
 }
 
+/* Image Protection */
+img {
+  -webkit-user-drag: none;
+  -khtml-user-drag: none;
+  -moz-user-drag: none;
+  -o-user-drag: none;
+  user-drag: none;
+  /* pointer-events: none;  <-- Careful, this disables clicking product links wrapped in images */
+}
+
+/* 
+   We want to protect images but still allow clicks on links wrapping them.
+   If we use pointer-events: none on img, click events pass through to parent.
+   However, right-click context menu is on the IMG element.
+   Using pointer-events: none on img mostly works for links, but might block some interactions.
+   A better approach for context menu is often JS, but CSS `pointer-events: none` is requested for "no one can image download".
+   Let's use a class or apply globally but ensure anchors still work.
+*/
+.product-image-protected img {
+  pointer-events: none;
+}
