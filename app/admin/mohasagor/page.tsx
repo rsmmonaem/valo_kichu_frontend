@@ -1,310 +1,313 @@
 "use client";
 
-import { useState } from "react";
-import { authFetch } from "@/lib/api"; // Adjust the import path as needed
-import { Database, Download, AlertTriangle, CheckCircle, XCircle, Info } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { authFetch } from "@/lib/api";
+import { Database, Download, AlertTriangle, CheckCircle, XCircle, Info, Terminal, Activity, RefreshCw } from "lucide-react";
 
-interface FailedProduct {
-  name: string;
-  api_id?: string;
-  category?: string;
-  reason: string;
+interface LogEntry {
+  type: 'info' | 'error' | 'success' | 'warning' | 'default';
+  message: string;
+  timestamp: string;
 }
 
 interface ImportStats {
-  total: number;
   created: number;
+  updated: number;
   skipped: number;
   failed: number;
 }
 
-function MohasagorImport() {
+export default function MohasagorImport() {
   const [loading, setLoading] = useState(false);
   const [importStats, setImportStats] = useState<ImportStats>({
-    total: 0,
     created: 0,
+    updated: 0,
     skipped: 0,
     failed: 0,
   });
-  const [processedCount, setProcessedCount] = useState(0);
-  const [failedProducts, setFailedProducts] = useState<FailedProduct[]>([]);
+
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [logs, setLogs] = useState<LogEntry[]>([]);
+  const logEndRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll logs
+  useEffect(() => {
+    logEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [logs]);
+
+  const addLog = (message: string, type: LogEntry['type'] = 'default') => {
+    setLogs(prev => [...prev, {
+      type,
+      message,
+      timestamp: new Date().toLocaleTimeString()
+    }]);
+  };
 
   const handleFetchData = async () => {
-    if (
-      typeof window !== "undefined" &&
-      !window.confirm(
-        "Are you sure you want to import products from Mohasagor? This may take several minutes."
-      )
-    ) {
+    if (typeof window !== "undefined" && !window.confirm("Start massive product import from Mohasagor?")) {
       return;
     }
 
     setLoading(true);
-    setImportStats({
-      total: 0,
-      created: 0,
-      skipped: 0,
-      failed: 0,
-    });
-    setProcessedCount(0);
-    setFailedProducts([]);
+    setLogs([]);
+    setImportStats({ created: 0, updated: 0, skipped: 0, failed: 0 });
+    setCurrentPage(0);
+    setTotalPages(0);
+    addLog("Initializing connection to server...", "info");
 
     try {
-      // API call to the new protected admin route
-      const res = await authFetch("/admin/v1/mohasagor/import", {
+      const response = await authFetch("/admin/v1/mohasagor/import", {
         method: "POST",
       });
 
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
+      if (!response.ok) {
+        throw new Error(`Connection failed: ${response.statusText}`);
       }
 
-      const responseData = await res.json();
+      if (!response.body) throw new Error("No response body received");
 
-      if (responseData.success) {
-        const { stats, data } = responseData;
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
 
-        setImportStats(stats);
-        setProcessedCount(stats.total);
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
 
-        if (data.failed_products && Array.isArray(data.failed_products)) {
-          setFailedProducts(data.failed_products);
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n\n");
+
+        // Keep the last partial chunk in buffer
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed.startsWith("data: ")) continue;
+
+          try {
+            const jsonStr = trimmed.substring(6); // remove "data: "
+            const event = JSON.parse(jsonStr);
+
+            switch (event.type) {
+              case 'info':
+                addLog(event.message, 'info');
+                break;
+              case 'progress':
+                setCurrentPage(event.page);
+                setTotalPages(event.total_pages);
+                addLog(event.message, 'default');
+                break;
+              case 'batch_stats':
+                setImportStats(prev => ({
+                  created: prev.created + (event.created || 0),
+                  updated: prev.updated + (event.updated || 0),
+                  skipped: prev.skipped + (event.skipped || 0),
+                  failed: prev.failed + (event.failed || 0),
+                }));
+                addLog(event.message, 'success');
+                break;
+              case 'warning':
+                addLog(event.message, 'warning');
+                break;
+              case 'error':
+                addLog(event.message, 'error');
+                break;
+              case 'done':
+                addLog("Import process completed successfully.", 'success');
+                setLoading(false);
+                return; // Exit loop
+            }
+          } catch (e) {
+            console.error("Failed to parse stream line", trimmed, e);
+          }
         }
-
-        alert(
-          `Import completed!\n\nTotal: ${stats.total}\nCreated: ${stats.created}\nSkipped: ${stats.skipped}\nFailed: ${stats.failed}\n\nCheck console for failed product details.`
-        );
-
-        // Log failed products to console
-        if (data.failed_products && data.failed_products.length > 0) {
-          console.warn("Failed products:", data.failed_products);
-        }
-      } else {
-        alert(`Import failed: ${responseData.message || "Unknown error"}`);
       }
+
     } catch (error: any) {
-      console.error("Error importing products:", error);
-
-      // Try to get error details from response
-      let errorMessage = error.message || "Please check the console for details.";
-
-      if (error instanceof Response) {
-        try {
-          const errorData = await error.json();
-          errorMessage = errorData.message || errorMessage;
-        } catch {
-          // If response is not JSON, use status text
-          errorMessage = error.statusText || errorMessage;
-        }
-      }
-
-      alert(`Error importing products: ${errorMessage}`);
+      console.error("Stream error:", error);
+      addLog(`Fatal Error: ${error.message}`, 'error');
+      setLoading(false);
     } finally {
       setLoading(false);
     }
   };
 
   const debugDatabase = async () => {
+    addLog("Checking system connectivity...", "info");
     try {
       const res = await authFetch("/admin/v1/mohasagor/debug");
-
       const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || `HTTP error! status: ${res.status}`);
+      if (res.ok) {
+        addLog(`System Status: ${data.message}`, 'success');
+        addLog(`API URL: ${data.api_connection?.url}`, 'default');
+        addLog(`API Status: ${data.api_connection?.status}`, data.api_connection?.success ? 'success' : 'error');
+      } else {
+        addLog(`Debug failed: ${data.message}`, 'error');
       }
-
-      console.log("Debug Info:", data);
-      alert(`Debug Status: ${data.status}\nMessage: ${data.message}\nCheck console for full details.`);
-
     } catch (error: any) {
-      console.error("Debug failed:", error);
-      alert(`Debug failed: ${error.message}`);
+      addLog(`Debug Connection Failed: ${error.message}`, 'error');
     }
   };
 
+  const percentage = totalPages > 0 ? Math.round((currentPage / totalPages) * 100) : 0;
+
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-6 max-w-7xl mx-auto p-4">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Mohasagor Import</h1>
-          <p className="text-gray-500 mt-1">Import products directly from Mohasagor API</p>
+          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Mohasagor Sync</h1>
+          <p className="text-gray-500 mt-1">Real-time product synchronization engine</p>
         </div>
         <div className="flex gap-3">
           <button
             onClick={debugDatabase}
-            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium transition-colors"
+            disabled={loading}
+            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 font-medium transition-colors shadow-sm"
           >
-            <Database size={18} />
-            Check Connection
+            <Database size={16} />
+            Check Connectivity
           </button>
         </div>
       </div>
 
-      {/* Guide Card */}
-      <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
-        <div className="flex items-start gap-4">
-          <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
-            <Info size={24} />
-          </div>
-          <div>
-            <h3 className="font-semibold text-blue-900 text-lg mb-2">Import Process Guide</h3>
-            <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-blue-800/80 text-sm list-disc pl-4">
-              <li>Fetches updated product list from Mohasagor API</li>
-              <li>Automatically skips existing products (by ID)</li>
-              <li>Creates missing categories dynamically</li>
-              <li>Downloads and processes product images</li>
-              <li>Handles variations and stock levels</li>
-              <li>Process happens server-side (please wait)</li>
-            </ul>
-          </div>
-        </div>
+      {/* Stats Grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard
+          icon={<Download className="text-blue-600" size={20} />}
+          label="Created"
+          value={importStats.created}
+          color="bg-blue-50 border-blue-100 text-blue-700"
+        />
+        <StatCard
+          icon={<RefreshCw className="text-indigo-600" size={20} />}
+          label="Updated"
+          value={importStats.updated}
+          color="bg-indigo-50 border-indigo-100 text-indigo-700"
+        />
+        <StatCard
+          icon={<Info className="text-amber-600" size={20} />}
+          label="Skipped"
+          value={importStats.skipped}
+          color="bg-amber-50 border-amber-100 text-amber-700"
+        />
+        <StatCard
+          icon={<AlertTriangle className="text-rose-600" size={20} />}
+          label="Failed"
+          value={importStats.failed}
+          color="bg-rose-50 border-rose-100 text-rose-700"
+        />
       </div>
 
-      {/* Action Card */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 flex flex-col items-center justify-center text-center space-y-6">
-        <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mb-2">
-          <Download size={32} />
-        </div>
+      {/* Main Control Area */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-        <div className="max-w-md">
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Ready to Import?</h2>
-          <p className="text-gray-500">
-            This action will fetch products from the external API and add them to your store.
-            Large imports may take several minutes to complete.
-          </p>
-        </div>
-
-        <button
-          onClick={handleFetchData}
-          disabled={loading}
-          className={`
-                flex items-center gap-3 px-8 py-4 rounded-xl text-white font-bold text-lg shadow-lg transition-all
-                ${loading
-              ? 'bg-gray-400 cursor-not-allowed'
-              : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 hover:shadow-blue-200 hover:scale-105 active:scale-95'
-            }
-            `}
-        >
-          {loading ? (
-            <>
-              <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              Importing Products...
-            </>
-          ) : (
-            <>
-              <span>Start Import Process</span>
-            </>
-          )}
-        </button>
-      </div>
-
-      {/* Progress & Stats Area */}
-      {importStats.total > 0 && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Progress Bar */}
-          <div className="lg:col-span-3 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex justify-between items-center mb-3">
-              <span className="font-semibold text-gray-700">Import Progress</span>
-              <span className="text-sm font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
-                {Math.round((processedCount / importStats.total) * 100)}%
-              </span>
+        {/* Left Col: Actions & Progress */}
+        <div className="lg:col-span-1 space-y-6">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col items-center text-center">
+            <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-4 transition-all duration-500 ${loading ? 'bg-blue-50 ring-4 ring-blue-100' : 'bg-gray-50'}`}>
+              {loading ? <Activity className="text-blue-600 animate-pulse" size={32} /> : <Download className="text-gray-400" size={32} />}
             </div>
-            <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
-              <div
-                className="bg-blue-600 h-full rounded-full transition-all duration-500 ease-out"
-                style={{ width: `${(processedCount / importStats.total) * 100}%` }}
-              ></div>
-            </div>
-            <p className="text-right text-xs text-gray-400 mt-2">
-              Processed {processedCount} of {importStats.total} items
+
+            <h3 className="text-lg font-bold text-gray-900 mb-2">{loading ? 'Syncing in Progress' : 'Ready to Sync'}</h3>
+            <p className="text-sm text-gray-500 mb-6">
+              {loading
+                ? 'Fetching products page by page. Do not close this window.'
+                : 'Initiate the massive import process. This handles pagination automatically.'}
             </p>
+
+            <button
+              onClick={handleFetchData}
+              disabled={loading}
+              className={`w-full py-3 px-4 rounded-lg font-semibold text-white shadow-md transition-all ${loading
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-indigo-600 hover:bg-indigo-700 hover:shadow-lg active:scale-95'
+                }`}
+            >
+              {loading ? 'Processing...' : 'Start Import Engine'}
+            </button>
           </div>
 
-          {/* Stats Cards */}
-          <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-5 flex items-center gap-4">
-            <div className="p-3 bg-white rounded-lg text-emerald-600 shadow-sm">
-              <CheckCircle size={24} />
+          {/* Progress Indicator */}
+          {(loading || totalPages > 0) && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm font-medium text-gray-700">Batch Progress</span>
+                <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded">
+                  {percentage}%
+                </span>
+              </div>
+              <div className="w-full bg-gray-100 rounded-full h-2 mb-4 overflow-hidden">
+                <div
+                  className="bg-indigo-600 h-full rounded-full transition-all duration-300"
+                  style={{ width: `${percentage}%` }}
+                />
+              </div>
+              <div className="flex justify-between text-xs text-gray-500">
+                <span>Page {currentPage} of {totalPages}</span>
+                <span>{loading ? 'Active' : 'Idle'}</span>
+              </div>
             </div>
-            <div>
-              <p className="text-sm text-emerald-800 font-medium">Successfully Created</p>
-              <p className="text-2xl font-bold text-emerald-700">{importStats.created}</p>
-            </div>
-          </div>
+          )}
+        </div>
 
-          <div className="bg-amber-50 border border-amber-100 rounded-xl p-5 flex items-center gap-4">
-            <div className="p-3 bg-white rounded-lg text-amber-600 shadow-sm">
-              <Info size={24} />
+        {/* Right Col: Terminal Log */}
+        <div className="lg:col-span-2">
+          <div className="bg-gray-900 rounded-xl shadow-lg border border-gray-800 overflow-hidden flex flex-col h-[500px]">
+            <div className="bg-gray-800 px-4 py-3 flex items-center justify-between border-b border-gray-700">
+              <div className="flex items-center gap-2">
+                <Terminal size={16} className="text-gray-400" />
+                <span className="text-xs font-mono text-gray-300">Live Operation Log</span>
+              </div>
+              <div className="flex gap-1.5">
+                <div className="w-2.5 h-2.5 rounded-full bg-red-500/50"></div>
+                <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/50"></div>
+                <div className="w-2.5 h-2.5 rounded-full bg-green-500/50"></div>
+              </div>
             </div>
-            <div>
-              <p className="text-sm text-amber-800 font-medium">Skipped (Duplicate)</p>
-              <p className="text-2xl font-bold text-amber-700">{importStats.skipped}</p>
-            </div>
-          </div>
 
-          <div className="bg-rose-50 border border-rose-100 rounded-xl p-5 flex items-center gap-4">
-            <div className="p-3 bg-white rounded-lg text-rose-600 shadow-sm">
-              <XCircle size={24} />
-            </div>
-            <div>
-              <p className="text-sm text-rose-800 font-medium">Failed Items</p>
-              <p className="text-2xl font-bold text-rose-700">{importStats.failed}</p>
+            <div
+              className="flex-1 p-4 overflow-y-auto font-mono text-xs md:text-sm space-y-1.5 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent"
+            >
+              {logs.length === 0 && (
+                <div className="text-gray-600 italic text-center mt-20">Waiting for logs...</div>
+              )}
+              {logs.map((log, i) => (
+                <div key={i} className={`flex gap-3 ${getLogColor(log.type)}`}>
+                  <span className="opacity-50 shrink-0 select-none">[{log.timestamp}]</span>
+                  <span className="break-all">{log.message}</span>
+                </div>
+              ))}
+              <div ref={logEndRef} />
             </div>
           </div>
         </div>
-      )}
-
-      {/* Failed Items Table */}
-      {failedProducts.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200 bg-rose-50/50 flex items-center gap-2">
-            <AlertTriangle size={20} className="text-rose-500" />
-            <h3 className="font-semibold text-rose-900">Failed Products Log</h3>
-            <span className="text-xs bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full font-medium ml-auto">
-              {failedProducts.length} Issues
-            </span>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="bg-gray-50 text-gray-500 font-medium border-b border-gray-200">
-                <tr>
-                  <th className="px-6 py-3">Product Name</th>
-                  <th className="px-6 py-3">API ID</th>
-                  <th className="px-6 py-3">Category</th>
-                  <th className="px-6 py-3">Reason for Failure</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {failedProducts.slice(0, 10).map((product, index) => (
-                  <tr key={index} className="hover:bg-gray-50/50">
-                    <td className="px-6 py-3 font-medium text-gray-900">{product.name}</td>
-                    <td className="px-6 py-3 text-gray-500 font-mono text-xs">{product.api_id || "N/A"}</td>
-                    <td className="px-6 py-3 text-gray-600">
-                      <span className="px-2 py-1 bg-gray-100 rounded text-xs">
-                        {product.category || "Uncategorized"}
-                      </span>
-                    </td>
-                    <td className="px-6 py-3 text-rose-600">{product.reason}</td>
-                  </tr>
-                ))}
-                {failedProducts.length > 10 && (
-                  <tr>
-                    <td colSpan={4} className="px-6 py-4 text-center text-gray-500 bg-gray-50/30 font-medium">
-                      ... and {failedProducts.length - 10} more items check console for full list
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 }
 
-export default MohasagorImport;
+function StatCard({ icon, label, value, color }: { icon: any, label: string, value: number, color: string }) {
+  return (
+    <div className={`p-4 rounded-xl border ${color} bg-opacity-30 flex items-center gap-4 shadow-sm bg-white`}>
+      <div className="p-3 bg-white rounded-lg shadow-sm border border-gray-100">
+        {icon}
+      </div>
+      <div>
+        <span className="text-sm font-medium text-gray-500 block mb-0.5">{label}</span>
+        <p className="text-2xl font-bold text-gray-800">{value.toLocaleString()}</p>
+      </div>
+    </div>
+  );
+}
+
+function getLogColor(type: LogEntry['type']) {
+  switch (type) {
+    case 'error': return 'text-red-400';
+    case 'warning': return 'text-amber-400';
+    case 'success': return 'text-emerald-400';
+    case 'info': return 'text-blue-400';
+    default: return 'text-gray-300';
+  }
+}
