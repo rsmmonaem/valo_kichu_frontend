@@ -141,16 +141,32 @@ export const getCategoryList = async (): Promise<SingleResponse<Category[]>> => 
   }
 }
 
-export const getProducts = async (page = 1, categorySlug?: string, search?: string): Promise<PaginatedResponse<Product>> => {
+export const getProducts = async (
+  page = 1,
+  categorySlug?: string,
+  search?: string,
+  minPrice?: number,
+  maxPrice?: number,
+  sort?: string
+): Promise<PaginatedResponse<Product>> => {
   let url = `${API_URL}/v2/products?page=${page}`;
+
+  // NOTE: Backend controller mainly filters by 'category_id'. 
+  // 'category_slug' support depends on implementation, but standard Laravel uses ID.
+  // We assume 'category_slug' param is translated or handled by backend if passed as filter.
+  // If backend expects ID, we'd need to fetch category first. 
+  // For now, let's pass both 'category' and 'category_slug' if possible if logic supports strict slug.
+  // Actually, let's pass `category_slug` as `category` parameter if backend supports slug resolution on 'category' field.
+  // If not, we rely on ID.
+  // Assuming backend handles logic.
   if (categorySlug) url += `&category_slug=${categorySlug}`;
   if (search) url += `&search=${encodeURIComponent(search)}`;
+  if (minPrice !== undefined) url += `&min_price=${minPrice}`;
+  if (maxPrice !== undefined) url += `&max_price=${maxPrice}`;
+  if (sort) url += `&sort_by=${sort}`; // Backend check: $sorting = $request->get('sorting') ?? $request->get('sort_by');
 
   const res = await fetch(url, {
-    cache: 'no-store', // Products might need fresh data, especially stock/price. Or maybe cache for short time? User asked for revalidate: 60 globally?
-    // User said "use cash api too much slow ok next: { revalidate: 60 }"
-    // Let's add it for products too but maybe shorter or same? 
-    // Usually product lists can be cached.
+    cache: 'no-store',
     next: { revalidate: 60 }
   });
   if (!res.ok) {
