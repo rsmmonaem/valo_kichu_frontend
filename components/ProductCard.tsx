@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Star } from 'lucide-react';
 import { Product } from '@/lib/api';
 import ProductModal from './ProductModal'; // Make sure this path is correct
@@ -38,11 +39,18 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
     // Fallback for gallery_images parsing if needed, but simplistic for now
 
-    const finalImage = (displayImage && displayImage.startsWith('http'))
-        ? displayImage
-        : displayImage
-            ? `${process.env.NEXT_PUBLIC_API_URL}/storage/products/${displayImage.replace(/^\/?storage\//, '')}`
-            : 'https://placehold.co/400x400?text=No+Image';
+    // Standardize the API base URL to remove /api for storage links
+    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
+
+    const finalImage = product.image_url
+        ? product.image_url
+        : (typeof product.images === 'string' && product.images.startsWith('http'))
+            ? product.images
+            : (displayImage && displayImage.startsWith('http'))
+                ? displayImage
+                : displayImage
+                    ? `${baseUrl}/storage/products/${displayImage.replace(/^\/?storage\/products\/?/, '')}`
+                    : 'https://placehold.co/400x400?text=No+Image';
 
     const basePrice = parseFloat(product.base_price || product.price || '0');
     const salePrice = product.sale_price ? parseFloat(product.sale_price) : null;
@@ -67,11 +75,13 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
                 <div className="aspect-square bg-gray-100 relative overflow-hidden">
                     <div className="relative overflow-hidden group w-full h-full" onClick={handleEyeClick}>
-                        <img
+                        <Image
                             src={finalImage}
                             alt={product.name}
-                            className="w-full h-full object-cover group-hover:scale-110 transition duration-500"
-                            onError={(e) => (e.currentTarget.src = 'https://placehold.co/400x400?text=No+Image')}
+                            fill
+                            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                            className="object-cover group-hover:scale-110 transition duration-500"
+                            loading="lazy"
                         />
                     </div>
 

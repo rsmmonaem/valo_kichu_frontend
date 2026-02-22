@@ -21,7 +21,7 @@ export interface Product {
   stock_quantity: number;
   image: string;
   thumbnail?: string;
-  images?: string[] | { image: string }[];
+  images?: string | string[] | { image: string }[];
   category: {
     name: string;
     slug: string;
@@ -46,6 +46,8 @@ export interface Product {
   current_stock?: number; // admin products page uses this
   status?: string; // admin products page uses this
   product_code?: string;
+  image_url?: string;
+  gallery_image_urls?: string[];
 }
 
 export const authFetch = async (endpoint: string, options: RequestInit = {}) => {

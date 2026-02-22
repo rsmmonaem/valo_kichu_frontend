@@ -17,6 +17,7 @@ import { parseAttributes, parseGalleryImages } from "@/lib/utils";
 import clsx from "clsx";
 import { useCart } from "@/context/CartContext";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import AddtocartToster from "./AddtocartToster";
 
 interface ProductDetailsProps {
@@ -28,19 +29,25 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
   const router = useRouter();
   // console.log("Product in Details:", product);
   // Parse Images
-  const rawGallery = product.gallery_images || [];
-  const galleryImages = parseGalleryImages(rawGallery);
-  const mainImage = product.image?.startsWith("http")
-    ? product.image
-    : `${process.env.NEXT_PUBLIC_API_URL}/storage/products/${product.image}`;
-  const allImages = [
-    mainImage,
-    ...galleryImages.map((img) =>
-      img.startsWith("http")
-        ? img
-        : `${process.env.NEXT_PUBLIC_API_URL}/storage/products/${img}`
-    ),
-  ];
+  const galleryArray = parseGalleryImages(product.gallery_images) || [];
+
+  // Standardize the API base URL to remove /api for storage links
+  const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
+
+  // Use backend provided full URLs if available, else construct manually
+  const mainImage = product.image_url
+    ? product.image_url
+    : (typeof product.images === 'string' && product.images.startsWith('http'))
+      ? product.images
+      : (product.image?.startsWith("http")
+        ? product.image
+        : `${baseUrl}/storage/products/ss${product.image?.replace(/^\/?storage\/products\/?/, '')}`);
+
+  const allImages = product.gallery_image_urls && product.gallery_image_urls.length > 0
+    ? product.gallery_image_urls
+    : (galleryArray.length > 0
+      ? galleryArray.map(img => img.startsWith("http") ? img : `${baseUrl}/storage/products/${img.replace(/^\/?storage\/products\/?/, '')}`)
+      : [mainImage]);
 
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
@@ -139,10 +146,12 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
         <div className="p-6 md:p-8 bg-white">
           <div className="aspect-square rounded-xl overflow-hidden bg-gray-50 mb-4 border border-gray-100 relative">
             {allImages.length > 0 ? (
-              <img
+              <Image
                 src={allImages[selectedImage]}
                 alt={product.name}
-                className="w-full h-full object-cover"
+                fill
+                priority
+                className="object-cover"
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-gray-400">
@@ -167,7 +176,14 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
                     : "border-gray-200 hover:border-gray-300"
                 )}
               >
-                <img src={img} alt="" className="w-full h-full object-cover" />
+                <div className="relative w-full h-full">
+                  <Image
+                    src={img}
+                    alt=""
+                    fill
+                    className="object-cover"
+                  />
+                </div>
               </button>
             ))}
           </div>

@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { authFetch } from '@/lib/api';
 import InfiniteScrollTrigger from '@/components/InfiniteScrollTrigger';
+import Image from 'next/image';
 import { useCart } from '@/context/CartContext';
 import { toast } from 'react-hot-toast';
 import clsx from 'clsx';
@@ -132,10 +133,12 @@ const ProductsPage = () => {
                             {products.map((product, idx) => (
                                 <div key={`${product.id}-${idx}`} className="group bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition duration-300 h-full flex flex-col">
                                     <div className="relative aspect-square bg-gray-50 overflow-hidden">
-                                        <img
+                                        <Image
                                             src={product.images || '/placeholder.png'}
                                             alt={product.name}
-                                            className="w-full h-full object-cover group-hover:scale-110 transition duration-500"
+                                            fill
+                                            className="object-cover group-hover:scale-110 transition duration-500"
+                                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 25vw"
                                         />
                                         <div className="absolute top-3 left-3">
                                             <span className="bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded shadow-lg">

@@ -1,7 +1,6 @@
 import { getProducts, getSettings, getCategory, getCategoryList } from '@/lib/api';
 import ProductCard from '@/components/ProductCard';
 import ProductSort from '@/components/ProductSort';
-import Pagination from '@/components/Pagination';
 import ProductCatalog from '@/components/ProductCatalog';
 import { Metadata } from 'next';
 import { Filter } from 'lucide-react';
@@ -82,7 +81,7 @@ export default async function ProductsPage({ searchParams }: Props) {
                 {/* Main Content */}
                 <div className="flex-1">
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
-                        <h1 className="text-2xl font-bold text-gray-900">{pageTitle} <span className="text-sm font-normal text-gray-500 ml-2">({meta?.total || 0} items)</span></h1>
+                        <h1 className="text-2xl font-bold text-gray-900">{pageTitle}</h1>
                         <ProductSort />
                     </div>
 

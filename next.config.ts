@@ -10,6 +10,21 @@ const nextConfig: NextConfig = {
         hostname: 'backend.valokichu.com',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'placehold.co',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'mohasagor.com.bd',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'valokichu.com',
+        pathname: '/**',
+      },
     ],
   },
 };
