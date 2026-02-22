@@ -64,7 +64,7 @@ const CheckoutPage = () => {
 
         if (res.ok) {
           const data = await res.json();
-     
+
           setShippingMethods(data);
         } else {
           console.error("Failed to fetch shipping methods:", await res.text());
@@ -125,11 +125,22 @@ const CheckoutPage = () => {
       // 1. Prepare Payload
       const orderPayload = {
         name: checkoutData.name,
-        products: cart.map((item) => ({
-          product_id: item.id,
-          product_variation_id: item.variant?.id || null, // Ensure your API expects 'product_variation_id' or 'variant_id'
-          quantity: item.quantity,
-        })),
+        products: cart.map((item) => {
+          // Construct a readable string for the selected variation
+          const varDetails = [];
+          if (item.variant?.size) varDetails.push(`Size: ${item.variant.size}`);
+          if (item.variant?.color) varDetails.push(`Color: ${item.variant.color}`);
+          if (item.variant?.weight) varDetails.push(`Weight: ${item.variant.weight}`);
+
+          const variationSnapshot = varDetails.length > 0 ? varDetails.join(", ") : null;
+
+          return {
+            product_id: item.id,
+            product_variation_id: item.variant?.id || null,
+            variation_snapshot: variationSnapshot,
+            quantity: item.quantity,
+          };
+        }),
         shipping_address: `${checkoutData.address_line1}, ${checkoutData.area}, ${checkoutData.city}, ${checkoutData.country}`, // Simplified address string
         contact_number: checkoutData.phone,
         payment_method: checkoutData.payment_method,
@@ -155,8 +166,7 @@ const CheckoutPage = () => {
         // Hande success
         clearCart();
         router.push(
-          `/order-success?order=${
-            data.order ? data.order.id : data.id || data.order_id
+          `/order-success?order=${data.order ? data.order.id : data.id || data.order_id
           }`
         );
         // toast.success("Order placed successfully!");
@@ -343,11 +353,10 @@ const CheckoutPage = () => {
                           }));
                           setShippingCost(method.cost); // Update the shipping cost based on the selected method
                         }}
-                        className={`p-3 text-center rounded-xl cursor-pointer transition hover:scale-105 ${
-                          checkoutData.area === method.name
+                        className={`p-3 text-center rounded-xl cursor-pointer transition hover:scale-105 ${checkoutData.area === method.name
                             ? "bg-[#FFAC1C] text-white shadow-lg"
                             : "bg-gray-100"
-                        }`}
+                          }`}
                       >
                         {method.name} (৳{Math.floor(method.cost)})
                       </button>
@@ -387,11 +396,10 @@ const CheckoutPage = () => {
                             item.image && item.image.startsWith("http")
                               ? item.image
                               : item.image
-                              ? `${
-                                  process.env.NEXT_PUBLIC_API_URL ||
-                                  "http://localhost:8000"
+                                ? `${process.env.NEXT_PUBLIC_API_URL ||
+                                "http://localhost:8000"
                                 }/${item.image}`
-                              : "/placeholder.png"
+                                : "/placeholder.png"
                           }
                           className="w-full h-full object-cover"
                         />
@@ -406,14 +414,14 @@ const CheckoutPage = () => {
                       </div>
                     </div>
                     <div className="text-black flex gap-1">
-                    <p className="text-xs ">
-                      Qty: 
-                    </p>
-                    <p>{item.quantity}</p>
+                      <p className="text-xs ">
+                        Qty:
+                      </p>
+                      <p>{item.quantity}</p>
                     </div>
 
                     <p className="font-medium">৳{item.price * item.quantity}</p>
-            
+
                   </div>
                 ))}
               </div>

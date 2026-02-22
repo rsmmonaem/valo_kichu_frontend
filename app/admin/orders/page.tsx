@@ -99,7 +99,7 @@ const AdminOrdersPage = () => {
         if (!window.confirm(`Update order status to ${newStatus.replace(/_/g, ' ')}?`)) return;
         setStatusUpdating(true);
         try {
-            const res = await authFetch(`/v1/admin/orders/${orderId}`, {
+            const res = await authFetch(`/admin/v1/orders/${orderId}`, {
                 method: 'PUT',
                 body: JSON.stringify({ status: newStatus })
             });
@@ -236,6 +236,11 @@ const AdminOrdersPage = () => {
                         <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                             <div>
                                 <h2 className="text-xl font-bold text-gray-800">Order #{selectedOrder.order_number || selectedOrder.id}</h2>
+                                {selectedOrder.user?.is_any_dropshipper && (
+                                    <p className="text-sm font-bold text-blue-600 mt-1 uppercase tracking-wider">
+                                        Dropshipper: {selectedOrder.user.store_name}
+                                    </p>
+                                )}
                                 <p className="text-sm text-gray-500">{new Date(selectedOrder.created_at).toLocaleString()}</p>
                             </div>
                             <button onClick={() => setSelectedOrder(null)} className="p-2 hover:bg-gray-100 rounded-full transition"><XCircle className="text-gray-500" /></button>
@@ -289,12 +294,20 @@ const AdminOrdersPage = () => {
                                             <tr key={i}>
                                                 <td className="p-3">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="w-10 h-10 bg-gray-100 rounded shrink-0">
-                                                            {/* Image would go here */}
+                                                        <div className="w-10 h-10 bg-gray-100 rounded shrink-0 overflow-hidden">
+                                                            {item.product?.image_url ? (
+                                                                <img
+                                                                    src={item.product.image_url}
+                                                                    alt={item.product?.name || 'Product'}
+                                                                    className="w-full h-full object-cover"
+                                                                />
+                                                            ) : (
+                                                                <div className="w-full h-full flex items-center justify-center text-[10px] text-gray-400">No img</div>
+                                                            )}
                                                         </div>
                                                         <div>
-                                                            <p className="font-medium">{item.product?.name || item.product_name || 'Product'}</p>
-                                                            <p className="text-xs text-gray-500">{item.variant_name || item.variation_snapshot}</p>
+                                                            <p className="font-medium text-gray-900">{item.product_name || item.product?.name || 'Product'}</p>
+                                                            <p className="text-xs text-gray-500">{item.variation_snapshot || item.variant_name}</p>
                                                         </div>
                                                     </div>
                                                 </td>

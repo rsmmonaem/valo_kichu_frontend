@@ -41,7 +41,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
       ? product.images
       : (product.image?.startsWith("http")
         ? product.image
-        : `${baseUrl}/storage/products/ss${product.image?.replace(/^\/?storage\/products\/?/, '')}`);
+        : `${baseUrl}/storage/products/${product.image?.replace(/^\/?storage\/products\/?/, '')}`);
 
   const allImages = product.gallery_image_urls && product.gallery_image_urls.length > 0
     ? product.gallery_image_urls

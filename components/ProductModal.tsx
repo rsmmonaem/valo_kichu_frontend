@@ -68,7 +68,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
       img: image.startsWith("http")
         ? image
         : `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
-        }/storage/products/ss${image.replace(/^\/?storage\/products\/?/, "").replace(/^ss/, "")}`,
+        }/storage/products/${image.replace(/^\/?storage\/products\/?/, "")}`,
     })) || [];
 
   // Initialize states
@@ -80,13 +80,15 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
   useEffect(() => {
     if (!product) return;
     // Initialize preview
-    const mainImage = product.image_url || product.image || product.thumbnail || galleryArray[0] || "";
+    // Standardize the API base URL to remove /api for storage links
+    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
+
+    const mainImage = product.image_url || ((typeof product.images === 'string') ? product.images : '') || product.image || product.thumbnail || galleryArray[0] || "";
     const initialPreview =
       galleryImages[0]?.img ||
       (mainImage.startsWith("http")
         ? mainImage
-        : `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
-        }/storage/products/ss${mainImage.replace(/^\/?storage\/products\/?/, "").replace(/^ss/, "")}`);
+        : `${baseUrl}/storage/products/${mainImage.replace(/^\/?storage\/products\/?/, "")}`);
 
     setPreview(initialPreview || "https://placehold.co/600x600?text=No+Image");
     setHasImageError(false);
