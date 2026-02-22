@@ -8,21 +8,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const categoriesRes = await getCategoryList()
     const categories = categoriesRes.data || []
 
-    // Fetch products (at least first page for now, or loop if needed)
-    // To avoid hitting API limits or slow builds, we can fetch the first page or a larger batch if the API supports it.
-    // For a truly dynamic sitemap, we ideally want all products.
+    // Fetch products
     let allProducts: Product[] = []
     try {
         const productsRes = await getProducts(1)
-        allProducts = productsRes.data.data
+        if (productsRes.data && productsRes.data.data) {
+            allProducts = productsRes.data.data
 
-        // If there are more pages, we could fetch them here, but for many products it might be better 
-        // to keep it to the most recent ones or implement a more robust fetcher.
-        const lastPage = productsRes.data.last_page
-        if (lastPage > 1) {
-            for (let i = 2; i <= Math.min(lastPage, 5); i++) { // Limit to 5 pages for safety in build time
-                const nextRes = await getProducts(i)
-                allProducts = [...allProducts, ...nextRes.data.data]
+            const lastPage = productsRes.data.last_page
+            if (lastPage > 1) {
+                // Fetch up to 20 pages for a more comprehensive sitemap
+                const maxPages = Math.min(lastPage, 20)
+                for (let i = 2; i <= maxPages; i++) {
+                    const nextRes = await getProducts(i)
+                    if (nextRes.data && nextRes.data.data) {
+                        allProducts = [...allProducts, ...nextRes.data.data]
+                    }
+                }
             }
         }
     } catch (error) {
@@ -43,25 +45,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.7,
     }))
 
+    const staticEndpoints = [
+        { url: baseUrl, priority: 1.0, changeFrequency: 'daily' as const },
+        { url: `${baseUrl}/products`, priority: 0.9, changeFrequency: 'daily' as const },
+        { url: `${baseUrl}/categories`, priority: 0.8, changeFrequency: 'weekly' as const },
+        { url: `${baseUrl}/dropshipper`, priority: 0.8, changeFrequency: 'monthly' as const },
+        { url: `${baseUrl}/dropshipper/signup`, priority: 0.8, changeFrequency: 'monthly' as const },
+        { url: `${baseUrl}/register`, priority: 0.5, changeFrequency: 'monthly' as const },
+        { url: `${baseUrl}/login`, priority: 0.5, changeFrequency: 'monthly' as const },
+    ]
+
     return [
-        {
-            url: baseUrl,
+        ...staticEndpoints.map(page => ({
+            ...page,
             lastModified: new Date(),
-            changeFrequency: 'daily',
-            priority: 1,
-        },
-        {
-            url: `${baseUrl}/products`,
-            lastModified: new Date(),
-            changeFrequency: 'daily',
-            priority: 0.9,
-        },
-        {
-            url: `${baseUrl}/categories`,
-            lastModified: new Date(),
-            changeFrequency: 'weekly',
-            priority: 0.8,
-        },
+        })),
         ...categoryEntries,
         ...productEntries,
     ]

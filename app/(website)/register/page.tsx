@@ -42,14 +42,26 @@ const RegisterPage = () => {
                     headers: { 'Authorization': `Bearer ${data.access_token}` }
                 });
 
-                let userData = { name, email, id: 0 };
+                let userData: any = null;
                 if (userRes.ok) {
                     const userResData = await userRes.json();
                     userData = userResData.data || userResData;
                 }
 
+                if (!userData) {
+                    userData = { name, email, id: 0, role: 'customer' };
+                }
+
                 login(data.access_token, userData);
-                router.push('/');
+
+                // Redirect based on role
+                if (userData.role === 'admin' || userData.role === 'super_admin') {
+                    router.push('/admin/dashboard');
+                } else if (['dropshipper', 'sub_dropshipper', 'sub_sub_dropshipper'].includes(userData.role || '')) {
+                    router.push('/dropshipper/dashboard');
+                } else {
+                    router.push('/customer/dashboard');
+                }
             } else {
                 setError(data.message || data.error || 'Registration failed');
             }

@@ -13,7 +13,6 @@ interface ProductCardProps {
 const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    
     // if (!product.image) {
     //     console.log('No image found for product:', product.name);
     // }
@@ -28,7 +27,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     } else if (typeof product.thumbnail === 'string') {
         displayImage = product.thumbnail;
     }
-
     if (!displayImage && Array.isArray(product.images) && product.images.length > 0) {
         const firstImg = product.images[0];
         if (typeof firstImg === 'string') {

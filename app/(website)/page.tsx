@@ -12,6 +12,7 @@ import HeroSlider from '@/components/HeroSlider';
 import CategoryCarousel from '@/components/CategoryCarousel';
 import ProductCard from '@/components/ProductCard';
 import HomeFeeds from '@/components/HomeFeeds'; // New Client Component
+import HomeAllProducts from '@/components/HomeAllProducts';
 
 export default async function Home() {
   // Parallel Fetching for Critical Content only
@@ -104,16 +105,11 @@ export default async function Home() {
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {recommendedProducts.map((product: any) => <ProductCard key={product.id} product={product} />)}
           </div>
-
-          {recommendedProducts.length > 0 && (
-            <div className="text-center mt-10">
-              <Link href="/products" className="inline-block bg-white border-2 border-blue-600 text-blue-600 px-10 py-3 rounded-full font-bold hover:bg-blue-600 hover:text-white transition shadow-sm">
-                View All Products
-              </Link>
-            </div>
-          )}
         </div>
       </section>
+
+      {/* Infinite Product Feed */}
+      <HomeAllProducts />
     </div>
   );
 }

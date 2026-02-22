@@ -1,15 +1,21 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { User, Mail, Phone } from 'lucide-react';
+import { User, Mail, Phone, ExternalLink } from 'lucide-react';
 import { authFetch } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 
 
 const DropShipperForm = () => {
-    const { user,login } = useAuth();
+    const { user, login } = useAuth();
     const router = useRouter();
+
+    useEffect(() => {
+        // Automatically redirect to the new professional signup page
+        // as this legacy form is being deprecated/replaced.
+        router.push('/dropshipper/signup');
+    }, [router]);
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
@@ -26,11 +32,11 @@ const DropShipperForm = () => {
         try {
             const res = await authFetch('/dropshiper/create', {
                 method: 'POST',
-                body: JSON.stringify({ 
-                    customer_id: user?.id, 
-                    name, 
-                    email, 
-                    phone 
+                body: JSON.stringify({
+                    customer_id: user?.id,
+                    name,
+                    email,
+                    phone
                 }),
             });
 

@@ -17,6 +17,7 @@ interface User {
     is_verified?: boolean;
     gender?: string;
     date_of_birth?: string;
+    refer_code?: string;
 }
 
 interface AuthContextType {

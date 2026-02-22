@@ -27,11 +27,11 @@ const AuthMenu = () => {
             >
                 <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs uppercase">
                     {user.name ? user.name.charAt(0) : (
-                            <img
+                        <img
                             src='/fav1.png'
                             alt="Profile"
                             className="w-full h-full object-cover"
-                          />
+                        />
                     )}
                     {/* {user.name ? user.name.charAt(0) : ()} */}
                 </div>
@@ -54,6 +54,13 @@ const AuthMenu = () => {
                     <Link href="/customer/dashboard" className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600">
                         <LayoutDashboard size={16} /> Dashboard
                     </Link>
+                    {(user.role === 'dropshipper' ||
+                        user.role === 'sub_dropshipper' ||
+                        user.role === 'sub_sub_dropshipper') && (
+                            <Link href="/dropshipper/dashboard" className="flex items-center gap-2 px-4 py-2 text-sm text-emerald-600 hover:bg-emerald-50 font-bold">
+                                <LayoutDashboard size={16} /> Dropshipper Panel
+                            </Link>
+                        )}
                     <Link href="/customer/orders" className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600">
                         <ShoppingBag size={16} /> My Orders
                     </Link>

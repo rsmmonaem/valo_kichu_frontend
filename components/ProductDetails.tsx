@@ -175,10 +175,15 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
 
         {/* Product Info */}
         <div className="p-6 md:p-8 bg-gray-50 md:bg-white flex flex-col">
-          <div className="mb-2">
+          <div className="mb-2 flex items-center gap-2">
             <span className="text-blue-600 font-bold text-xs uppercase tracking-wider bg-blue-50 px-2 py-1 rounded">
               {product.category?.name || "Store Item"}
             </span>
+            {product.product_code && (
+              <span className="text-gray-500 font-bold text-[10px] uppercase tracking-widest bg-gray-100 px-2 py-1 rounded border border-gray-200">
+                Code: {product.product_code}
+              </span>
+            )}
           </div>
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 leading-tight">
             {product.name}
@@ -207,9 +212,8 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
 
           <div className="mb-8 border-t border-b border-gray-100 py-6 space-y-4">
             <p
-              className={`text-gray-600 ${
-                product.short_description === null ? "hidden" : ""
-              }`}
+              className={`text-gray-600 ${product.short_description === null ? "hidden" : ""
+                }`}
             >
               {product.short_description}
             </p>
@@ -392,8 +396,8 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
           <ul className="list-disc list-inside ml-2 mt-2 text-gray-600">
             {product.specifications
               ? JSON.parse(product.specifications).map(
-                  (spec: string, idx: number) => <li key={idx}>{spec}</li>
-                )
+                (spec: string, idx: number) => <li key={idx}>{spec}</li>
+              )
               : "No specifications available."}
           </ul>
         </div>
@@ -401,9 +405,8 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
           <h1 className="text-2xl font-medium">Product Details</h1>
           <div>
             <p
-              className={`text-gray-600 leading-relaxed transition-all duration-300 ${
-                expanded ? "" : "line-clamp-5"
-              }`}
+              className={`text-gray-600 leading-relaxed transition-all duration-300 ${expanded ? "" : "line-clamp-5"
+                }`}
             >
               {product.description}
             </p>

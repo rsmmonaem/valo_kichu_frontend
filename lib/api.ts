@@ -45,6 +45,7 @@ export interface Product {
   loyalty_points?: number;
   current_stock?: number; // admin products page uses this
   status?: string; // admin products page uses this
+  product_code?: string;
 }
 
 export const authFetch = async (endpoint: string, options: RequestInit = {}) => {
@@ -166,7 +167,6 @@ export const getProducts = async (
   if (sort) url += `&sort_by=${sort}`; // Backend check: $sorting = $request->get('sorting') ?? $request->get('sort_by');
 
   const res = await fetch(url, {
-    cache: 'no-store',
     next: { revalidate: 60 }
   });
   if (!res.ok) {

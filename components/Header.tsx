@@ -64,28 +64,20 @@ const Header: React.FC<HeaderProps> = ({ categories }) => {
 
 
   async function dropShiperHandler() {
-    
-    router.push("/dropshipperform");
-    //     const userChoice= confirm("Are you sure? applied for dropshipper account?");
-    //     if(userChoice){
-    //     //   router.push("/dropshipper/application");
-    //     console.log(user);
-    //     const userData={
-    //         customer_id:user?.id || 1,
-    //         name:user?.first_name+' '+(user?.last_name || ''),
-    //         email:user?.email,
-    //         phone:user?.phone_number,
-    //     }
-    //     console.log("User Data:",userData);
-    //     const res = await authFetch('/dropshiper/create', {
-    //       method: 'POST',
-    //       body: JSON.stringify(userData),
-    //     });
+    if (!user) {
+      router.push("/login?redirect=/dropshipper/dashboard");
+      return;
+    }
 
-    //     const data = await res.json();
-    //     console.log(data);
+    const isDropshipper = user.role === 'dropshipper' ||
+      user.role === 'sub_dropshipper' ||
+      user.role === 'sub_sub_dropshipper';
 
-    // }
+    if (isDropshipper) {
+      router.push("/dropshipper/dashboard");
+    } else {
+      router.push("/dropshipperform");
+    }
   }
 
   return (
@@ -118,10 +110,10 @@ const Header: React.FC<HeaderProps> = ({ categories }) => {
                   <div className="bg-blue-600 text-white p-2 rounded-lg font-bold text-xl group-hover:scale-105 transition-transform duration-200">
                     {/* {settings.site_name ? settings.site_name.charAt(0) : "V"} */}
                     <img
-                    src={`/fav1.png`}
-                    alt={settings.site_name || "Logo"}
-                    className="h-10 w-auto group-hover:scale-105 transition-transform object-contain"
-                  />
+                      src={`/fav1.png`}
+                      alt={settings.site_name || "Logo"}
+                      className="h-10 w-auto group-hover:scale-105 transition-transform object-contain"
+                    />
                   </div>
                 )}
               </Link>
