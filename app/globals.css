@@ -3,7 +3,7 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
-  --primary-color: #2563ea;
+  --primary-color: #f97316;
   /* Default Blue-600 */
   --secondary-color: #64748b;
   /* Default Gray/Slate */
@@ -54,14 +54,17 @@ body {
     opacity: 0;
     transform: translateY(10px) scale(0.95);
   }
+
   20% {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
+
   80% {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
+
   100% {
     opacity: 0;
     transform: translateY(-8px) scale(0.98);

@@ -16,8 +16,8 @@ import HomeFeeds from '@/components/HomeFeeds';
 import HomeAllProducts from '@/components/HomeAllProducts';
 import StoreInitializer from '@/components/StoreInitializer';
 
-export default async function StoreFront({ params }: { params: { username: string } }) {
-    const { username } = params;
+export default async function StoreFront({ params }: { params: Promise<{ username: string }> }) {
+    const { username } = await params;
 
     // Parallel Fetching
     const [
