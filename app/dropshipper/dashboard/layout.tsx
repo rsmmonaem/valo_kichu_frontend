@@ -25,7 +25,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
     useEffect(() => {
         if (!loading) {
             if (!user) {
-                router.push('/login?redirect=' + pathname);
+                router.push('/dropshipper/login?redirect=' + pathname);
             } else {
                 const isDropshipper = user.role === 'dropshipper' ||
                     user.role === 'sub_dropshipper' ||
@@ -76,7 +76,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
                             return (
                                 <button
                                     key={item.name}
-                                    onClick={() => window.open(`/?referral_code=${user?.refer_code}`, '_blank')}
+                                    onClick={() => window.open(`/store/${user?.refer_code}`, '_blank')}
                                     className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-gray-500 hover:bg-gray-50 hover:text-gray-900 w-full text-left"
                                 >
                                     <item.icon size={20} />

@@ -304,3 +304,15 @@ export const getCategoryBar = async (): Promise<SingleResponse<Category[]>> => {
     return { status: false, data: [] };
   }
 };
+
+export const getStoreInfo = async (username: string): Promise<SingleResponse<any>> => {
+  try {
+    const res = await fetch(`${API_URL}/v2/store/${username}`, {
+      next: { revalidate: 60 }
+    });
+    if (!res.ok) return { status: false, data: null };
+    return res.json();
+  } catch (e) {
+    return { status: false, data: null };
+  }
+};

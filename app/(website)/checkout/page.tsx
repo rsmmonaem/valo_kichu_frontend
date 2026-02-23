@@ -148,6 +148,8 @@ const CheckoutPage = () => {
         shipping_cost: shippingCost,
         // Guest specific info if needed by backend, though usually name/contact/address is enough
         email: checkoutData.email,
+        referral_code: typeof window !== 'undefined' ? localStorage.getItem('referral_code') : null,
+        referral_source: 'store_link',
       };
 
       // 2. Send Request
@@ -354,8 +356,8 @@ const CheckoutPage = () => {
                           setShippingCost(method.cost); // Update the shipping cost based on the selected method
                         }}
                         className={`p-3 text-center rounded-xl cursor-pointer transition hover:scale-105 ${checkoutData.area === method.name
-                            ? "bg-[#FFAC1C] text-white shadow-lg"
-                            : "bg-gray-100"
+                          ? "bg-[#FFAC1C] text-white shadow-lg"
+                          : "bg-gray-100"
                           }`}
                       >
                         {method.name} (৳{Math.floor(method.cost)})

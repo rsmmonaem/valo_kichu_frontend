@@ -12,21 +12,21 @@ const DropshipperLandingPage = () => {
             {/* Hero Section */}
             <section className="relative py-20 bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 text-white overflow-hidden">
                 <div className="absolute top-0 right-0 w-1/3 h-full bg-white/5 skew-x-12 transform -translate-y-12"></div>
-                
+
                 <div className="container mx-auto px-6 relative z-10">
                     <div className="max-w-3xl">
                         <h1 className="text-5xl md:text-6xl font-extrabold mb-6 leading-tight">
                             Start Your Own <span className="text-blue-400">Dropshipping</span> Empire
                         </h1>
                         <p className="text-xl text-blue-100 mb-10 leading-relaxed">
-                            Join Valokichu's professional multi-level dropshipping portal. 
+                            Join Valokichu's professional multi-level dropshipping portal.
                             Source 4,000+ products, set your margins, and build a network of sub-dropshippers to earn passive commission.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4">
                             <Link href="/dropshipper/signup" className="bg-blue-500 hover:bg-blue-600 px-8 py-4 rounded-full font-bold text-center transition shadow-lg shadow-blue-500/20">
                                 Start Now for Free
                             </Link>
-                            <Link href="/login" className="bg-white/10 hover:bg-white/20 px-8 py-4 rounded-full font-bold text-center transition border border-white/30">
+                            <Link href="/dropshipper/login" className="bg-white/10 hover:bg-white/20 px-8 py-4 rounded-full font-bold text-center transition border border-white/30">
                                 Dropshipper Login
                             </Link>
                         </div>
@@ -38,7 +38,7 @@ const DropshipperLandingPage = () => {
             <section className="py-24 bg-gray-50">
                 <div className="container mx-auto px-6 text-center">
                     <h2 className="text-3xl md:text-4xl font-bold mb-16 text-gray-900">The Power of Multi-Level Dropshipping</h2>
-                    
+
                     <div className="grid md:grid-cols-3 gap-12 max-w-5xl mx-auto">
                         <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition">
                             <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6">

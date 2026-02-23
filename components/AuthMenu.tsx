@@ -11,10 +11,27 @@ const AuthMenu = () => {
 
     if (!user) {
         return (
-            <Link href="/login" className="flex flex-col items-center gap-0.5 text-gray-600 hover:text-blue-600 transition-colors">
-                <User size={24} />
-                <span className="text-[10px] font-medium">Login</span>
-            </Link>
+            <div className="relative group z-50">
+                <button
+                    className="flex flex-col items-center gap-0.5 text-gray-600 hover:text-blue-600 transition-colors outline-none"
+                    onClick={() => setIsOpen(!isOpen)}
+                    onBlur={() => setTimeout(() => setIsOpen(false), 200)}
+                >
+                    <User size={24} />
+                    <span className="text-[10px] font-medium">Login</span>
+                </button>
+
+                <div className={`absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-100 py-2 transition-all duration-200 transform origin-top-right ${isOpen ? 'opacity-100 scale-100 visible' : 'opacity-0 scale-95 invisible group-hover:opacity-100 group-hover:scale-100 group-hover:visible'}`}>
+                    <div className="py-1">
+                        <Link href="/login" className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                            Customer Login
+                        </Link>
+                        <Link href="/dropshipper/login" className="flex items-center gap-2 px-4 py-2 text-sm text-emerald-600 hover:bg-emerald-50 font-bold">
+                            Dropshipper Login
+                        </Link>
+                    </div>
+                </div>
+            </div>
         );
     }
 

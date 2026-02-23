@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Lock, Mail, User, Phone, Ticket, TrendingUp } from 'lucide-react';
@@ -19,8 +19,18 @@ const DropshipperSignupPage = () => {
         phone_number: '',
         password: '',
         confirm_password: '',
-        referral_code: searchParams.get('ref') || '',
+        referral_code: '', // Initialize empty to handle logic in useEffect
     });
+
+    useEffect(() => {
+        const urlRef = searchParams.get('ref');
+        const localRef = typeof window !== 'undefined' ? localStorage.getItem('referral_code') : null;
+
+        setFormData(prev => ({
+            ...prev,
+            referral_code: urlRef || localRef || ''
+        }));
+    }, [searchParams]);
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
@@ -95,6 +105,8 @@ const DropshipperSignupPage = () => {
                         {error}
                     </div>
                 )}
+
+
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
@@ -214,7 +226,7 @@ const DropshipperSignupPage = () => {
                 </form>
 
                 <p className="text-center mt-6 text-sm text-gray-600">
-                    Already have an account? <Link href="/login" className="text-blue-600 hover:text-blue-700 font-bold">Sign In</Link>
+                    Already have an account? <Link href="/dropshipper/login" className="text-blue-600 hover:text-blue-700 font-bold">Sign In</Link>
                 </p>
             </div>
         </div>

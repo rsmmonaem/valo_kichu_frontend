@@ -42,6 +42,18 @@ const Header: React.FC<HeaderProps> = ({ categories }) => {
   const { isSidebarOpen, closeSidebar, openSidebar } = useUI();
 
   const { user } = useAuth();
+  const [referralCode, setReferralCode] = useState<string | null>(null);
+
+  useEffect(() => {
+    const code = localStorage.getItem('referral_code');
+    if (code) setReferralCode(code);
+
+    const handleStorage = () => {
+      setReferralCode(localStorage.getItem('referral_code'));
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
 
 
   // Safe access to cart context
@@ -65,7 +77,7 @@ const Header: React.FC<HeaderProps> = ({ categories }) => {
 
   async function dropShiperHandler() {
     if (!user) {
-      router.push("/login?redirect=/dropshipper/dashboard");
+      router.push("/dropshipper/login?redirect=/dropshipper/dashboard");
       return;
     }
 
@@ -117,6 +129,15 @@ const Header: React.FC<HeaderProps> = ({ categories }) => {
                   </div>
                 )}
               </Link>
+              {referralCode && (
+                <div className="hidden lg:flex items-center gap-2 bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full border border-emerald-100 shadow-sm">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  </span>
+                  <span className="text-[10px] font-bold uppercase tracking-tight">Partner: {referralCode}</span>
+                </div>
+              )}
             </div>
 
             {/* Search Bar */}

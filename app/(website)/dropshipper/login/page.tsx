@@ -3,35 +3,27 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Lock, Mail, User } from 'lucide-react';
-import { authFetch } from '@/lib/api';
+import { Lock, Mail, Truck } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { authFetch } from '@/lib/api';
 
-const RegisterPage = () => {
+const DropshipperLoginPage = () => {
     const { login } = useAuth();
     const router = useRouter();
-    const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
-        if (password !== confirmPassword) {
-            setError("Passwords do not match");
-            return;
-        }
-
         setIsSubmitting(true);
         setError('');
 
         try {
-            const res = await authFetch('/register', {
+            const res = await authFetch('/login', {
                 method: 'POST',
-                body: JSON.stringify({ name, email, password, password_confirmation: confirmPassword }),
+                body: JSON.stringify({ email, password }),
             });
 
             const data = await res.json();
@@ -49,21 +41,21 @@ const RegisterPage = () => {
                 }
 
                 if (!userData) {
-                    userData = { name, email, id: 0, role: 'customer' };
+                    userData = { name: 'User', email: email, id: 0 };
                 }
 
                 login(data.access_token, userData);
 
-                // Redirect based on role
+                // Redirect based on role - for dropshipper login, we prioritize dropshipper dashboard
                 if (userData.role === 'admin' || userData.role === 'super_admin') {
                     router.push('/admin/dashboard');
                 } else if (['dropshipper', 'sub_dropshipper', 'sub_sub_dropshipper'].includes(userData.role || '')) {
                     router.push('/dropshipper/dashboard');
                 } else {
-                    router.push('/customer/dashboard');
+                    router.push('/dropshipper/dashboard'); // Even if they are customers, if they used this login, they probably want the dashboard or to sign up
                 }
             } else {
-                setError(data.message || data.error || 'Registration failed');
+                setError(data.message || 'Invalid email or password');
             }
         } catch (err) {
             setError('Something went wrong. Please try again.');
@@ -76,11 +68,11 @@ const RegisterPage = () => {
         <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12">
             <div className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full border border-gray-100">
                 <div className="text-center mb-8">
-                    <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                        <User size={32} />
+                    <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 font-bold">
+                        <Truck size={32} />
                     </div>
-                    <h2 className="text-3xl font-bold text-gray-800">Customer Registration</h2>
-                    <p className="text-gray-500 mt-2">Create your account to start shopping</p>
+                    <h2 className="text-3xl font-bold text-gray-800">Dropshipper Login</h2>
+                    <p className="text-gray-500 mt-2">Manage your business and network</p>
                 </div>
 
                 {error && (
@@ -90,21 +82,6 @@ const RegisterPage = () => {
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-6">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                        <div className="relative">
-                            <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                            <input
-                                type="text"
-                                className="w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 outline-none transition"
-                                placeholder="John Doe"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                required
-                            />
-                        </div>
-                    </div>
-
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
                         <div className="relative">
@@ -135,26 +112,12 @@ const RegisterPage = () => {
                         </div>
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
-                        <div className="relative">
-                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                            <input
-                                type="password"
-                                className="w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 outline-none transition"
-                                placeholder="••••••••"
-                                value={confirmPassword}
-                                onChange={(e) => setConfirmPassword(e.target.value)}
-                                required
-                            />
-                        </div>
-                    </div>
-
-                    <div className="text-sm">
+                    <div className="flex items-center justify-between text-sm">
                         <label className="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" className="rounded border-gray-300 text-blue-600 focus:ring-blue-600" required />
-                            <span className="text-gray-600">I agree to the <a href="#" className="text-blue-600 hover:underline">Terms & Conditions</a></span>
+                            <input type="checkbox" className="rounded border-gray-300 text-blue-600 focus:ring-blue-600" />
+                            <span className="text-gray-600">Remember me</span>
                         </label>
+                        <a href="#" className="text-blue-600 hover:text-blue-700 font-medium">Forgot password?</a>
                     </div>
 
                     <button
@@ -162,16 +125,22 @@ const RegisterPage = () => {
                         disabled={isSubmitting}
                         className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition font-bold shadow-lg shadow-blue-600/30 disabled:opacity-70 disabled:cursor-not-allowed"
                     >
-                        {isSubmitting ? 'Creating Account...' : 'Create Account'}
+                        {isSubmitting ? 'Signing in...' : 'Sign In as Dropshipper'}
                     </button>
                 </form>
 
                 <p className="text-center mt-8 text-sm text-gray-600">
-                    Already have an account? <Link href="/login" className="text-blue-600 hover:text-blue-700 font-bold">Sign In</Link>
+                    New to dropshipping? <Link href="/dropshipper/signup" className="text-blue-600 hover:text-blue-700 font-bold">Create Account</Link>
                 </p>
+
+                <div className="mt-6 pt-6 border-t border-gray-100 text-center">
+                    <Link href="/login" className="text-sm text-gray-500 hover:text-gray-700">
+                        Regular customer? Login here
+                    </Link>
+                </div>
             </div>
         </div>
     );
 };
 
-export default RegisterPage;
+export default DropshipperLoginPage;

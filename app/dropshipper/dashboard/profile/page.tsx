@@ -16,9 +16,15 @@ const ProfilePage = () => {
         email: '',
         phone_number: '',
         store_name: '',
-        image: null
+        slogan: '',
+        about_us: '',
+        image: null,
+        store_logo: null,
+        store_banner: null
     });
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [logoPreview, setLogoPreview] = useState<string | null>(null);
+    const [bannerPreview, setBannerPreview] = useState<string | null>(null);
 
     useEffect(() => {
         fetchProfile();
@@ -36,10 +42,20 @@ const ProfilePage = () => {
                     email: data.user.email || '',
                     phone_number: data.user.phone_number || '',
                     store_name: data.store_name || '',
-                    image: null
+                    slogan: data.user.dropshipper_profile?.slogan || '',
+                    about_us: data.user.dropshipper_profile?.about_us || '',
+                    image: null,
+                    store_logo: null,
+                    store_banner: null
                 });
                 if (data.user.image_url) {
                     setPreviewUrl(data.user.image_url);
+                }
+                if (data.user.dropshipper_profile?.store_logo) {
+                    setLogoPreview(data.user.dropshipper_profile.store_logo_url || `${process.env.NEXT_PUBLIC_API_URL}/storage/stores/${data.user.dropshipper_profile.store_logo}`);
+                }
+                if (data.user.dropshipper_profile?.store_banner) {
+                    setBannerPreview(data.user.dropshipper_profile.store_banner_url || `${process.env.NEXT_PUBLIC_API_URL}/storage/stores/${data.user.dropshipper_profile.store_banner}`);
                 }
             }
         } catch (error) {
@@ -50,17 +66,19 @@ const ProfilePage = () => {
         }
     };
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setProfile((prev: any) => ({ ...prev, [name]: value }));
     };
 
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'store_logo' | 'store_banner') => {
         const file = e.target.files?.[0];
         if (file) {
-            setProfile((prev: any) => ({ ...prev, image: file }));
+            setProfile((prev: any) => ({ ...prev, [type]: file }));
             const url = URL.createObjectURL(file);
-            setPreviewUrl(url);
+            if (type === 'image') setPreviewUrl(url);
+            if (type === 'store_logo') setLogoPreview(url);
+            if (type === 'store_banner') setBannerPreview(url);
         }
     };
 
@@ -75,8 +93,16 @@ const ProfilePage = () => {
             formData.append('email', profile.email);
             formData.append('phone_number', profile.phone_number);
             formData.append('store_name', profile.store_name);
+            formData.append('slogan', profile.slogan);
+            formData.append('about_us', profile.about_us);
             if (profile.image) {
                 formData.append('image', profile.image);
+            }
+            if (profile.store_logo) {
+                formData.append('store_logo', profile.store_logo);
+            }
+            if (profile.store_banner) {
+                formData.append('store_banner', profile.store_banner);
             }
 
             // Using POST because we are sending FormData (image)
@@ -135,13 +161,73 @@ const ProfilePage = () => {
                             </div>
                             <label className="absolute bottom-0 right-0 p-2 bg-blue-600 text-white rounded-full shadow-lg cursor-pointer hover:bg-blue-700 transition-all transform hover:scale-110">
                                 <Camera size={18} />
-                                <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
+                                <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileChange(e, 'image')} />
                             </label>
                         </div>
                         <p className="text-xs font-black text-gray-400 uppercase tracking-widest">Profile Picture</p>
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-8">
+                        {/* Store Customization Section */}
+                        <div className="md:col-span-2 space-y-6 pt-4 border-t border-gray-100">
+                            <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                                <Store size={20} className="text-emerald-500" /> Store Branding
+                            </h3>
+
+                            <div className="grid md:grid-cols-2 gap-8">
+                                {/* Store Logo */}
+                                <div className="space-y-3">
+                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">Store Logo</label>
+                                    <div className="relative w-full h-32 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 flex items-center justify-center overflow-hidden">
+                                        {logoPreview ? (
+                                            <img src={logoPreview} alt="Logo" className="max-w-full max-h-full object-contain" />
+                                        ) : (
+                                            <Camera size={24} className="text-gray-300" />
+                                        )}
+                                        <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" accept="image/*" onChange={(e) => handleFileChange(e, 'store_logo')} />
+                                    </div>
+                                </div>
+
+                                {/* Store Banner */}
+                                <div className="space-y-3">
+                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">Store Banner</label>
+                                    <div className="relative w-full h-32 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 flex items-center justify-center overflow-hidden">
+                                        {bannerPreview ? (
+                                            <img src={bannerPreview} alt="Banner" className="w-full h-full object-cover" />
+                                        ) : (
+                                            <Camera size={24} className="text-gray-300" />
+                                        )}
+                                        <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" accept="image/*" onChange={(e) => handleFileChange(e, 'store_banner')} />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Store Slogan */}
+                            <div className="space-y-3">
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">Store Slogan</label>
+                                <input
+                                    type="text"
+                                    name="slogan"
+                                    value={profile.slogan}
+                                    onChange={handleInputChange}
+                                    placeholder="Your Store Slogan"
+                                    className="w-full px-6 py-4 rounded-2xl bg-gray-50 border-2 border-transparent focus:bg-white focus:border-emerald-500 font-bold text-gray-900 transition-all outline-none"
+                                />
+                            </div>
+
+                            {/* About Us */}
+                            <div className="space-y-3">
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">About Our Store</label>
+                                <textarea
+                                    name="about_us"
+                                    value={profile.about_us}
+                                    onChange={handleInputChange}
+                                    rows={4}
+                                    placeholder="Tell your customers about your store..."
+                                    className="w-full px-6 py-4 rounded-2xl bg-gray-50 border-2 border-transparent focus:bg-white focus:border-emerald-500 font-bold text-gray-900 transition-all outline-none"
+                                />
+                            </div>
+                        </div>
                         {/* Store Name */}
                         <div className="md:col-span-2 space-y-3">
                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2 flex items-center gap-2">
