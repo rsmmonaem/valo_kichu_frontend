@@ -12,6 +12,7 @@ const CategoryBar: React.FC = () => {
     useEffect(() => {
         const fetchCategories = async () => {
             const { data } = await getCategoryBar();
+            
             setCategories(data);
             setLoading(false);
         };

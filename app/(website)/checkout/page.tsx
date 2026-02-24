@@ -16,7 +16,8 @@ import {
 } from "lucide-react";
 import clsx from "clsx";
 import Link from "next/link";
-import toast from "react-hot-toast";
+// import toast from "react-hot-toast";
+import toast, { Toaster } from "react-hot-toast";
 
 interface ShippingMethod {
   id: number;
@@ -117,9 +118,15 @@ const CheckoutPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!checkoutData.area) {
+      console.log("No delivery area selected");
+      toast.error("Please select a Delivery Area before placing the order.");
+      return;
+    } 
     setLoading(true);
 
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    // const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
     try {
       // 1. Prepare Payload
@@ -204,6 +211,7 @@ const CheckoutPage = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen py-10">
+      <Toaster position="top-right" reverseOrder={false} />
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between mb-8 max-w-5xl mx-auto">
           <h1 className="text-2xl font-bold text-gray-800">Checkout</h1>
@@ -347,6 +355,7 @@ const CheckoutPage = () => {
                   <div className="grid grid-cols-2 gap-2">
                     {shippingMethods.map((method) => (
                       <button
+                        type="button"
                         key={method.id}
                         onClick={() => {
                           setCheckoutData((prev) => ({
@@ -506,7 +515,7 @@ const CheckoutPage = () => {
               <button
                 type="submit"
                 disabled={loading || cart.length === 0}
-                className="w-full mt-6 bg-blue-600 text-white py-3.5 rounded-lg font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-200 disabled:opacity-70 disabled:cursor-not-allowed"
+                className="w-full mt-6 bg-blue-600 text-white py-3.5 rounded-lg font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-200 disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
               >
                 {loading ? "Processing..." : "Place Order"}
               </button>

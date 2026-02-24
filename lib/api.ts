@@ -293,7 +293,8 @@ export const getSettings = async (options: RequestInit = { cache: 'force-cache',
 
 export const getCategoryBar = async (): Promise<SingleResponse<Category[]>> => {
   try {
-    const res = await fetch(`${API_URL}/v1/category-bar`, {
+   
+    const res = await fetch(`${API_URL}/v1/category-bars`, {
       cache: 'force-cache',
       next: { revalidate: 60 }
     });

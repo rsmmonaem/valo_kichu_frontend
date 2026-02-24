@@ -5,6 +5,15 @@ const nextConfig: NextConfig = {
   /* config options here */
   images: {
     remotePatterns: [
+            // ✅ LOCAL DEV (Laravel)
+            {
+              protocol: 'http',
+              hostname: 'localhost',
+              port: '8000',
+              pathname: '/storage/**',
+            },
+      
+            // ✅ Production domains
       {
         protocol: 'https',
         hostname: 'backend.valokichu.com',
