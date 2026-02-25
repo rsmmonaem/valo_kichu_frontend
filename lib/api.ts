@@ -115,8 +115,7 @@ export const getCategoryList = async (): Promise<SingleResponse<Category[]>> => 
   // Try the nested list endpoint first (v1)
   try {
     const res = await fetch(`${API_URL}/v1/category-list`, {
-      cache: 'force-cache',
-      next: { revalidate: 60 }
+      cache: 'no-store',
     });
     if (res.ok) {
       const data = await res.json();
@@ -130,8 +129,7 @@ export const getCategoryList = async (): Promise<SingleResponse<Category[]>> => 
   // Fallback to simple categories
   try {
     const res = await fetch(`${API_URL}/categories`, {
-      cache: 'force-cache',
-      next: { revalidate: 60 }
+      cache: 'no-store',
     });
     if (!res.ok) return { status: false, data: [] };
     const data = await res.json();
@@ -179,8 +177,7 @@ export const getProducts = async (
 
 export const getProduct = async (slug: string): Promise<SingleResponse<Product>> => {
   const res = await fetch(`${API_URL}/v2/products/${slug}`, {
-    cache: 'force-cache',
-    next: { revalidate: 60 }
+    cache: 'no-store',
   });
   if (!res.ok) {
     return { status: false, data: {} as Product, message: 'Product not found' };
@@ -193,8 +190,7 @@ export const getProduct = async (slug: string): Promise<SingleResponse<Product>>
 export const getCategory = async (slug: string): Promise<SingleResponse<Category & { meta_title?: string; meta_description?: string; meta_keywords?: string }>> => {
   try {
     const res = await fetch(`${API_URL}/categories/${slug}`, {
-      cache: 'force-cache',
-      next: { revalidate: 60 }
+      cache: 'no-store',
     });
     if (!res.ok) return { status: false, data: {} as any, message: 'Category not found' };
     const data = await res.json();
@@ -220,8 +216,7 @@ export interface CategorySection {
 export const getBanners = async (): Promise<Banner[]> => {
   try {
     const res = await fetch(`${API_URL}/banners`, {
-      cache: 'force-cache',
-      next: { revalidate: 60 }
+      cache: 'no-store',
     }); // exists at root /api/banners
     if (!res.ok) return [];
     const data = await res.json();
@@ -234,8 +229,7 @@ export const getBanners = async (): Promise<Banner[]> => {
 export const getCategorySections = async (): Promise<CategorySection[]> => {
   try {
     const res = await fetch(`${API_URL}/v1/categories-with-products`, {
-      cache: 'force-cache',
-      next: { revalidate: 60 }
+      cache: 'no-store',
     });
     if (!res.ok) return [];
     const data = await res.json();
@@ -248,8 +242,7 @@ export const getCategorySections = async (): Promise<CategorySection[]> => {
 export const getNewArrivals = async (): Promise<Product[]> => {
   try {
     const res = await fetch(`${API_URL}/v1/items-sections?type=newarrival&limit=12`, {
-      cache: 'force-cache',
-      next: { revalidate: 60 }
+      cache: 'no-store',
     });
     if (!res.ok) return [];
     const data = await res.json();
@@ -263,8 +256,7 @@ export const getNewArrivals = async (): Promise<Product[]> => {
 export const getRecommendedProducts = async (): Promise<Product[]> => {
   try {
     const res = await fetch(`${API_URL}/v1/recommended-products`, {
-      cache: 'force-cache',
-      next: { revalidate: 60 }
+      cache: 'no-store',
     });
     if (!res.ok) return [];
     const data = await res.json();
@@ -275,7 +267,7 @@ export const getRecommendedProducts = async (): Promise<Product[]> => {
 };
 
 
-export const getSettings = async (options: RequestInit = { cache: 'force-cache', next: { revalidate: 3600 } }): Promise<Record<string, string>> => {
+export const getSettings = async (options: RequestInit = { cache: 'no-store' }): Promise<Record<string, string>> => {
   try {
     const res = await fetch(`${API_URL}/settings`, options);
 
@@ -293,10 +285,9 @@ export const getSettings = async (options: RequestInit = { cache: 'force-cache',
 
 export const getCategoryBar = async (): Promise<SingleResponse<Category[]>> => {
   try {
-   
+
     const res = await fetch(`${API_URL}/v1/category-bars`, {
-      cache: 'force-cache',
-      next: { revalidate: 60 }
+      cache: 'no-store',
     });
     if (!res.ok) return { status: false, data: [] };
     const data = await res.json();
