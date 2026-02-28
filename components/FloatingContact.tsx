@@ -8,7 +8,7 @@ export default function FloatingContact() {
         <div className="fixed bottom-24 md:bottom-8 right-4 md:right-8 z-50 flex flex-col gap-4">
             {/* WhatsApp Floating Icon */}
             <Link
-                href="https://wa.me/8801900000000"
+                href="https://wa.me/8801314861089"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-12 h-12 md:w-14 md:h-14 bg-[#25D366] text-white rounded-full shadow-xl shadow-[#25D366]/40 hover:scale-110 transition-transform flex items-center justify-center cursor-pointer"

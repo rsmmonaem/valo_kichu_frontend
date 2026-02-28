@@ -116,7 +116,7 @@ const Header: React.FC<HeaderProps> = ({ categories }) => {
                         }/storage/${settings.site_logo}`
                     }
                     alt={settings.site_name || "Logo"}
-                    className="h-20 w-auto group-hover:scale-105 transition-transform object-contain"
+                    className="h-14 md:h-20 w-auto group-hover:scale-105 transition-transform object-contain"
                   />
                 ) : (
                   <div className="bg-blue-600 text-white p-2 rounded-lg font-bold text-xl group-hover:scale-105 transition-transform duration-200">
