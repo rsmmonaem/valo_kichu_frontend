@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
     return {
         title: product.meta_title || product.name || 'Product Details',
-        description: product.meta_description || product.description?.substring(0, 160) || 'Product details',
+        description: product.meta_description || product.description?.replace(/<[^>]*>?/gm, '').substring(0, 160) || 'Product details',
     };
 }
 

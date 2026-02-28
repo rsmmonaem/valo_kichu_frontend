@@ -54,7 +54,7 @@ export default async function Home() {
             <span className="w-1 h-6 bg-blue-600 rounded-full"></span>
             Shop by Category
           </h2>
-          <CategoryCarousel categories={categories} />
+          <CategoryCarousel categories={categories.filter((c: any) => c.show_shop_by_category)} />
         </div>
       </section>
 

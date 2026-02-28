@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { Star } from 'lucide-react';
 import { Product } from '@/lib/api';
 import ProductModal from './ProductModal'; // Make sure this path is correct
+import { formatAmount } from '@/lib/utils/formatAmount';
 
 interface ProductCardProps {
     product: Product;
@@ -133,9 +134,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                         </h4>
                         <div className="mt-auto pt-2">
                             <div className="flex items-baseline gap-2 mb-1">
-                                <span className="text-lg font-bold text-blue-600">৳{hasDiscount ? salePrice : basePrice}</span>
+                                <span className="text-lg font-bold text-blue-600">৳{formatAmount(hasDiscount ? salePrice : basePrice)}</span>
                                 {hasDiscount && (
-                                    <span className="text-xs text-gray-400 line-through">৳{basePrice}</span>
+                                    <span className="text-xs text-gray-400 line-through">৳{formatAmount(basePrice)}</span>
                                 )}
                             </div>
                         </div>

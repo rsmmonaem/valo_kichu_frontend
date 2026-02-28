@@ -13,11 +13,15 @@ import {
   CreditCard,
   ShieldCheck,
   ShoppingBag,
+  Trash2,
+  Plus,
+  Minus,
 } from "lucide-react";
 import clsx from "clsx";
 import Link from "next/link";
 // import toast from "react-hot-toast";
 import toast, { Toaster } from "react-hot-toast";
+import { formatAmount } from "@/lib/utils/formatAmount";
 
 interface ShippingMethod {
   id: number;
@@ -26,7 +30,7 @@ interface ShippingMethod {
 }
 
 const CheckoutPage = () => {
-  const { cart, cartTotal, clearCart } = useCart();
+  const { cart, cartTotal, clearCart, updateQuantity, removeFromCart } = useCart();
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -123,7 +127,7 @@ const CheckoutPage = () => {
       console.log("No delivery area selected");
       toast.error("Please select a Delivery Area before placing the order.");
       return;
-    } 
+    }
     setLoading(true);
 
     // const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -214,7 +218,11 @@ const CheckoutPage = () => {
       <Toaster position="top-right" reverseOrder={false} />
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between mb-8 max-w-5xl mx-auto">
-          <h1 className="text-2xl font-bold text-gray-800">Checkout</h1>
+          <div className="flex gap-2 items-center">
+          <ShieldCheck size={28} className="text-green-600" />
+          <h1 className="text-2xl font-bold text-gray-800">Secure Checkout – Your information is protected</h1>
+          </div>
+          
           {!user && (
             <div className="text-sm">
               Already have an account?{" "}
@@ -369,7 +377,7 @@ const CheckoutPage = () => {
                           : "bg-gray-100"
                           }`}
                       >
-                        {method.name} (৳{Math.floor(method.cost)})
+                        {method.name} (৳{formatAmount(Math.floor(method.cost))})
                       </button>
                     ))}
                   </div>
@@ -398,40 +406,59 @@ const CheckoutPage = () => {
                 {cart.map((item) => (
                   <div
                     key={`${item.id}-${item.variant?.id}`}
-                    className="flex justify-between items-start text-sm gap-5"
+                    className="flex justify-between items-start text-sm gap-4"
                   >
-                    <div className="flex gap-2">
-                      <div className="w-10 h-10 bg-gray-100 rounded shrink-0 overflow-hidden">
+                    <div className="flex gap-3 flex-1">
+                      <div className="w-12 h-12 bg-gray-100 rounded shrink-0 overflow-hidden">
                         <img
                           src={
                             item.image && item.image.startsWith("http")
                               ? item.image
                               : item.image
-                                ? `${process.env.NEXT_PUBLIC_API_URL ||
-                                "http://localhost:8000"
-                                }/${item.image}`
+                                ? `${process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000"}/${item.image}`
                                 : "/placeholder.png"
                           }
+                          alt={item.name}
                           className="w-full h-full object-cover"
                         />
                       </div>
-                      <div>
-                        <p className="font-medium text-gray-900 line-clamp-1">
+                      <div className="flex flex-col justify-between">
+                        <p className="font-medium text-gray-900 line-clamp-2">
                           {item.name}
                         </p>
-                        {/* <p className="text-xs text-gray-500">
-                          Qty:{item.quantity}
-                        </p> */}
+                        <div className="flex items-center gap-2 mt-1">
+                          <div className="flex items-center gap-1 bg-gray-50 rounded border border-gray-100">
+                            <button
+                              type="button"
+                              onClick={(e) => { e.preventDefault(); updateQuantity(item.id, item.quantity - 1, item.variant?.id); }}
+                              className="p-1 hover:bg-white rounded disabled:opacity-50"
+                              disabled={item.quantity <= 1}
+                            >
+                              <Minus size={12} />
+                            </button>
+                            <span className="font-medium text-xs w-4 text-center">{item.quantity}</span>
+                            <button
+                              type="button"
+                              onClick={(e) => { e.preventDefault(); updateQuantity(item.id, item.quantity + 1, item.variant?.id); }}
+                              className="p-1 hover:bg-white rounded"
+                            >
+                              <Plus size={12} />
+                            </button>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={(e) => { e.preventDefault(); removeFromCart(item.id, item.variant?.id); }}
+                            className="p-1 text-red-500 hover:bg-red-50 rounded transition-colors"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
                       </div>
                     </div>
-                    <div className="text-black flex gap-1">
-                      <p className="text-xs ">
-                        Qty:
-                      </p>
-                      <p>{item.quantity}</p>
-                    </div>
 
-                    <p className="font-medium">৳{item.price * item.quantity}</p>
+                    <div className="text-right shrink-0">
+                      <p className="font-bold text-gray-900">৳{formatAmount(item.price * item.quantity)}</p>
+                    </div>
 
                   </div>
                 ))}
@@ -440,16 +467,16 @@ const CheckoutPage = () => {
               <div className="border-t border-gray-100 pt-3 space-y-2 text-sm">
                 <div className="flex justify-between text-gray-600">
                   <span>Subtotal</span>
-                  <span>৳{cartTotal}</span>
+                  <span>৳{formatAmount(cartTotal)}</span>
                 </div>
                 <div className="flex justify-between text-gray-600">
                   <span>Delivery</span>
-                  <span>৳{shippingCost}</span>
+                  <span>৳{formatAmount(shippingCost)}</span>
                 </div>
                 <div className="flex justify-between text-lg font-bold text-gray-900 pt-2 border-t border-gray-100 mt-2">
                   <span>Total</span>
                   <span className="text-blue-600">
-                    ৳{Number(cartTotal) + Number(shippingCost)}
+                    ৳{formatAmount(Number(cartTotal) + Number(shippingCost))}
                   </span>
                 </div>
               </div>
@@ -519,6 +546,23 @@ const CheckoutPage = () => {
               >
                 {loading ? "Processing..." : "Place Order"}
               </button>
+
+              {/* Need Help Section */}
+              <div className="mt-8 border-t border-gray-100 pt-6">
+                <h4 className="font-bold text-gray-800 mb-4 text-center">Need any help with your order?</h4>
+                <div className="flex justify-center gap-4">
+                  <a href="https://wa.me/8801900000000" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 flex-1 bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366]/20 py-3 rounded-lg font-bold transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor" className="w-5 h-5">
+                      <path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157.1zM223.9 414.7c-32.9 0-65.1-8.8-93.3-25.5l-6.7-4-69.4 18.2 18.5-67.6-4.4-7C50.2 297.8 41.2 261 41.2 223.9c0-100.5 81.8-182.3 182.7-182.3 48.7 0 94.5 19 128.9 53.4 34.4 34.4 53.4 80.2 53.4 128.9 0 100.5-81.8 182.3-182.7 182.3zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-32.6-16.3-54-29.1-75.5-66-2.5-4.3 .9-4.3 3.6-9.8 1.4-2.8 2.8-5.6 1.4-8.3-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.7 57.4 2.8 3.7 39.1 59.7 94.8 83.8 35.2 15.2 49 16.5 66.6 13.9 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z" />
+                    </svg>
+                    WhatsApp
+                  </a>
+                  <a href="tel:+8801900000000" className="flex items-center justify-center gap-2 flex-1 bg-blue-50 text-blue-600 hover:bg-blue-100 py-3 rounded-lg font-bold transition">
+                    <Phone size={18} />
+                    Call Us
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
           {/* new */}

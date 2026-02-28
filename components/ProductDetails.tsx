@@ -19,6 +19,8 @@ import { useCart } from "@/context/CartContext";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import AddtocartToster from "./AddtocartToster";
+import { formatProductDescriptionUniversal } from "@/lib/utils/formatProductDescription";
+import { formatAmount } from "@/lib/utils/formatAmount";
 
 interface ProductDetailsProps {
   product: Product;
@@ -217,22 +219,21 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
 
           <div className="flex items-baseline gap-4 mb-8">
             <span className="text-4xl font-bold text-blue-600">
-              ৳{hasDiscount ? salePrice : basePrice}
+              ৳{formatAmount(hasDiscount ? salePrice : basePrice)}
             </span>
             {hasDiscount && (
               <span className="text-xl text-gray-400 line-through">
-                ৳{basePrice}
+                ৳{formatAmount(basePrice)}
               </span>
             )}
           </div>
 
           <div className="mb-8 border-t border-b border-gray-100 py-6 space-y-4">
-            <p
-              className={`text-gray-600 ${product.short_description === null ? "hidden" : ""
-                }`}
-            >
-              {product.short_description}
-            </p>
+            <div
+              className={`text-gray-600 text-sm md:text-base leading-relaxed ${!product.short_description ? "hidden" : ""}
+                [&_p]:mb-2 [&_ul]:list-disc [&_ul]:ml-4 [&_strong]:font-bold [&_b]:font-bold [&_a]:text-blue-600`}
+              dangerouslySetInnerHTML={{ __html: formatProductDescriptionUniversal(product.short_description || "") }}
+            />
 
             <div className="flex flex-col gap-4 mt-2">
               {/* Color Selector */}
@@ -420,12 +421,22 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
         <div>
           <h1 className="text-2xl font-medium">Product Details</h1>
           <div>
-            <p
-              className={`text-gray-600 leading-relaxed transition-all duration-300 ${expanded ? "" : "line-clamp-5"
-                }`}
-            >
-              {product.description}
-            </p>
+            <div
+              className={`text-gray-600 leading-relaxed transition-all duration-300 text-sm md:text-base 
+                [&_p]:mb-4 [&_ul]:list-disc [&_ul]:ml-5 [&_ul]:mb-4 [&_ol]:list-decimal [&_ol]:ml-5 [&_ol]:mb-4 
+                [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:mb-4 [&_h1]:mt-6 [&_h1]:text-gray-900
+                [&_h2]:text-xl [&_h2]:font-bold [&_h2]:mb-3 [&_h2]:mt-5 [&_h2]:text-gray-800
+                [&_h3]:text-lg [&_h3]:font-bold [&_h3]:mb-2 [&_h3]:mt-4 [&_h3]:text-gray-800
+                [&_strong]:font-bold [&_strong]:text-gray-900 [&_b]:font-bold [&_b]:text-gray-900 
+                [&_a]:text-blue-600 [&_a]:underline hover:[&_a]:text-blue-700
+                [&_img]:rounded-xl [&_img]:my-6 [&_img]:max-w-full [&_img]:h-auto [&_img]:shadow-md [&_img]:mx-auto
+                [&_table]:w-full [&_table]:mb-6 [&_table]:border-collapse [&_table]:overflow-hidden [&_table]:rounded-lg [&_table]:shadow-sm
+                [&_th]:border [&_th]:border-gray-200 [&_th]:p-3 [&_th]:bg-gray-50 [&_th]:text-left [&_th]:font-semibold [&_th]:text-gray-700
+                [&_td]:border [&_td]:border-gray-200 [&_td]:p-3 [&_td]:text-gray-600
+                [&_blockquote]:border-l-4 [&_blockquote]:border-blue-500 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-gray-500 [&_blockquote]:my-4 [&_blockquote]:bg-blue-50/50 [&_blockquote]:py-2 [&_blockquote]:pr-4 [&_blockquote]:rounded-r-lg
+                ${expanded ? "" : "line-clamp-5 overflow-hidden relative after:absolute after:bottom-0 after:left-0 after:w-full after:h-24 after:bg-gradient-to-t after:from-white/0 after:to-white pointer-events-auto"}`}
+              dangerouslySetInnerHTML={{ __html: formatProductDescriptionUniversal(product.description || "") }}
+            />
 
             <button
               onClick={() => setExpanded(!expanded)}

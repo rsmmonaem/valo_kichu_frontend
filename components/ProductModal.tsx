@@ -10,6 +10,9 @@ import { parseGalleryImages } from "@/lib/utils/parseGalleryImages";
 import { parseAttributes } from "@/lib/utils/parseAttributes";
 import { Product } from "@/lib/api"; // Import the same Product type
 import AddtocartToster from "./AddtocartToster";
+import DOMPurify from "dompurify";
+import { formatProductDescriptionUniversal } from "@/lib/utils/formatProductDescription";
+import { formatAmount } from "@/lib/utils/formatAmount";
 
 interface ProductModalProps {
   product: Product | null;
@@ -224,7 +227,127 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
     return url;
   };
 
+  // const formatDescription = (text: string) => {
+  //   if (!text) return "<p>No description available.</p>";
+
+  //   // Check if already valid HTML
+  //   const isHTML = /<\/?[a-z][\s\S]*>/i.test(text);
+  //   if (isHTML) return text;
+
+  //   // Auto-format plain messy text
+  //   const formatted = text
+  //     // Fix joined words (Colorfabric → Color fabric)
+  //     .replace(/([a-z])([A-Z])/g, "$1 $2")
+
+  //     // Add spacing after commas
+  //     .replace(/,/g, ", ")
+
+  //     // Add line break before common sections
+  //     .replace(
+  //       /(Size:|Fabric:|Material:|Color:|Features?:|Specification:)/gi,
+  //       "<br/><br/><strong>$1</strong>"
+  //     )
+
+  //     // Add line break before size patterns
+  //     .replace(/(XS=|S=|M=|L=|XL=|XXL=|XXXL=)/g, "<br/>• <strong>$1</strong>")
+
+  //     // Replace dash formatting
+  //     .replace(/-/g, ": ")
+
+  //     .trim();
+
+  //   return `<p>${formatted}</p>`;
+  // };
+
   // Calculate price from your ProductCard logic
+  // const formatDescription = (text: string) => {
+  //   if (!text) return "<p>No description available.</p>";
+
+  //   // Detect real HTML
+  //   const isHTML = /<\/?[a-z][\s\S]*>/i.test(text);
+  //   if (isHTML) return text;
+
+  //   let formatted = text;
+
+  //   formatted = formatted
+  //     // Fix missing space after colon
+  //     .replace(/:/g, ": ")
+
+  //     // Fix joined words like Type:polo
+  //     .replace(/([a-z])([A-Z])/g, "$1 $2")
+
+  //     // Ensure bullet starts new line
+  //     .replace(/•/g, "<br/>• ")
+
+  //     // Fix double spaces
+  //     .replace(/\s+/g, " ")
+
+  //     // Add spacing before Size section
+  //     .replace(/Size:/gi, "<br/><br/><strong>Size:</strong> ")
+
+  //     // Make main title bold
+  //     .replace(
+  //       /^([^•]+)/,
+  //       "<strong>$1</strong><br/><br/>"
+  //     )
+
+  //     .trim();
+
+  //   return `<div class="space-y-1">${formatted}</div>`;
+  // };
+  // export const formatProductDescription = (text: string) => {
+  //   if (!text) return "<p>No description available.</p>";
+
+  //   const isHTML = /<\/?[a-z][\s\S]*>/i.test(text);
+  //   if (isHTML) return text;
+
+  //   let clean = text
+  //     .replace(/::/g, ":")
+  //     .replace(/:\s*/g, ": ")
+  //     .replace(/\s+/g, " ")
+  //     .trim();
+
+  //   const sections: string[] = [];
+
+  //   // Split by Bangla headings
+  //   const headingPattern =
+  //     /(মূল বৈশিষ্ট্যসমূহ|এটা কেন কিনবেন|প্যাকেজে যা যা থাকছে|পণ্যের ধরন|লাভ|ফিনিশ|বিশেষত্ব|কভারেজ)/g;
+
+  //   const parts = clean.split(headingPattern);
+
+  //   for (let i = 0; i < parts.length; i++) {
+  //     const part = parts[i];
+
+  //     if (headingPattern.test(part)) {
+  //       sections.push(`<h4 class="font-semibold mt-4 mb-2">${part}</h4>`);
+  //     } else {
+  //       // Detect numbered items like ১ টি
+  //       if (/\d+\s?টি/.test(part)) {
+  //         const items = part.match(/\d+\s?টি[^০-৯]+/g);
+  //         if (items) {
+  //           sections.push(
+  //             `<ul class="list-disc pl-5">${items
+  //               .map((item) => `<li>${item.trim()}</li>`)
+  //               .join("")}</ul>`
+  //           );
+  //           continue;
+  //         }
+  //       }
+
+  //       // Split Bangla sentences
+  //       const sentences = part.split("।").filter(Boolean);
+
+  //       sections.push(
+  //         sentences
+  //           .map((s) => `<p class="mb-2">${s.trim()}।</p>`)
+  //           .join("")
+  //       );
+  //     }
+  //   }
+
+  //   return sections.join("");
+  // };
+  const formatted = formatProductDescriptionUniversal(product?.description || "");
   const basePrice = product
     ? parseFloat(product.base_price || product.price || "0")
     : 0;
@@ -401,11 +524,11 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                 {/* Price */}
                 <div className="flex items-center gap-4 mb-6">
                   <span className="text-3xl md:text-4xl font-extrabold text-blue-600">
-                    ৳{displayPrice}
+                    ৳{formatAmount(displayPrice)}
                   </span>
                   {hasDiscount && (
                     <span className="text-lg text-gray-400 line-through">
-                      ৳{basePrice}
+                      ৳{formatAmount(basePrice)}
                     </span>
                   )}
                 </div>
@@ -577,7 +700,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                   className="text-gray-700 leading-relaxed prose prose-sm max-w-none"
                   dangerouslySetInnerHTML={{
                     __html:
-                      product.description || "<p>No description available.</p>",
+                      DOMPurify.sanitize(formatted),
                   }}
                 />
               </div>

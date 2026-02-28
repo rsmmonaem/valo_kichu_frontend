@@ -6,6 +6,7 @@ import { useCart } from '@/context/CartContext';
 import { Trash2, Plus, Minus, ShoppingBag } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { formatAmount } from '@/lib/utils/formatAmount';
 
 
 const CartPage = () => {
@@ -17,7 +18,7 @@ const CartPage = () => {
             router.replace('/');
         }
     }, [cart.length, router]);
-    
+
     if (cart.length === 0) {
         return (
             <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-4">
@@ -68,7 +69,7 @@ const CartPage = () => {
                                         )}
                                         <button
                                             onClick={() => removeFromCart(item.id, item.variant?.id)}
-                                            className="text-red-500 text-sm flex items-center gap-1 mt-2 hover:text-red-700 md:hidden"
+                                            className="text-red-500 text-sm flex items-center gap-1 mt-2 hover:text-red-700"
                                         >
                                             <Trash2 size={14} /> Remove
                                         </button>
@@ -76,7 +77,7 @@ const CartPage = () => {
                                 </div>
 
                                 <div className="col-span-2 text-center font-medium hidden md:block">
-                                    ৳{item.price}
+                                    ৳{formatAmount(item.price)}
                                 </div>
 
                                 {/* <div className="col-span-2 flex items-center justify-between md:justify-center bg-gray-50 rounded-lg p-1 md:p-0">
@@ -99,33 +100,33 @@ const CartPage = () => {
                                     </div>
                                 </div> */}
                                 <div className="col-span-2 flex items-center justify-start md:justify-center">
-    <div className="flex items-center gap-1 bg-gray-50 rounded-lg p-1 w-fit">
-        <span className="text-sm font-medium text-gray-500 md:hidden px-2">Qty:</span>
-        <div className="flex items-center gap-2">
-            <button
-                onClick={() => updateQuantity(item.id, item.quantity - 1, item.variant?.id)}
-                className="p-1 hover:bg-white rounded shadow-sm disabled:opacity-50 bg-transparent"
-                disabled={item.quantity <= 1}
-            >
-                <Minus size={14} />
-            </button>
-            <span className="font-medium w-6 text-center text-sm">{item.quantity}</span>
-            <button
-                onClick={() => updateQuantity(item.id, item.quantity + 1, item.variant?.id)}
-                className="p-1 hover:bg-white rounded shadow-sm bg-transparent"
-            >
-                <Plus size={14} />
-            </button>
-        </div>
-    </div>
-</div>
-                                
+                                    <div className="flex items-center gap-1 bg-gray-50 rounded-lg p-1 w-fit">
+                                        <span className="text-sm font-medium text-gray-500 md:hidden px-2">Qty:</span>
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                onClick={() => updateQuantity(item.id, item.quantity - 1, item.variant?.id)}
+                                                className="p-1 hover:bg-white rounded shadow-sm disabled:opacity-50 bg-transparent"
+                                                disabled={item.quantity <= 1}
+                                            >
+                                                <Minus size={14} />
+                                            </button>
+                                            <span className="font-medium w-6 text-center text-sm">{item.quantity}</span>
+                                            <button
+                                                onClick={() => updateQuantity(item.id, item.quantity + 1, item.variant?.id)}
+                                                className="p-1 hover:bg-white rounded shadow-sm bg-transparent"
+                                            >
+                                                <Plus size={14} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
 
                                 <div className="col-span-2 text-right font-bold text-gray-900 hidden md:block">
-                                    ৳{item.price * item.quantity}
+                                    ৳{formatAmount(item.price * item.quantity)}
                                 </div>
                                 <div className="col-span-12 flex justify-between items-center md:hidden border-t pt-3 mt-2">
-                                    <span className="font-bold text-gray-900">Total: ৳{item.price * item.quantity}</span>
+                                    <span className="font-bold text-gray-900">Total: ৳{formatAmount(item.price * item.quantity)}</span>
                                 </div>
                             </div>
                         ))}
@@ -140,7 +141,7 @@ const CartPage = () => {
                         <div className="space-y-3 mb-6">
                             <div className="flex justify-between text-gray-600">
                                 <span>Subtotal</span>
-                                <span>৳{cartTotal}</span>
+                                <span>৳{formatAmount(cartTotal)}</span>
                             </div>
                             <div className="flex justify-between text-gray-600">
                                 <span>Delivery</span>
@@ -148,7 +149,7 @@ const CartPage = () => {
                             </div>
                             <div className="border-t border-gray-100 pt-3 flex justify-between items-center">
                                 <span className="font-bold text-gray-900">Total</span>
-                                <span className="font-bold text-xl text-blue-600">৳{cartTotal}</span>
+                                <span className="font-bold text-xl text-blue-600">৳{formatAmount(cartTotal)}</span>
                             </div>
                         </div>
 

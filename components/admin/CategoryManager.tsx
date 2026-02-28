@@ -30,6 +30,7 @@ interface Category {
     show_in_bar?: boolean;
     bar_icon?: string;
     custom_icon?: string | null; // Add this line
+    show_shop_by_category?: boolean;
 }
 
 interface CategoryManagerProps {
@@ -53,6 +54,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ title, level }) => {
         main_id: '' as string | number, // For sub-sub level to filter sub-cats
         priority: 0,
         show_in_bar: false,
+        show_shop_by_category: false,
         bar_icon: '',
         custom_icon: '',
         meta_title: '',
@@ -148,6 +150,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ title, level }) => {
             main_id: '',
             priority: 0,
             show_in_bar: false,
+            show_shop_by_category: false,
             bar_icon: '',
             custom_icon: '',
             meta_title: '',
@@ -173,6 +176,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ title, level }) => {
             main_id: mainId,
             priority: cat.priority || 0,
             show_in_bar: cat.show_in_bar || false,
+            show_shop_by_category: cat.show_shop_by_category || false,
             bar_icon: cat.bar_icon || '',
             custom_icon: cat.custom_icon || '',
             meta_title: (cat as any).meta_title || '',
@@ -497,6 +501,19 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ title, level }) => {
                                         </div>
                                     </div>
                                 )}
+
+                                <div className="flex items-center gap-3 mt-4 pt-4 border-t border-blue-100/50">
+                                    <input
+                                        type="checkbox"
+                                        id="show_shop_by_category"
+                                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+                                        checked={formData.show_shop_by_category}
+                                        onChange={(e) => setFormData({ ...formData, show_shop_by_category: e.target.checked })}
+                                    />
+                                    <label htmlFor="show_shop_by_category" className="text-sm font-semibold text-gray-800 cursor-pointer">
+                                        Show in "Shop by Category" section on Home Page?
+                                    </label>
+                                </div>
                             </div>
 
                             <div className="border-t border-gray-100 pt-4">
