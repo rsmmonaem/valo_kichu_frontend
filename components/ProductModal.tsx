@@ -72,7 +72,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
         id: index + 1,
         img: image.startsWith("http")
           ? image
-          : `${baseUrl}/products/${image.replace(/^\/?(storage\/products|products)\/?/, "")}`,
+          : `${baseUrl}/storage/products/${image.replace(/^\/?(storage\/products|products)\/?/, "")}`,
       };
     }) || [];
 
@@ -93,7 +93,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
       galleryImages[0]?.img ||
       (mainImage.startsWith("http")
         ? mainImage
-        : `${baseUrl}/products/${mainImage.replace(/^\/?(storage\/products|products)\/?/, "")}`);
+        : `${baseUrl}/storage/products/${mainImage.replace(/^\/?(storage\/products|products)\/?/, "")}`);
 
     setPreview(initialPreview || "https://placehold.co/600x600?text=No+Image");
     setHasImageError(false);
