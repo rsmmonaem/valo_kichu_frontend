@@ -12,7 +12,7 @@ const CategoryBar: React.FC = () => {
     useEffect(() => {
         const fetchCategories = async () => {
             const { data } = await getCategoryBar();
-            
+
             setCategories(data);
             setLoading(false);
         };
@@ -30,11 +30,7 @@ const CategoryBar: React.FC = () => {
                         ? (LucideIcons as any)[cat.bar_icon]
                         : null;
 
-                    const iconUrl = cat.custom_icon
-                        ? (cat.custom_icon.startsWith('http')
-                            ? cat.custom_icon
-                            : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/storage/${cat.custom_icon}`)
-                        : null;
+                    const iconUrl = cat.custom_icon_url;
 
                     return (
                         <Link

@@ -45,13 +45,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
     const finalImage = product.image_url
         ? product.image_url
-        : (typeof product.images === 'string' && product.images.startsWith('http'))
-            ? product.images
-            : (displayImage && displayImage.startsWith('http'))
-                ? displayImage
-                : displayImage
-                    ? `${baseUrl}/storage/products/${displayImage.replace(/^\/?storage\/products\/?/, '')}`
-                    : 'https://placehold.co/400x400?text=No+Image';
+        : (displayImage && displayImage.startsWith('http'))
+            ? displayImage
+            : displayImage
+                ? `${baseUrl}/storage/products/${displayImage.replace(/^\/?storage\/products\/?/, '')}`
+                : 'https://placehold.co/400x400?text=No+Image';
 
     const basePrice = parseFloat(product.base_price || product.price || '0');
     const salePrice = product.sale_price ? parseFloat(product.sale_price) : null;

@@ -27,7 +27,7 @@ const CategoryCarousel: React.FC<CategoryCarouselProps> = ({ categories }) => {
             {/* Scroll Buttons - Visible on Desktop Hover */}
             <button
                 onClick={() => scroll('left')}
-                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/90 shadow-md p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-0 hidden md:flex"
+                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-blue-600 shadow-md p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-0 hidden md:flex"
                 aria-label="Scroll left"
             >
                 <ChevronLeft size={20} className="text-gray-700" />
@@ -35,7 +35,7 @@ const CategoryCarousel: React.FC<CategoryCarouselProps> = ({ categories }) => {
 
             <button
                 onClick={() => scroll('right')}
-                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/90 shadow-md p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-0 hidden md:flex"
+                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-blue-600 shadow-md p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-0 hidden md:flex"
                 aria-label="Scroll right"
             >
                 <ChevronRight size={20} className="text-gray-700" />
@@ -46,7 +46,7 @@ const CategoryCarousel: React.FC<CategoryCarouselProps> = ({ categories }) => {
                 className="flex overflow-x-auto gap-3 md:gap-4 scroll-smooth pb-4 no-scrollbar snap-x snap-mandatory px-1"
                 style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
-                {categories.map(cat => (
+                {/* {categories.map(cat => (
                     <Link
                         key={cat.id}
                         href={`/products?category=${cat.slug || cat.id}`}
@@ -70,6 +70,41 @@ const CategoryCarousel: React.FC<CategoryCarouselProps> = ({ categories }) => {
                         <span className="text-center text-xs md:text-sm font-medium text-gray-700 group-hover/item:text-blue-600 line-clamp-2 leading-tight">
                             {cat.name}
                         </span>
+                    </Link>
+                ))} */}
+                {categories.map((cat) => (
+                    <Link
+                        key={cat.id}
+                        href={`/products?category=${cat.slug || cat.id}`}
+                        className="snap-start flex-shrink-0 w-48 md:w-60 bg-white rounded-2xl 
+               shadow-sm hover:shadow-xl transition-all duration-300 
+               overflow-hidden border border-gray-100 hover:border-blue-200 group/item"
+                    >
+                        {/* Image Section */}
+                        <div className="w-full h-40 md:h-52 bg-gray-50 overflow-hidden">
+                            {cat.image ? (
+                                <img
+                                    src={cat.image_url}
+                                    alt={cat.name}
+                                    className="w-full h-full object-cover group-hover/item:scale-105 transition-transform duration-500"
+                                    loading="lazy"
+                                    onError={(e) => (e.currentTarget.style.display = "none")}
+                                />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center 
+                        text-4xl font-bold text-blue-600 bg-blue-50">
+                                    {cat.name.charAt(0)}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Content Section */}
+                        <div className="p-4">
+                            <h3 className="text-base md:text-lg font-semibold text-gray-800 
+                     group-hover/item:text-blue-600 transition-colors">
+                                {cat.name}
+                            </h3>
+                        </div>
                     </Link>
                 ))}
             </div>

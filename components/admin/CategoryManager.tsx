@@ -23,13 +23,15 @@ interface Category {
     name: string;
     slug: string;
     image: string | null;
+    image_url?: string;
     parent_id: number | null;
     children?: Category[];
     priority?: number;
     is_active: boolean;
     show_in_bar?: boolean;
     bar_icon?: string;
-    custom_icon?: string | null; // Add this line
+    custom_icon?: string | null;
+    custom_icon_url?: string;
     show_shop_by_category?: boolean;
 }
 
@@ -190,7 +192,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ title, level }) => {
         if (e.target.files && e.target.files[0]) {
             const formData = new FormData();
             formData.append('image', e.target.files[0]);
-            formData.append('folder', 'categories');
+            formData.append('folder', 'products');
 
             try {
                 const res = await authFetch('/admin/v1/upload', {
@@ -199,7 +201,9 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ title, level }) => {
                 });
                 if (res.ok) {
                     const data = await res.json();
-                    setFormData(prev => ({ ...prev, [field]: data.path })); // Store relative path
+                    // Extract filename from path if it's a full path
+                    const filename = data.path.split('/').pop();
+                    setFormData(prev => ({ ...prev, [field]: filename })); // Store ONLY the filename
                 }
             } catch (error) {
                 console.error('Upload failed', error);
@@ -293,9 +297,9 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ title, level }) => {
                                             <td className="p-4 pl-6 font-mono text-gray-500">#{cat.id}</td>
                                             <td className="p-4">
                                                 <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden border border-gray-200">
-                                                    {cat.image ? (
+                                                    {cat.image_url ? (
                                                         <img
-                                                            src={cat.image.startsWith('http') ? cat.image : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/storage/${cat.image}`}
+                                                            src={cat.image_url}
                                                             alt={cat.name}
                                                             className="w-full h-full object-cover"
                                                         />
@@ -438,7 +442,10 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ title, level }) => {
                                     </label>
                                     {formData.image && (
                                         <div className="w-16 h-16 rounded-lg border border-gray-200 overflow-hidden shrink-0">
-                                            <img src={formData.image.startsWith('http') ? formData.image : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/storage/${formData.image}`} className="w-full h-full object-cover" />
+                                            <img
+                                                src={formData.image.startsWith('http') ? formData.image : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/storage/products/${formData.image}`}
+                                                className="w-full h-full object-cover"
+                                            />
                                         </div>
                                     )}
                                 </div>
@@ -485,7 +492,10 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ title, level }) => {
                                                 </label>
                                                 {formData.custom_icon && (
                                                     <div className="w-12 h-12 rounded-lg border border-gray-200 overflow-hidden shrink-0 bg-white p-1">
-                                                        <img src={formData.custom_icon.startsWith('http') ? formData.custom_icon : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/storage/${formData.custom_icon}`} className="w-full h-full object-contain" />
+                                                        <img
+                                                            src={formData.custom_icon.startsWith('http') ? formData.custom_icon : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/storage/${formData.custom_icon}`}
+                                                            className="w-full h-full object-contain"
+                                                        />
                                                     </div>
                                                 )}
                                             </div>

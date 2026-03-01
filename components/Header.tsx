@@ -95,7 +95,7 @@ const Header: React.FC<HeaderProps> = ({ categories }) => {
   return (
     <>
       <header className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-100">
-        <div className="container mx-auto px-4 py-4">
+        <div className="container mx-auto px-1 py-1">
           <div className="flex items-center justify-between gap-4 md:gap-8">
             {/* Logo */}
             <div className="flex items-center gap-3">
@@ -219,24 +219,27 @@ const Header: React.FC<HeaderProps> = ({ categories }) => {
         </div>
 
         {/* Categories Bar (Desktop) */}
-        <div className="border-t border-gray-100 bg-white hidden md:block relative">
-          <div className="container mx-auto px-4">
-            <div className="flex items-center gap-6 py-2 text-sm font-medium text-gray-700">
-              {/* All Categories Dropdown Trigger */}
-              <div className="relative group cursor-pointer z-50">
-                <div className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-md hover:bg-gray-800 transition-colors">
-                  <Menu size={18} />
-                  <span>Categories</span>
-                  <ChevronDown size={14} />
+        {false && (
+                  <div className="border-t border-gray-100 bg-white hidden md:block relative">
+                  <div className="container mx-auto px-4">
+                    <div className="flex items-center gap-6 py-2 text-sm font-medium text-gray-700">
+                      {/* All Categories Dropdown Trigger */}
+                      <div className="relative group cursor-pointer z-50">
+                        <div className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-md hover:bg-gray-800 transition-colors">
+                          <Menu size={18} />
+                          <span>Categories</span>
+                          <ChevronDown size={14} />
+                        </div>
+                        <CategoryDropdown categories={categories} />
+                      </div>
+        
+                      {/* Dynamic Category Bar */}
+                      <CategoryBar />
+                    </div>
+                  </div>
                 </div>
-                <CategoryDropdown categories={categories} />
-              </div>
+         )}
 
-              {/* Dynamic Category Bar */}
-              <CategoryBar />
-            </div>
-          </div>
-        </div>
       </header>
 
       {/* Mobile Category Sidebar */}

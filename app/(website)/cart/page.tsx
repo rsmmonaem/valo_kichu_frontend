@@ -105,7 +105,7 @@ const CartPage = () => {
                                         <div className="flex items-center gap-2">
                                             <button
                                                 onClick={() => updateQuantity(item.id, item.quantity - 1, item.variant?.id)}
-                                                className="p-1 hover:bg-white rounded shadow-sm disabled:opacity-50 bg-transparent"
+                                                className="p-1 hover:bg-white rounded shadow-sm disabled:opacity-50 bg-transparent cursor-pointer"
                                                 disabled={item.quantity <= 1}
                                             >
                                                 <Minus size={14} />
@@ -113,7 +113,7 @@ const CartPage = () => {
                                             <span className="font-medium w-6 text-center text-sm">{item.quantity}</span>
                                             <button
                                                 onClick={() => updateQuantity(item.id, item.quantity + 1, item.variant?.id)}
-                                                className="p-1 hover:bg-white rounded shadow-sm bg-transparent"
+                                                className="p-1 hover:bg-white rounded shadow-sm bg-transparent cursor-pointer"
                                             >
                                                 <Plus size={14} />
                                             </button>

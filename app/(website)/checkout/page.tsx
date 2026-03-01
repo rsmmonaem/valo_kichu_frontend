@@ -30,7 +30,8 @@ interface ShippingMethod {
 }
 
 const CheckoutPage = () => {
-  const { cart, cartTotal, clearCart, updateQuantity, removeFromCart } = useCart();
+  const { cart, cartTotal, clearCart, updateQuantity, removeFromCart } =
+    useCart();
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -63,9 +64,7 @@ const CheckoutPage = () => {
           process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
         const baseUrl = API_URL.endsWith("/api") ? API_URL : `${API_URL}/api`;
 
-
         const res = await fetch(`${baseUrl}/v1/shipping-methods`);
-
 
         if (res.ok) {
           const data = await res.json();
@@ -140,10 +139,13 @@ const CheckoutPage = () => {
           // Construct a readable string for the selected variation
           const varDetails = [];
           if (item.variant?.size) varDetails.push(`Size: ${item.variant.size}`);
-          if (item.variant?.color) varDetails.push(`Color: ${item.variant.color}`);
-          if (item.variant?.weight) varDetails.push(`Weight: ${item.variant.weight}`);
+          if (item.variant?.color)
+            varDetails.push(`Color: ${item.variant.color}`);
+          if (item.variant?.weight)
+            varDetails.push(`Weight: ${item.variant.weight}`);
 
-          const variationSnapshot = varDetails.length > 0 ? varDetails.join(", ") : null;
+          const variationSnapshot =
+            varDetails.length > 0 ? varDetails.join(", ") : null;
 
           return {
             product_id: item.id,
@@ -159,8 +161,11 @@ const CheckoutPage = () => {
         shipping_cost: shippingCost,
         // Guest specific info if needed by backend, though usually name/contact/address is enough
         email: checkoutData.email,
-        referral_code: typeof window !== 'undefined' ? localStorage.getItem('referral_code') : null,
-        referral_source: 'store_link',
+        referral_code:
+          typeof window !== "undefined"
+            ? localStorage.getItem("referral_code")
+            : null,
+        referral_source: "store_link",
       };
 
       // 2. Send Request
@@ -179,7 +184,8 @@ const CheckoutPage = () => {
         // Hande success
         clearCart();
         router.push(
-          `/order-success?order=${data.order ? data.order.id : data.id || data.order_id
+          `/order-success?order=${
+            data.order ? data.order.id : data.id || data.order_id
           }`
         );
         // toast.success("Order placed successfully!");
@@ -219,10 +225,12 @@ const CheckoutPage = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between mb-8 max-w-5xl mx-auto">
           <div className="flex gap-2 items-center">
-          <ShieldCheck size={28} className="text-green-600" />
-          <h1 className="text-2xl font-bold text-gray-800">Secure Checkout – Your information is protected</h1>
+            <ShieldCheck size={28} className="text-green-600" />
+            <h1 className="text-2xl font-bold text-gray-800">
+              Secure Checkout – Your information is protected
+            </h1>
           </div>
-          
+
           {!user && (
             <div className="text-sm">
               Already have an account?{" "}
@@ -372,10 +380,11 @@ const CheckoutPage = () => {
                           }));
                           setShippingCost(method.cost); // Update the shipping cost based on the selected method
                         }}
-                        className={`p-3 text-center rounded-xl cursor-pointer transition hover:scale-105 ${checkoutData.area === method.name
-                          ? "bg-[#FFAC1C] text-white shadow-lg"
-                          : "bg-gray-100"
-                          }`}
+                        className={`p-3 text-center rounded-xl cursor-pointer transition hover:scale-105 ${
+                          checkoutData.area === method.name
+                            ? "bg-[#FFAC1C] text-white shadow-lg"
+                            : "bg-gray-100"
+                        }`}
                       >
                         {method.name} (৳{formatAmount(Math.floor(method.cost))})
                       </button>
@@ -403,7 +412,7 @@ const CheckoutPage = () => {
                 Your Order
               </h3>
               <div className="space-y-3 max-h-60 overflow-y-auto pr-2 mb-6">
-                {cart.map((item) => (
+                {/* {cart.map((item) => (
                   <div
                     key={`${item.id}-${item.variant?.id}`}
                     className="flex justify-between items-start text-sm gap-4"
@@ -426,25 +435,8 @@ const CheckoutPage = () => {
                         <p className="font-medium text-gray-900 line-clamp-2">
                           {item.name}
                         </p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <div className="flex items-center gap-1 bg-gray-50 rounded border border-gray-100">
-                            <button
-                              type="button"
-                              onClick={(e) => { e.preventDefault(); updateQuantity(item.id, item.quantity - 1, item.variant?.id); }}
-                              className="p-1 hover:bg-white rounded disabled:opacity-50"
-                              disabled={item.quantity <= 1}
-                            >
-                              <Minus size={12} />
-                            </button>
-                            <span className="font-medium text-xs w-4 text-center">{item.quantity}</span>
-                            <button
-                              type="button"
-                              onClick={(e) => { e.preventDefault(); updateQuantity(item.id, item.quantity + 1, item.variant?.id); }}
-                              className="p-1 hover:bg-white rounded"
-                            >
-                              <Plus size={12} />
-                            </button>
-                          </div>
+                        <div className="flex items-center justify-between">
+
                           <button
                             type="button"
                             onClick={(e) => { e.preventDefault(); removeFromCart(item.id, item.variant?.id); }}
@@ -452,6 +444,29 @@ const CheckoutPage = () => {
                           >
                             <Trash2 size={14} />
                           </button>
+                          <div className="flex items-center justify-start md:justify-center">
+  <div className="flex items-center gap-1 bg-gray-50 rounded-lg p-1 w-fit">
+    <span className="text-sm font-medium text-gray-500 md:hidden px-2">Qty:</span>
+    <div className="flex items-center gap-2">
+      <button
+        type="button"
+        onClick={(e) => { e.preventDefault(); updateQuantity(item.id, item.quantity - 1, item.variant?.id); }}
+        className="p-1 hover:bg-white rounded shadow-sm disabled:opacity-50 bg-transparent"
+        disabled={item.quantity <= 1}
+      >
+        <Minus size={14} />
+      </button>
+      <span className="font-medium w-6 text-center text-sm">{item.quantity}</span>
+      <button
+        type="button"
+        onClick={(e) => { e.preventDefault(); updateQuantity(item.id, item.quantity + 1, item.variant?.id); }}
+        className="p-1 hover:bg-white rounded shadow-sm bg-transparent"
+      >
+        <Plus size={14} />
+      </button>
+    </div>
+  </div>
+</div>
                         </div>
                       </div>
                     </div>
@@ -460,6 +475,104 @@ const CheckoutPage = () => {
                       <p className="font-bold text-gray-900">৳{formatAmount(item.price * item.quantity)}</p>
                     </div>
 
+                  </div>
+                ))} */}
+                {cart.map((item) => (
+                  <div
+                    key={`${item.id}-${item.variant?.id}`}
+                    className="flex gap-3 text-sm border-b border-gray-100 pb-3 last:border-0"
+                  >
+                    {/* Product Image */}
+                    <div className="w-16 h-16 bg-gray-100 rounded shrink-0 overflow-hidden">
+                      <img
+                        src={
+                          item.image && item.image.startsWith("http")
+                            ? item.image
+                            : item.image
+                            ? `${
+                                process.env.NEXT_PUBLIC_API_URL ||
+                                "http://127.0.0.1:8000"
+                              }/${item.image}`
+                            : "/placeholder.png"
+                        }
+                        alt={item.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+
+                    {/* Product Details */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-start gap-2">
+                        <div>
+                          <p className="font-medium text-gray-900 line-clamp-2 mb-1">
+                            {item.name}
+                          </p>
+                          {item.variant && (
+                            <p className="text-xs text-gray-500 mb-2">
+                              {item.variant.size &&
+                                `Size: ${item.variant.size}`}
+                              {item.variant.color &&
+                                `Color: ${item.variant.color}`}
+                              {item.variant.weight &&
+                                `Weight: ${item.variant.weight}`}
+                            </p>
+                          )}
+                        </div>
+                        <p className="font-bold text-gray-900 whitespace-nowrap">
+                          ৳{formatAmount(item.price * item.quantity)}
+                        </p>
+                      </div>
+
+                      {/* Quantity Controls and Remove Button */}
+                      <div className="flex items-center justify-between mt-2">
+                      <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            removeFromCart(item.id, item.variant?.id);
+                          }}
+                          className="flex items-center gap-1 text-red-500 hover:text-red-700 text-xs font-medium"
+                        >
+                          <Trash2 size={14} />
+                          <span>Remove</span>
+                        </button>
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              updateQuantity(
+                                item.id,
+                                item.quantity - 1,
+                                item.variant?.id
+                              );
+                            }}
+                            className="w-7 h-7 flex items-center justify-center hover:bg-gray-100 rounded border border-gray-200 disabled:opacity-50 bg-transparent cursor-pointer"
+                            disabled={item.quantity <= 1}
+                          >
+                            <Minus size={14} />
+                          </button>
+                          <span className="font-medium w-8 text-center text-sm">
+                            {item.quantity}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              updateQuantity(
+                                item.id,
+                                item.quantity + 1,
+                                item.variant?.id
+                              );
+                            }}
+                            className="w-7 h-7 flex items-center justify-center hover:bg-gray-100 rounded border border-gray-200 bg-transparent cursor-pointer"
+                          >
+                            <Plus size={14} />
+                          </button>
+                        </div>
+
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -549,15 +662,30 @@ const CheckoutPage = () => {
 
               {/* Need Help Section */}
               <div className="mt-8 border-t border-gray-100 pt-6">
-                <h4 className="font-bold text-gray-800 mb-4 text-center">Need any help with your order?</h4>
+                <h4 className="font-bold text-gray-800 mb-4 text-center">
+                  Need any help with your order?
+                </h4>
                 <div className="flex justify-center gap-4">
-                  <a href="https://wa.me/8801314861089" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 flex-1 bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366]/20 py-3 rounded-lg font-bold transition">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor" className="w-5 h-5">
+                  <a
+                    href="https://wa.me/8801314861089"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 flex-1 bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366]/20 py-3 rounded-lg font-bold transition"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 448 512"
+                      fill="currentColor"
+                      className="w-5 h-5"
+                    >
                       <path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157.1zM223.9 414.7c-32.9 0-65.1-8.8-93.3-25.5l-6.7-4-69.4 18.2 18.5-67.6-4.4-7C50.2 297.8 41.2 261 41.2 223.9c0-100.5 81.8-182.3 182.7-182.3 48.7 0 94.5 19 128.9 53.4 34.4 34.4 53.4 80.2 53.4 128.9 0 100.5-81.8 182.3-182.7 182.3zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-32.6-16.3-54-29.1-75.5-66-2.5-4.3 .9-4.3 3.6-9.8 1.4-2.8 2.8-5.6 1.4-8.3-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.7 57.4 2.8 3.7 39.1 59.7 94.8 83.8 35.2 15.2 49 16.5 66.6 13.9 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z" />
                     </svg>
                     WhatsApp
                   </a>
-                  <a href="tel:+8801314861089" className="flex items-center justify-center gap-2 flex-1 bg-blue-50 text-blue-600 hover:bg-blue-100 py-3 rounded-lg font-bold transition">
+                  <a
+                    href="tel:+8801314861089"
+                    className="flex items-center justify-center gap-2 flex-1 bg-blue-50 text-blue-600 hover:bg-blue-100 py-3 rounded-lg font-bold transition"
+                  >
                     <Phone size={18} />
                     Call Us
                   </a>

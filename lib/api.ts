@@ -75,10 +75,12 @@ export interface Category {
   name: string;
   slug: string;
   image?: string;
+  image_url?: string;
   icon?: string;
   show_in_bar?: boolean;
   bar_icon?: string;
   custom_icon?: string;
+  custom_icon_url?: string;
   subcategories?: Category[];
 }
 
@@ -306,5 +308,17 @@ export const getStoreInfo = async (username: string): Promise<SingleResponse<any
     return res.json();
   } catch (e) {
     return { status: false, data: null };
+  }
+};
+export const sendOrderInvoice = async (orderId: string, email: string) => {
+  try {
+    const res = await fetch(`${API_URL}/v1/orders/${orderId}/send-invoice`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    return await res.json();
+  } catch (e) {
+    return { status: false, message: 'Failed to connect to server' };
   }
 };
