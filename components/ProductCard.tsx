@@ -44,12 +44,12 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
 
     const finalImage = product.image_url
-        ? product.image_url
-        : (displayImage && displayImage.startsWith('http'))
-            ? displayImage
-            : displayImage
-                ? `${baseUrl}/products/${displayImage.replace(/^\/?(storage\/products|products)\/?/, '')}`
-                : 'https://placehold.co/400x400?text=No+Image';
+    ? product.image_url
+    : (displayImage && displayImage.startsWith('http'))
+        ? displayImage
+        : displayImage
+            ? `${baseUrl}/${displayImage.replace(/^\/?storage\/?/, '')}`
+            : 'https://placehold.co/400x400?text=No+Image';
 
     const basePrice = parseFloat(product.base_price || product.price || '0');
     const salePrice = product.sale_price ? parseFloat(product.sale_price) : null;
