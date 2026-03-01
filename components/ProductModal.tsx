@@ -66,13 +66,15 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
   // Gallery images for thumbnails
   const galleryImages = (product?.gallery_image_urls && product.gallery_image_urls.length > 0)
     ? product.gallery_image_urls.map((img, index) => ({ id: index + 1, img }))
-    : galleryArray.map((image, index) => ({
-      id: index + 1,
-      img: image.startsWith("http")
-        ? image
-        : `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
-        }/storage/products/${image.replace(/^\/?storage\/products\/?/, "")}`,
-    })) || [];
+    : galleryArray.map((image, index) => {
+      const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
+      return {
+        id: index + 1,
+        img: image.startsWith("http")
+          ? image
+          : `${baseUrl}/products/${image.replace(/^\/?(storage\/products|products)\/?/, "")}`,
+      };
+    }) || [];
 
   // Initialize states
   const [size, setSize] = useState(sizeData[0] || "");
@@ -91,7 +93,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
       galleryImages[0]?.img ||
       (mainImage.startsWith("http")
         ? mainImage
-        : `${baseUrl}/storage/products/${mainImage.replace(/^\/?storage\/products\/?/, "")}`);
+        : `${baseUrl}/products/${mainImage.replace(/^\/?(storage\/products|products)\/?/, "")}`);
 
     setPreview(initialPreview || "https://placehold.co/600x600?text=No+Image");
     setHasImageError(false);

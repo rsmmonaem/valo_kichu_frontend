@@ -48,7 +48,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         : (displayImage && displayImage.startsWith('http'))
             ? displayImage
             : displayImage
-                ? `${baseUrl}/storage/products/${displayImage.replace(/^\/?storage\/products\/?/, '')}`
+                ? `${baseUrl}/products/${displayImage.replace(/^\/?(storage\/products|products)\/?/, '')}`
                 : 'https://placehold.co/400x400?text=No+Image';
 
     const basePrice = parseFloat(product.base_price || product.price || '0');
