@@ -101,7 +101,7 @@ const MobileCategorySidebar: React.FC<MobileCategorySidebarProps> = ({ isOpen, o
                                         <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-sm font-bold text-gray-500 overflow-hidden border border-gray-200">
                                             {cat.image_url ? (
                                                 <img
-                                                    src={addPrefixToImage(cat.image_url)}
+                                                    src={cat.image_url}
                                                     alt={cat.name}
                                                     className="w-full h-full object-cover"
                                                 />
