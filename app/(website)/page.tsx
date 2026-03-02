@@ -13,6 +13,7 @@ import CategoryCarousel from "@/components/CategoryCarousel";
 import ProductCard from "@/components/ProductCard";
 import HomeFeeds from "@/components/HomeFeeds"; // New Client Component
 import HomeAllProducts from "@/components/HomeAllProducts";
+import CategoryGrid from "@/components/CategoryGrid";
 
 export default async function Home() {
   // Parallel Fetching for Critical Content only
@@ -51,10 +52,11 @@ export default async function Home() {
             <span className="w-1 h-6 bg-blue-600 rounded-full"></span>
             Shop by Category
           </h2>
-          <CategoryCarousel
+          {/* <CategoryCarousel
             // categories={categories.filter((c: any) => c.show_shop_by_category)} // Optional filter for "Shop by Category" flag
             categories={categories}
-          />
+          /> */}
+          <CategoryGrid categories={categories} />
         </div>
       </section>
 
