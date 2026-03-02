@@ -19,6 +19,12 @@ const CategoryCarousel: React.FC<CategoryCarouselProps> = ({ categories }) => {
             current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
         }
     };
+    const addPrefixToImage = (url:string) => {
+        const parts = url.split('/');
+        const filename = parts.pop(); // get last part
+        const newFilename = 'ss' + filename;
+        return [...parts, newFilename].join('/');
+      };
 
     if (!categories || categories.length === 0) return null;
 
@@ -84,7 +90,7 @@ const CategoryCarousel: React.FC<CategoryCarouselProps> = ({ categories }) => {
                         <div className="w-full h-40 md:h-52 bg-gray-50 overflow-hidden">
                             {cat.image ? (
                                 <img
-                                    src={cat.image_url}
+                                    src={addPrefixToImage(cat.image_url)}
                                     alt={cat.name}
                                     className="w-full h-full object-cover group-hover/item:scale-105 transition-transform duration-500"
                                     loading="lazy"
