@@ -18,7 +18,7 @@ import { authFetch } from '@/lib/api';
 import clsx from 'clsx';
 
 const DropshipperAdminDashboard = () => {
-  const [activeTab, setActiveTab] = useState<'users' | 'settings' | 'security'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'settings' | 'security' | 'pending'>('users');
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -51,6 +51,10 @@ const DropshipperAdminDashboard = () => {
         const res = await authFetch('/admin/v1/dropshipping/settings');
         const data = await res.json();
         if (res.ok) setSettings(data.data);
+      } else if (activeTab === 'pending') {
+        const res = await authFetch('/admin/v1/dropshipping/users/pending');
+        const data = await res.json();
+        if (res.ok) setUsers(data.data.data);
       } else if (activeTab === 'security') {
         const res = await authFetch('/admin/v1/dropshipping/banned-ips');
         const data = await res.json();
@@ -82,6 +86,24 @@ const DropshipperAdminDashboard = () => {
       if (res.ok) fetchData();
     } catch (err) {
       console.error(err);
+    }
+  };
+  
+  const handleApprove = async (id: number) => {
+    if (!confirm('Are you sure you want to approve this dropshipper?')) return;
+    try {
+      const res = await authFetch(`/admin/v1/dropshipping/users/${id}/approve`, {
+        method: 'POST'
+      });
+      if (res.ok) {
+        alert('Dropshipper approved successfully!');
+        fetchData();
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Failed to approve dropshipper');
+      }
+    } catch (err) {
+      alert('Network error');
     }
   };
 
@@ -120,6 +142,15 @@ const DropshipperAdminDashboard = () => {
               <span className="flex items-center gap-2"><Settings size={18} /> Settings</span>
             </button>
             <button
+              onClick={() => setActiveTab('pending')}
+              className={clsx(
+                "px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-200",
+                activeTab === 'pending' ? "bg-white text-orange-600 shadow-md" : "text-gray-500 hover:text-gray-700"
+              )}
+            >
+              <span className="flex items-center gap-2"><ShieldAlert size={18} /> Pending</span>
+            </button>
+            <button
               onClick={() => setActiveTab('security')}
               className={clsx(
                 "px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-200",
@@ -141,6 +172,7 @@ const DropshipperAdminDashboard = () => {
         ) : (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             {activeTab === 'users' && <UserList users={users} searchTerm={searchTerm} setSearchTerm={setSearchTerm} />}
+            {activeTab === 'pending' && <UserList users={users} searchTerm={searchTerm} setSearchTerm={setSearchTerm} showApproveAction={true} onApprove={handleApprove} />}
             {activeTab === 'settings' && <SettingsForm settings={settings} setSettings={setSettings} handleSave={handleSaveSettings} />}
             {activeTab === 'security' && <SecurityList ips={bannedIps} toggleBan={toggleBan} />}
           </div>
@@ -161,7 +193,7 @@ const DropshipperAdminDashboard = () => {
   );
 };
 
-const UserList = ({ users, searchTerm, setSearchTerm }: any) => {
+const UserList = ({ users, searchTerm, setSearchTerm, showApproveAction, onApprove }: any) => {
   const filteredUsers = users.filter((u: any) =>
     u.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     u.last_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -237,9 +269,18 @@ const UserList = ({ users, searchTerm, setSearchTerm }: any) => {
                   {user.dropshipper_margin || 0}%
                 </td>
                 <td className="px-8 py-6 text-right">
-                  <button className="p-2 text-gray-300 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">
-                    <MoreVertical size={20} />
-                  </button>
+                  {showApproveAction ? (
+                    <button
+                      onClick={() => onApprove(user.id)}
+                      className="px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold text-xs hover:bg-emerald-700 transition shadow-lg shadow-emerald-200 active:scale-95"
+                    >
+                      Approve
+                    </button>
+                  ) : (
+                    <button className="p-2 text-gray-300 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">
+                      <MoreVertical size={20} />
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}
