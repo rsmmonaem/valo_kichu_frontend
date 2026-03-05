@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Lock, Mail, User } from 'lucide-react';
+import { Lock, Mail, User,Phone } from 'lucide-react';
 import { authFetch } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 
@@ -12,6 +12,7 @@ const RegisterPage = () => {
     const router = useRouter();
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
+    const [phone_number, setPhoneNumber] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -31,7 +32,7 @@ const RegisterPage = () => {
         try {
             const res = await authFetch('/register', {
                 method: 'POST',
-                body: JSON.stringify({ name, email, password, password_confirmation: confirmPassword }),
+                body: JSON.stringify({ name, email,phone_number, password, password_confirmation: confirmPassword }),
             });
 
             const data = await res.json();
@@ -119,6 +120,21 @@ const RegisterPage = () => {
                             />
                         </div>
                     </div>
+
+                    <div>
+    <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+    <div className="relative">
+        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+        <input
+            type="tel"
+            className="w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 outline-none transition"
+            placeholder="01XXXXXXXXX"
+            value={phone_number}
+            onChange={(e) => setPhoneNumber(e.target.value)}
+            required
+        />
+    </div>
+</div>
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>

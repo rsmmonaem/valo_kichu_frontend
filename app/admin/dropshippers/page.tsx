@@ -22,6 +22,8 @@ const DropshipperAdminDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
 
   // State for Users
   const [users, setUsers] = useState<any[]>([]);
@@ -107,6 +109,40 @@ const DropshipperAdminDashboard = () => {
     }
   };
 
+  const handleToggleStatus = async (id: number) => {
+    try {
+      const res = await authFetch(`/admin/v1/dropshipping/users/${id}/toggle-status`, {
+        method: 'POST'
+      });
+      if (res.ok) {
+        fetchData();
+      } else {
+        const data = await res.json();
+        alert(data.message || 'Failed to update user status');
+      }
+    } catch (err) {
+      alert('Network error');
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('Are you sure you want to delete this dropshipper? This action cannot be undone.')) return;
+    try {
+      const res = await authFetch(`/admin/v1/dropshipping/users/${id}`, {
+        method: 'DELETE'
+      });
+      if (res.ok) {
+        alert('Dropshipper deleted successfully!');
+        fetchData();
+      } else {
+        const data = await res.json();
+        alert(data.message || 'Failed to delete dropshipper');
+      }
+    } catch (err) {
+      alert('Network error');
+    }
+  };
+
   return (
     <div className="space-y-6 p-6 max-w-[1600px] mx-auto">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -171,8 +207,34 @@ const DropshipperAdminDashboard = () => {
           </div>
         ) : (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {activeTab === 'users' && <UserList users={users} searchTerm={searchTerm} setSearchTerm={setSearchTerm} />}
-            {activeTab === 'pending' && <UserList users={users} searchTerm={searchTerm} setSearchTerm={setSearchTerm} showApproveAction={true} onApprove={handleApprove} />}
+            {activeTab === 'users' && (
+              <UserList 
+                users={users} 
+                searchTerm={searchTerm} 
+                setSearchTerm={setSearchTerm} 
+                onEdit={(user: any) => {
+                  setSelectedUser(user);
+                  setIsEditModalOpen(true);
+                }}
+                onDelete={handleDelete}
+                onToggleStatus={handleToggleStatus}
+              />
+            )}
+            {activeTab === 'pending' && (
+              <UserList 
+                users={users} 
+                searchTerm={searchTerm} 
+                setSearchTerm={setSearchTerm} 
+                showApproveAction={true} 
+                onApprove={handleApprove}
+                onEdit={(user: any) => {
+                  setSelectedUser(user);
+                  setIsEditModalOpen(true);
+                }}
+                onDelete={handleDelete}
+                onToggleStatus={handleToggleStatus}
+              />
+            )}
             {activeTab === 'settings' && <SettingsForm settings={settings} setSettings={setSettings} handleSave={handleSaveSettings} />}
             {activeTab === 'security' && <SecurityList ips={bannedIps} toggleBan={toggleBan} />}
           </div>
@@ -189,11 +251,27 @@ const DropshipperAdminDashboard = () => {
           existingUsers={users}
         />
       )}
+
+      {isEditModalOpen && selectedUser && (
+        <EditUserModal
+          user={selectedUser}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setSelectedUser(null);
+          }}
+          onSuccess={() => {
+            setIsEditModalOpen(false);
+            setSelectedUser(null);
+            fetchData();
+          }}
+          existingUsers={users}
+        />
+      )}
     </div>
   );
 };
 
-const UserList = ({ users, searchTerm, setSearchTerm, showApproveAction, onApprove }: any) => {
+const UserList = ({ users, searchTerm, setSearchTerm, showApproveAction, onApprove, onEdit, onDelete, onToggleStatus }: any) => {
   const filteredUsers = users.filter((u: any) =>
     u.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     u.last_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -277,9 +355,12 @@ const UserList = ({ users, searchTerm, setSearchTerm, showApproveAction, onAppro
                       Approve
                     </button>
                   ) : (
-                    <button className="p-2 text-gray-300 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">
-                      <MoreVertical size={20} />
-                    </button>
+                    <UserActionMenu 
+                      user={user} 
+                      onEdit={() => onEdit(user)} 
+                      onDelete={() => onDelete(user.id)} 
+                      onToggleStatus={() => onToggleStatus(user.id)}
+                    />
                   )}
                 </td>
               </tr>
@@ -596,3 +677,225 @@ const CreateUserModal = ({ onClose, onSuccess, existingUsers }: any) => {
 };
 
 export default DropshipperAdminDashboard;
+
+const EditUserModal = ({ user, onClose, onSuccess, existingUsers }: any) => {
+  const [formData, setFormData] = useState({
+    first_name: user.first_name || '',
+    last_name: user.last_name || '',
+    email: user.email || '',
+    phone_number: user.phone_number || '',
+    password: '',
+    role: user.role || 'dropshipper',
+    parent_id: user.refer_by || '',
+    margin: user.dropshipper_margin || 0
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      const res = await authFetch(`/admin/v1/dropshipping/users/${user.id}`, {
+        method: 'PUT',
+        body: JSON.stringify(formData)
+      });
+      if (res.ok) {
+        onSuccess();
+      } else {
+        const data = await res.json();
+        alert(data.message || 'Failed to update user');
+      }
+    } catch (err) {
+      alert('Network error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-[40px] w-full max-w-2xl overflow-hidden shadow-2xl animate-in zoom-in duration-300">
+        <div className="p-8 border-b border-gray-50 flex items-center justify-between bg-gray-50/50">
+          <div>
+            <h2 className="text-2xl font-black text-gray-900">Edit Dropshipper</h2>
+            <p className="text-gray-500 font-medium text-sm">Update partner details.</p>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition">
+            <UserX size={24} className="text-gray-400" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label className="text-xs font-black text-gray-400 uppercase tracking-widest px-2">First Name</label>
+              <input
+                required
+                className="w-full px-6 py-4 rounded-2xl bg-gray-50 border-2 border-transparent focus:bg-white focus:border-blue-500 transition-all outline-none font-bold"
+                placeholder="Enter first name"
+                value={formData.first_name}
+                onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-black text-gray-400 uppercase tracking-widest px-2">Last Name</label>
+              <input
+                required
+                className="w-full px-6 py-4 rounded-2xl bg-gray-50 border-2 border-transparent focus:bg-white focus:border-blue-500 transition-all outline-none font-bold"
+                placeholder="Enter last name"
+                value={formData.last_name}
+                onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+              />
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label className="text-xs font-black text-gray-400 uppercase tracking-widest px-2">Email Address</label>
+              <input
+                required
+                type="email"
+                className="w-full px-6 py-4 rounded-2xl bg-gray-50 border-2 border-transparent focus:bg-white focus:border-blue-500 transition-all outline-none font-bold"
+                placeholder="email@example.com"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-black text-gray-400 uppercase tracking-widest px-2">Phone Number</label>
+              <input
+                required
+                className="w-full px-6 py-4 rounded-2xl bg-gray-50 border-2 border-transparent focus:bg-white focus:border-blue-500 transition-all outline-none font-bold"
+                placeholder="+880..."
+                value={formData.phone_number}
+                onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-black text-gray-400 uppercase tracking-widest px-2">New Password (Leave blank to keep current)</label>
+            <input
+              type="password"
+              className="w-full px-6 py-4 rounded-2xl bg-gray-50 border-2 border-transparent focus:bg-white focus:border-blue-500 transition-all outline-none font-bold"
+              placeholder="Minimum 8 characters"
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+            />
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label className="text-xs font-black text-gray-400 uppercase tracking-widest px-2">Role / Level</label>
+              <select
+                className="w-full px-6 py-4 rounded-2xl bg-gray-50 border-2 border-transparent focus:bg-white focus:border-blue-500 transition-all outline-none appearance-none font-bold"
+                value={formData.role}
+                onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+              >
+                <option value="dropshipper">Master Dropshipper</option>
+                <option value="sub_dropshipper">Sub Dropshipper</option>
+                <option value="sub_sub_dropshipper">Child Dropshipper</option>
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-black text-gray-400 uppercase tracking-widest px-2">Individual Margin %</label>
+              <input
+                type="number"
+                className="w-full px-6 py-4 rounded-2xl bg-gray-50 border-2 border-transparent focus:bg-white focus:border-blue-500 transition-all outline-none font-bold"
+                placeholder="0 for default"
+                value={formData.margin}
+                onChange={(e) => setFormData({ ...formData, margin: parseFloat(e.target.value) })}
+              />
+            </div>
+          </div>
+
+          {formData.role !== 'dropshipper' && (
+            <div className="space-y-2">
+              <label className="text-xs font-black text-gray-400 uppercase tracking-widest px-2">Assign Parent (Upline)</label>
+              <select
+                required
+                className="w-full px-6 py-4 rounded-2xl bg-gray-50 border-2 border-transparent focus:bg-white focus:border-blue-500 transition-all outline-none appearance-none font-bold"
+                value={formData.parent_id}
+                onChange={(e) => setFormData({ ...formData, parent_id: e.target.value })}
+              >
+                <option value="">Select Parent Dropshipper</option>
+                {existingUsers
+                  .filter((u: any) =>
+                    (formData.role === 'sub_dropshipper' && u.role === 'dropshipper') ||
+                    (formData.role === 'sub_sub_dropshipper' && u.role === 'sub_dropshipper')
+                  )
+                  .map((u: any) => (
+                    <option key={u.id} value={u.id}>{u.first_name} {u.last_name} ({u.role})</option>
+                  ))
+                }
+              </select>
+            </div>
+          )}
+
+          <div className="pt-6">
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full bg-blue-600 text-white py-5 rounded-3xl font-black text-lg hover:bg-blue-700 transition shadow-xl shadow-blue-500/20 active:scale-[0.98] disabled:opacity-50"
+            >
+              {isSubmitting ? 'Updating...' : 'Update Partner Account'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+const UserActionMenu = ({ user, onEdit, onDelete, onToggleStatus }: any) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="relative">
+      <button 
+        onClick={() => setIsOpen(!isOpen)}
+        className="p-2 text-gray-300 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
+      >
+        <MoreVertical size={20} />
+      </button>
+
+      {isOpen && (
+        <>
+          <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)}></div>
+          <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-20 animate-in fade-in zoom-in duration-200 origin-top-right">
+            <button
+              onClick={() => {
+                onEdit();
+                setIsOpen(false);
+              }}
+              className="w-full text-left px-4 py-2 text-sm font-bold text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition"
+            >
+              Edit Details
+            </button>
+            <button
+              onClick={() => {
+                onToggleStatus();
+                setIsOpen(false);
+              }}
+              className={clsx(
+                "w-full text-left px-4 py-2 text-sm font-bold transition",
+                user.is_active ? "text-orange-600 hover:bg-orange-50" : "text-emerald-600 hover:bg-emerald-50"
+              )}
+            >
+              {user.is_active ? 'Restrict Account' : 'Activate Account'}
+            </button>
+            <div className="h-px bg-gray-50 my-1"></div>
+            <button
+              onClick={() => {
+                onDelete();
+                setIsOpen(false);
+              }}
+              className="w-full text-left px-4 py-2 text-sm font-bold text-red-600 hover:bg-red-50 transition"
+            >
+              Delete Partner
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+};

@@ -254,7 +254,16 @@ const AdminOrdersPage = () => {
                                         <p><span className="text-gray-500">Name:</span> <span className="font-medium">{selectedOrder.name || selectedOrder.user?.name}</span></p>
                                         <p><span className="text-gray-500">Phone:</span> <span className="font-medium">{selectedOrder.phone || selectedOrder.contact_number}</span></p>
                                         <p><span className="text-gray-500">Email:</span> <span className="font-medium">{selectedOrder.email || selectedOrder.user?.email || 'N/A'}</span></p>
-                                        <p><span className="text-gray-500">Address:</span> <span className="font-medium">{selectedOrder.shipping_address}</span></p>
+                                        <p><span className="text-gray-500">Address:</span> <span className="font-medium">  <span className="font-medium">
+    {(() => {
+      try {
+        const addr = JSON.parse(selectedOrder.shipping_address);
+        return `${addr.address}, ${addr.city}`; // or `${addr.name}, ${addr.address}, ${addr.city}`
+      } catch {
+        return selectedOrder.shipping_address || 'N/A';
+      }
+    })()}
+  </span></span></p>
                                     </div>
                                 </div>
                                 <div>
