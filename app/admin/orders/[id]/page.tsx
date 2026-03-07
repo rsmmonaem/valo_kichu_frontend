@@ -36,6 +36,7 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
       const res = await authFetch(`/admin/v1/orders/${orderId}`);
       if (res.ok) {
         const data = await res.json();
+        
         setOrder(data);
       } else {
         toast.error("Failed to fetch order details");
@@ -214,9 +215,24 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
                             <p className="font-bold text-gray-900 group-hover:text-blue-600 transition">
                               {item.product_name || item.product?.name}
                             </p>
+                            <div>
                             <p className="text-xs text-gray-500 mt-1">
                               {item.variation_snapshot || item.variant_name || "No variation"}
                             </p>
+                            <p>
+                              {item.product.product_code ? (
+                                <span className="text-xs bg-gray-100 px-2 py-1 rounded-lg text-gray-600 font-mono">
+                                  Code: {item.product.product_code}
+                                </span>
+                              ) : (
+                                <span className="text-xs bg-gray-100 px-2 py-1 rounded-lg text-gray-600 font-mono">
+                                  SKU not available
+                                </span>
+                              )}
+                            </p>
+                            </div>
+
+
                           </div>
                         </div>
                       </td>
