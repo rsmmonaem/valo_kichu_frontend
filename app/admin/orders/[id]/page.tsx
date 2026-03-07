@@ -36,7 +36,7 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
       const res = await authFetch(`/admin/v1/orders/${orderId}`);
       if (res.ok) {
         const data = await res.json();
-        
+        console.log("Fetched order details:", data);
         setOrder(data);
       } else {
         toast.error("Failed to fetch order details");
@@ -314,7 +314,8 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
             <div className="p-6 border-b border-gray-100">
               <h2 className="font-bold text-lg flex items-center gap-2">
                 <User size={20} className="text-blue-600" />
-                Customer Information
+                {order.order_type === "dropshipping" ? "Dropshipper Information" : "Customer Information"}
+                
               </h2>
             </div>
             <div className="p-6 space-y-6">
@@ -353,7 +354,7 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
             <div className="p-6 border-b border-gray-100">
               <h2 className="font-bold text-lg flex items-center gap-2">
                 <MapPin size={20} className="text-red-600" />
-                Shipping Details
+               Shipping Details
               </h2>
             </div>
             <div className="p-6">
