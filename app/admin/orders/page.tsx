@@ -146,7 +146,7 @@ const AdminOrdersPage = () => {
   const getStatusBadge = (status: string) => {
     const styles: any = {
       pending: "bg-yellow-100 text-yellow-700",
-      confirmed: "bg-blue-100 text-blue-700",
+      confirmed: "text-green-600 bg-green-100",
       purchased_by_admin: "bg-indigo-100 text-indigo-700",
       ready_to_ship_bd: "bg-purple-100 text-purple-700",
       shipping: "bg-orange-100 text-orange-700",

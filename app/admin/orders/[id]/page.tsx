@@ -63,7 +63,7 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
       const res = await authFetch(`/admin/v1/orders/${orderId}`, {
         method: "PUT",
         headers: {
-            'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ status: newStatus }),
       });
@@ -85,7 +85,7 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
   const getStatusBadge = (status: string) => {
     const styles: any = {
       pending: "bg-yellow-100 text-yellow-700",
-      confirmed: "bg-blue-100 text-blue-700",
+      confirmed: "bg-green-100 text-green-600",
       purchased_by_admin: "bg-indigo-100 text-indigo-700",
       ready_to_ship_bd: "bg-purple-100 text-purple-700",
       shipping: "bg-orange-100 text-orange-700",
@@ -136,6 +136,18 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
     }
   })();
 
+  // Calculate DRP totals
+  const drpSubtotal = order.items?.reduce(
+    (sum: number, item: any) => sum + (item.order_price || 0) * item.quantity,
+    0
+  ) || 0;
+
+  const drpTotal = drpSubtotal + parseFloat(order.shipping_cost || 0);
+
+  // Calculate MRP totals (original prices)
+  const mrpSubtotal = parseFloat(order.total_amount || order.total_price || 0);
+  const mrpTotal = mrpSubtotal + parseFloat(order.shipping_cost || 0);
+
   return (
     <div className="max-w-6xl mx-auto pb-12">
       {/* Header */}
@@ -146,7 +158,9 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
               Orders
             </Link>
             <ChevronRight size={14} />
-            <span className="text-gray-900 font-medium">#{order.order_number || order.id}</span>
+            <span className="text-gray-900 font-medium">
+              #{order.order_number || order.id}
+            </span>
           </div>
           <div className="flex items-center gap-4">
             <h1 className="text-3xl font-bold text-gray-900">
@@ -188,7 +202,7 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
                 <thead className="bg-gray-50/50 text-gray-500 text-xs uppercase tracking-wider">
                   <tr>
                     <th className="px-6 py-4">Product</th>
-                    <th className="px-6 py-4 text-center">Price</th>
+                    <th className="px-6 py-4 text-center w-40">Price</th>
                     <th className="px-6 py-4 text-center">Quantity</th>
                     <th className="px-6 py-4 text-right">Total</th>
                   </tr>
@@ -216,57 +230,97 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
                               {item.product_name || item.product?.name}
                             </p>
                             <div>
-                            <p className="text-xs text-gray-500 mt-1">
-                              {item.variation_snapshot || item.variant_name || "No variation"}
-                            </p>
-                            <p>
-                              {item.product.product_code ? (
-                                <span className="text-xs bg-gray-100 px-2 py-1 rounded-lg text-gray-600 font-mono">
-                                  Code: {item.product.product_code}
-                                </span>
-                              ) : (
-                                <span className="text-xs bg-gray-100 px-2 py-1 rounded-lg text-gray-600 font-mono">
-                                  SKU not available
-                                </span>
-                              )}
-                            </p>
+                              <p className="text-xs text-gray-500 mt-1">
+                                {item.variation_snapshot ||
+                                  item.variant_name ||
+                                  "No variation"}
+                              </p>
+                              <p>
+                                {item.product.product_code ? (
+                                  <span className="text-xs bg-gray-100 px-2 py-1 rounded-lg text-gray-600 font-mono">
+                                    Code: {item.product.product_code}
+                                  </span>
+                                ) : (
+                                  <span className="text-xs bg-gray-100 px-2 py-1 rounded-lg text-gray-600 font-mono">
+                                    SKU not available
+                                  </span>
+                                )}
+                              </p>
                             </div>
-
-
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 text-center font-medium">
-                        ৳{item.price || item.unit_price}
+                        <div className="text-sm leading-tight">
+                          <div>MRP: ৳{item.price || item.unit_price}</div>
+                          <div className="font-semibold text-green-600 mt-1">
+                            DRP: ৳{item.order_price || 0}
+                          </div>
+                        </div>
                       </td>
                       <td className="px-6 py-4 text-center">
                         <span className="bg-gray-100 px-3 py-1 rounded-lg text-sm font-bold">
                           {item.quantity}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-right font-bold text-blue-600">
-                        ৳{item.total || item.total_price}
+                      <td className="px-6 py-4 text-right font-bold ">
+                        
+                        <div className="text-sm leading-tight">
+                          <div>৳{item.total || item.total_price}</div>
+                          <div className="font-semibold text-green-600 mt-1">
+                          ৳{ (item.order_price * item.quantity || 0).toFixed(2) }
+                          </div>
+                        </div>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-
-            {/* Price Summary */}
+                  
+            {/* Price Summary with Left (DRP) and Right (MRP) Columns */}
             <div className="p-6 bg-gray-50/50 border-t border-gray-100">
-              <div className="max-w-xs ml-auto space-y-3">
-                <div className="flex justify-between text-gray-600">
-                  <span>Subtotal</span>
-                  <span className="font-bold">৳{order.total_amount || order.total_price}</span>
+              <div className="max-w-xs ml-auto grid grid-cols-2 gap-6">
+                {/* Left Column - DRP Summary */}
+                <div className="space-y-3">
+                  <div className="text-xs text-gray-400 uppercase font-semibold tracking-wider mb-2 text-center">
+                    DRP Calculation
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span>Subtotal</span>
+                    <span className="font-bold">৳{drpSubtotal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span>Shipping</span>
+                    <span className="font-bold">৳{parseFloat(order.shipping_cost || 0).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-xl font-black text-gray-900 pt-3 border-t border-gray-200">
+                    <span>Total</span>
+                    <span className="text-green-600">
+                      ৳{drpTotal.toFixed(2)}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex justify-between text-gray-600">
-                  <span>Shipping</span>
-                  <span className="font-bold">৳{order.shipping_cost || 0}</span>
-                </div>
-                <div className="flex justify-between text-xl font-black text-gray-900 pt-3 border-t border-gray-200">
-                  <span>Total</span>
-                  <span className="text-blue-600">৳{parseFloat(order.total_amount || order.total_price) + parseFloat(order.shipping_cost || 0)}</span>
+
+                {/* Right Column - MRP Summary (Original Prices) */}
+                <div className="space-y-3">
+                  <div className="text-xs text-gray-400 uppercase font-semibold tracking-wider mb-2 text-center">
+                    MRP Calculation
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span>Subtotal</span>
+                    <span className="font-bold">৳{mrpSubtotal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span>Shipping</span>
+                    <span className="font-bold">৳{parseFloat(order.shipping_cost || 0).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-xl font-black text-gray-900 pt-3 border-t border-gray-200">
+                    <span>Total</span>
+                    <span className="text-blue-600">
+                      ৳{mrpTotal.toFixed(2)}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -314,8 +368,9 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
             <div className="p-6 border-b border-gray-100">
               <h2 className="font-bold text-lg flex items-center gap-2">
                 <User size={20} className="text-blue-600" />
-                {order.order_type === "dropshipping" ? "Dropshipper Information" : "Customer Information"}
-                
+                {order.order_type === "dropshipping"
+                  ? "Dropshipper Information"
+                  : "Customer Information"}
               </h2>
             </div>
             <div className="p-6 space-y-6">
@@ -324,8 +379,12 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
                   <User size={20} />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 uppercase font-black tracking-widest mb-1">Full Name</p>
-                  <p className="font-bold text-gray-900">{order.name || order.user?.name || "Guest"}</p>
+                  <p className="text-xs text-gray-500 uppercase font-black tracking-widest mb-1">
+                    Full Name
+                  </p>
+                  <p className="font-bold text-gray-900">
+                    {order.name || order.user?.name || "Guest"}
+                  </p>
                 </div>
               </div>
               <div className="flex items-start gap-4">
@@ -333,8 +392,12 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
                   <Phone size={20} />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 uppercase font-black tracking-widest mb-1">Phone Number</p>
-                  <p className="font-bold text-gray-900">{order.phone || order.contact_number || "N/A"}</p>
+                  <p className="text-xs text-gray-500 uppercase font-black tracking-widest mb-1">
+                    Phone Number
+                  </p>
+                  <p className="font-bold text-gray-900">
+                    {order.phone || order.contact_number || "N/A"}
+                  </p>
                 </div>
               </div>
               <div className="flex items-start gap-4">
@@ -342,8 +405,12 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
                   <Mail size={20} />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 uppercase font-black tracking-widest mb-1">Email Address</p>
-                  <p className="font-bold text-gray-900 truncate max-w-[180px]">{order.email || order.user?.email || "N/A"}</p>
+                  <p className="text-xs text-gray-500 uppercase font-black tracking-widest mb-1">
+                    Email Address
+                  </p>
+                  <p className="font-bold text-gray-900 truncate max-w-[180px]">
+                    {order.email || order.user?.email || "N/A"}
+                  </p>
                 </div>
               </div>
             </div>
@@ -354,24 +421,32 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
             <div className="p-6 border-b border-gray-100">
               <h2 className="font-bold text-lg flex items-center gap-2">
                 <MapPin size={20} className="text-red-600" />
-               Shipping Details
+                Shipping Details
               </h2>
             </div>
             <div className="p-6">
               {shippingAddress ? (
                 <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100">
-                  <p className="font-bold text-gray-900 mb-2">{shippingAddress.name || order.name || order.user?.name}</p>
+                  <p className="font-bold text-gray-900 mb-2">
+                    {shippingAddress.name || order.name || order.user?.name}
+                  </p>
                   <p className="text-gray-600 leading-relaxed text-sm">
-                    {shippingAddress.address}<br />
-                    {shippingAddress.city} {shippingAddress.area ? `- ${shippingAddress.area}` : ""}<br />
-                    Phone: {shippingAddress.phone || order.phone || order.contact_number}
+                    {shippingAddress.address}
+                    <br />
+                    {shippingAddress.city}{" "}
+                    {shippingAddress.area ? `- ${shippingAddress.area}` : ""}
+                    <br />
+                    Phone:{" "}
+                    {shippingAddress.phone ||
+                      order.phone ||
+                      order.contact_number}
                   </p>
                 </div>
               ) : (
                 <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100">
-                    <p className="text-gray-600 text-sm whitespace-pre-wrap">
-                        {order.shipping_address || "No shipping address provided"}
-                    </p>
+                  <p className="text-gray-600 text-sm whitespace-pre-wrap">
+                    {order.shipping_address || "No shipping address provided"}
+                  </p>
                 </div>
               )}
             </div>
@@ -387,16 +462,26 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
             </div>
             <div className="p-6 space-y-4">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500 font-medium">Payment Method:</span>
-                <span className="font-bold text-gray-900 uppercase">{order.payment_method || "COD"}</span>
+                <span className="text-gray-500 font-medium">
+                  Payment Method:
+                </span>
+                <span className="font-bold text-gray-900 uppercase">
+                  {order.payment_method || "COD"}
+                </span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500 font-medium">Shipping Method:</span>
-                <span className="font-bold text-gray-900">{order.shipping_method || "Standard"}</span>
+                <span className="text-gray-500 font-medium">
+                  Shipping Method:
+                </span>
+                <span className="font-bold text-gray-900">
+                  {order.shipping_method || "Standard"}
+                </span>
               </div>
               <div className="flex justify-between text-sm pt-4 border-t border-gray-100">
                 <span className="text-gray-500 font-medium">Tracking ID:</span>
-                <span className="font-bold text-blue-600 font-mono italic">{order.tracking_id || "Not assigned"}</span>
+                <span className="font-bold text-blue-600 font-mono italic">
+                  {order.tracking_id || "Not assigned"}
+                </span>
               </div>
             </div>
           </div>

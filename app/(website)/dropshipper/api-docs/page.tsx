@@ -53,7 +53,7 @@ const ApiDocsPage = () => {
       desc: "Place an order for your customer. Supports single product or multiple products in one request.",
       body: `{
     "products": [
-      { "product_id": 5, "quantity": 2, "variation_id": 12 },
+      { "product_id": 5, "quantity": 2, "variation_id": 12, "order_price": 508.00 },
       { "product_id": 8, "quantity": 1 }
     ],
     "shipping_address": {

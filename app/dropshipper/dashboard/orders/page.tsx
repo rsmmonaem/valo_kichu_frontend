@@ -57,6 +57,8 @@ const OrdersPage = () => {
                 return 'bg-emerald-100 text-emerald-700 border-emerald-200';
             case 'cancelled':
                 return 'bg-red-100 text-red-700 border-red-200';
+            case 'confirmed':
+                return 'text-green-600 bg-green-100 border-green-200';
             default:
                 return 'bg-blue-100 text-blue-700 border-blue-200';
         }
