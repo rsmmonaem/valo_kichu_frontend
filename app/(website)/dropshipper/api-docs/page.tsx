@@ -19,55 +19,80 @@ const ApiDocsPage = () => {
       url: "/api/dropshipping",
       desc: "Base inventory feed. Returns all active products with your personalized dropshipper pricing.",
       response: `{
-  "status": "success",
-  "data": {
-    "current_page": 1,
-    "data": [
-      {
-        "id": 5,
-        "name": "Luxury Watch",
-        "base_price": "2500.00",
-        "your_price": "2100.00",
-        "stock": 45
-      }
-    ]
-  }
-}`,
+    "status": "success",
+    "data": {
+      "current_page": 1,
+      "data": [
+        {
+          "id": 5,
+          "name": "Luxury Watch",
+          "base_price": "2500.00",
+          "your_price": "2100.00",
+          "stock": 45
+        }
+      ]
+    }
+  }`,
     },
     {
       method: "GET",
       url: "/api/dropshipping/balance",
       desc: "Check your current wallet balance in real-time.",
       response: `{
-  "status": "success",
-  "data": {
-    "balance": 15400.50,
-    "currency": "BDT"
-  }
-}`,
+    "status": "success",
+    "data": {
+      "balance": 15400.50,
+      "currency": "BDT"
+    }
+  }`,
     },
+  
     {
       method: "POST",
       url: "/api/dropshipping/orders",
-      desc: "Place an order for your customer. Supports single product or multiple products in one request. Requires Secure HMAC signature.",
+      desc: "Place an order for your customer. Supports single product or multiple products in one request.",
       body: `{
-          "products": [
-            { "product_id": 5, "quantity": 2, "variation_id": 12 },
-            { "product_id": 8, "quantity": 1 }
-          ],
-          "shipping_address": {
-            "name": "John Doe",
-            "phone": "017XXXXXXXX",
-            "address": "House 1, Road 2",
-            "city": "Dhaka"
-          }
-        }`,
+    "products": [
+      { "product_id": 5, "quantity": 2, "variation_id": 12 },
+      { "product_id": 8, "quantity": 1 }
+    ],
+    "shipping_address": {
+      "name": "John Doe",
+      "phone": "017XXXXXXXX",
+      "address": "House 1, Road 2",
+      "city": "Dhaka"
+    }
+  }`,
       response: `{
     "status": "success",
     "message": "Order placed successfully.",
     "order_id": 18,
     "total_amount": 1016
-}`,
+  }`,
+    },
+  
+    {
+      method: "GET",
+      url: "/api/dropshipping/tracking?tracking_number=ORD-699D64BCA354D",
+      desc: "Track an order using the tracking number.",
+      response: `{
+    "status": "success",
+    "data": {
+      "tracking_number": "ORD-699D64BCA354D",
+      "status": "pending",
+      "product_name": "Men's Stylish Premium Drop Shoulder - Black"
+    }
+  }`,
+    },
+  
+    {
+      method: "POST",
+      url: "/api/dropshipping/cancel-order?order_number=ORD-69A94880A5FDA",
+      desc: "Cancel an order using the order number.",
+      response: `{
+    "status": "success",
+    "message": "Order cancelled successfully"
+  }`,
     },
   ];
 
