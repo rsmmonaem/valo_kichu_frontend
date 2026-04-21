@@ -21,6 +21,11 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
     const pathname = usePathname();
     const router = useRouter();
     const { user, logout, loading } = useAuth();
+    const [mounted, setMounted] = React.useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     useEffect(() => {
         if (!loading) {
@@ -37,10 +42,12 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
         }
     }, [user, loading, router, pathname]);
 
+    if (!mounted) return null;
+
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <div className="min-h-screen flex items-center justify-center bg-gray-50" suppressHydrationWarning={true}>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" suppressHydrationWarning={true}></div>
             </div>
         );
     }
@@ -59,7 +66,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
     ];
 
     return (
-        <div className="min-h-screen bg-gray-50 flex">
+        <div className="min-h-screen bg-gray-50 flex" suppressHydrationWarning={true}>
             {/* Sidebar */}
             <aside className="w-64 bg-white border-r border-gray-200 hidden md:flex flex-col">
                 <div className="p-6 border-b border-gray-100">

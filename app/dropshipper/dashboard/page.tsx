@@ -10,7 +10,9 @@ const DashboardOverview = () => {
     const [statsData, setStatsData] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
 
+    const [mounted, setMounted] = useState(false);
     useEffect(() => {
+        setMounted(true);
         fetchStats();
     }, []);
 
@@ -58,6 +60,8 @@ const DashboardOverview = () => {
             color: 'bg-orange-100 text-orange-600'
         },
     ];
+    
+    if (!mounted) return null;
 
     if (isLoading) {
         return <div className="flex items-center justify-center h-64">
@@ -66,7 +70,7 @@ const DashboardOverview = () => {
     }
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-8" suppressHydrationWarning={true}>
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {stats.map((stat) => (
                     <div key={stat.name} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition">

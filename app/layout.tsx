@@ -68,7 +68,9 @@ export default function RootLayout({
           <AuthProvider>
             <CartProvider>
               <UIProvider>
-                {children}
+                <div suppressHydrationWarning={true}>
+                  {children}
+                </div>
               </UIProvider>
             </CartProvider>
           </AuthProvider>

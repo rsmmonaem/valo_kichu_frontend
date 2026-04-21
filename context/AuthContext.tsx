@@ -18,6 +18,15 @@ interface User {
     gender?: string;
     date_of_birth?: string;
     refer_code?: string;
+    dropshipper_profile?: {
+        store_logo?: string;
+        store_banner?: string;
+        store_logo_url?: string;
+        store_banner_url?: string;
+        slogan?: string;
+        about_us?: string;
+        name?: string;
+    };
 }
 
 interface AuthContextType {

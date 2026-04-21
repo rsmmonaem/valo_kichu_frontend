@@ -26,7 +26,9 @@ const ProfilePage = () => {
     const [logoPreview, setLogoPreview] = useState<string | null>(null);
     const [bannerPreview, setBannerPreview] = useState<string | null>(null);
 
+    const [mounted, setMounted] = useState(false);
     useEffect(() => {
+        setMounted(true);
         fetchProfile();
     }, []);
 
@@ -34,6 +36,7 @@ const ProfilePage = () => {
         try {
             const res = await authFetch('/dropshipper/profile');
             const response = await res.json();
+            console.log('Profile response:', response.data.slogan);
             if (response.status === 'success') {
                 const data = response.data;
                 setProfile({
@@ -42,20 +45,20 @@ const ProfilePage = () => {
                     email: data.user.email || '',
                     phone_number: data.user.phone_number || '',
                     store_name: data.store_name || '',
-                    slogan: data.user.dropshipper_profile?.slogan || '',
-                    about_us: data.user.dropshipper_profile?.about_us || '',
+                    slogan: data.slogan || '',
+                    about_us: data.about_us || '',
                     image: null,
                     store_logo: null,
                     store_banner: null
                 });
-                if (data.user.image_url) {
-                    setPreviewUrl(data.user.image_url);
+                if (data.user.image) {
+                    setPreviewUrl(data.user.image);
                 }
-                if (data.user.dropshipper_profile?.store_logo) {
-                    setLogoPreview(data.user.dropshipper_profile.store_logo_url || `${process.env.NEXT_PUBLIC_API_URL}/storage/stores/${data.user.dropshipper_profile.store_logo}`);
+                if (data.store_logo_url) {
+                    setLogoPreview(data.store_logo_url);
                 }
-                if (data.user.dropshipper_profile?.store_banner) {
-                    setBannerPreview(data.user.dropshipper_profile.store_banner_url || `${process.env.NEXT_PUBLIC_API_URL}/storage/stores/${data.user.dropshipper_profile.store_banner}`);
+                if (data.store_banner_url) {
+                    setBannerPreview(data.store_banner_url);
                 }
             }
         } catch (error) {
@@ -65,7 +68,7 @@ const ProfilePage = () => {
             setLoading(false);
         }
     };
-
+    console.log("Current profile state:", profile);
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setProfile((prev: any) => ({ ...prev, [name]: value }));
@@ -104,6 +107,7 @@ const ProfilePage = () => {
             if (profile.store_banner) {
                 formData.append('store_banner', profile.store_banner);
             }
+            console.log("form data entries:", Array.from(formData.entries()));
 
             // Using POST because we are sending FormData (image)
             const res = await authFetch('/dropshipper/profile', {
@@ -114,8 +118,9 @@ const ProfilePage = () => {
             const response = await res.json();
 
             if (response.status === 'success') {
+                console.log('Profile updated successfully:', response.data);
                 toast.success('Profile updated successfully');
-                updateUser(response.data); // Update global auth context
+                updateUser(response.data.user); // Update global auth context
             } else {
                 toast.error(response.message || 'Update failed');
             }
@@ -126,6 +131,8 @@ const ProfilePage = () => {
             setSaving(false);
         }
     };
+    
+    if (!mounted) return null;
 
     if (loading) {
         return (
@@ -136,7 +143,7 @@ const ProfilePage = () => {
     }
 
     return (
-        <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500" suppressHydrationWarning={true}>
             <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
                 <div className="flex items-center gap-4 mb-8">
                     <div className="p-3 bg-blue-50 rounded-2xl text-blue-600">

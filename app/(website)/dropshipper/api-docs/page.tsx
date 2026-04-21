@@ -46,7 +46,33 @@ const ApiDocsPage = () => {
     }
   }`,
     },
-  
+    {
+      method: "GET",
+      url: "/api/dropshipping/shipping-methods",
+      desc: "Retrieve available shipping methods and their costs.",
+      response: `{
+    "status": "success",
+    "data": [
+    {
+        "id": 1,
+        "name": "inside dhaka",
+        "cost": "60.00",
+        "is_active": true,
+        "created_at": "2026-02-24T08:16:26.000000Z",
+        "updated_at": "2026-02-24T08:16:26.000000Z"
+    },
+    {
+        "id": 2,
+        "name": "outside dhaka",
+        "cost": "120.00",
+        "is_active": true,
+        "created_at": "2026-02-24T08:29:22.000000Z",
+        "updated_at": "2026-02-24T08:29:22.000000Z"
+    }
+]
+  }`, 
+    }
+  ,
     {
       method: "POST",
       url: "/api/dropshipping/orders",
