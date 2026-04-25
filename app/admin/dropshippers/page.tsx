@@ -1183,6 +1183,15 @@ const UserActionMenu = ({ user, onEdit, onDelete, onToggleStatus }: any) => {
             </button>
             <button
               onClick={() => {
+                window.location.href = `/admin/dropshippers/${user.id}`;
+                setIsOpen(false);
+              }}
+              className="w-full text-left px-4 py-2 text-sm font-bold text-indigo-600 hover:bg-indigo-50 transition"
+            >
+              View Wallet / Transactions
+            </button>
+            <button
+              onClick={() => {
                 onToggleStatus();
                 setIsOpen(false);
               }}
