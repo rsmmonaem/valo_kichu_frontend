@@ -34,7 +34,7 @@ jobs:
         with:
           host: rsmmonaem.me
           username: root
-          password: RsmMonaem66@@
+          password: RsmMonaem66@@##
           script: |
             cd /home/valokichu.com/public_html/frontend
             docker-compose down
