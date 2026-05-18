@@ -13,7 +13,9 @@ import {
     Settings,
     LogOut,
     ChevronRight,
-    ExternalLink
+    ExternalLink,
+    Menu,
+    X
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
@@ -22,6 +24,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
     const router = useRouter();
     const { user, logout, loading } = useAuth();
     const [mounted, setMounted] = React.useState(false);
+    const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
 
     useEffect(() => {
         setMounted(true);
@@ -67,6 +70,68 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
 
     return (
         <div className="min-h-screen bg-gray-50 flex" suppressHydrationWarning={true}>
+            {/* Mobile Sidebar */}
+            <div className={`fixed inset-0 z-50 md:hidden ${isSidebarOpen ? 'block' : 'hidden'}`}>
+                <div className="fixed inset-0 bg-gray-600 bg-opacity-75" onClick={() => setIsSidebarOpen(false)}></div>
+                <aside className="fixed inset-y-0 left-0 w-64 bg-white flex flex-col">
+                    <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+                        <div>
+                            <h2 className="text-xl font-bold text-blue-600 flex items-center gap-2">
+                                <Package size={24} /> ValoKichu
+                            </h2>
+                            <p className="text-xs text-gray-400 mt-1 uppercase tracking-wider font-semibold">Dropshipper Portal</p>
+                        </div>
+                        <button className="text-gray-500 hover:text-gray-900" onClick={() => setIsSidebarOpen(false)}>
+                            <X size={24} />
+                        </button>
+                    </div>
+
+                    <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+                        {menuItems.map((item) => {
+                            const isActive = pathname === item.path;
+                            if (item.name === 'View My Store') {
+                                return (
+                                    <button
+                                        key={item.name}
+                                        onClick={() => window.open(`/store/${user?.refer_code}`, '_blank')}
+                                        className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-gray-500 hover:bg-gray-50 hover:text-gray-900 w-full text-left"
+                                    >
+                                        <item.icon size={20} />
+                                        <span>{item.name}</span>
+                                        <ChevronRight size={16} className="ml-auto opacity-50" />
+                                    </button>
+                                );
+                            }
+                            return (
+                                <Link
+                                    key={item.path}
+                                    href={item.path}
+                                    onClick={() => setIsSidebarOpen(false)}
+                                    className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive
+                                        ? 'bg-blue-50 text-blue-600 font-bold'
+                                        : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                                        }`}
+                                >
+                                    <item.icon size={20} />
+                                    <span>{item.name}</span>
+                                    {isActive && <ChevronRight size={16} className="ml-auto" />}
+                                </Link>
+                            );
+                        })}
+                    </nav>
+
+                    <div className="p-4 border-t border-gray-100">
+                        <button
+                            onClick={logout}
+                            className="flex items-center gap-3 px-4 py-3 w-full text-red-500 hover:bg-red-50 rounded-xl transition"
+                        >
+                            <LogOut size={20} />
+                            <span>Sign Out</span>
+                        </button>
+                    </div>
+                </aside>
+            </div>
+
             {/* Sidebar */}
             <aside className="w-64 bg-white border-r border-gray-200 hidden md:flex flex-col">
                 <div className="p-6 border-b border-gray-100">
@@ -123,10 +188,15 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
             {/* Main Content */}
             <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
                 {/* Header */}
-                <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-8">
-                    <h1 className="text-lg font-bold text-gray-800">
-                        {menuItems.find(i => i.path === pathname)?.name || 'Dashboard'}
-                    </h1>
+                <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 sm:px-8">
+                    <div className="flex items-center gap-2">
+                        <button className="md:hidden p-2 -ml-2 text-gray-500 hover:text-gray-900" onClick={() => setIsSidebarOpen(true)}>
+                            <Menu size={24} />
+                        </button>
+                        <h1 className="text-lg font-bold text-gray-800">
+                            {menuItems.find(i => i.path === pathname)?.name || 'Dashboard'}
+                        </h1>
+                    </div>
                     <div className="flex items-center gap-4">
                         <div className="text-right hidden sm:block">
                             <p className="text-sm font-bold text-gray-900">{user?.first_name} {user?.last_name}</p>
