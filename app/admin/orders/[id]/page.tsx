@@ -186,6 +186,92 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column - Order Items and Status Update */}
         <div className="lg:col-span-2 space-y-8">
+
+          {/* ── Dropshipping: Dropshipper + Customer info cards ── */}
+          {order.order_type === "dropshipping" && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              {/* Dropshipper Card */}
+              <div className="bg-white rounded-2xl shadow-sm border border-blue-100 overflow-hidden">
+                <div className="px-5 py-4 border-b border-blue-100 bg-blue-50/40">
+                  <h2 className="font-bold text-sm flex items-center gap-2 text-blue-700 uppercase tracking-wider">
+                    <User size={16} />
+                    Dropshipper
+                  </h2>
+                </div>
+                <div className="p-5 space-y-3 text-sm">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                      <User size={16} />
+                    </div>
+                    <div>
+                      <p className="text-[11px] text-gray-400 uppercase font-bold tracking-widest">Name</p>
+                      <p className="font-bold text-gray-900">
+                        {`${order.user?.first_name || ""} ${order.user?.last_name || ""}`.trim() || order.user?.name || "N/A"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-green-50 text-green-600 rounded-lg">
+                      <Phone size={16} />
+                    </div>
+                    <div>
+                      <p className="text-[11px] text-gray-400 uppercase font-bold tracking-widest">Phone</p>
+                      <p className="font-bold text-gray-900">{order.user?.phone_number || "N/A"}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-purple-50 text-purple-600 rounded-lg">
+                      <Mail size={16} />
+                    </div>
+                    <div>
+                      <p className="text-[11px] text-gray-400 uppercase font-bold tracking-widest">Email</p>
+                      <p className="font-bold text-gray-900 truncate max-w-[200px]">{order.user?.email || "N/A"}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Customer Card */}
+              <div className="bg-white rounded-2xl shadow-sm border border-green-100 overflow-hidden">
+                <div className="px-5 py-4 border-b border-green-100 bg-green-50/40">
+                  <h2 className="font-bold text-sm flex items-center gap-2 text-green-700 uppercase tracking-wider">
+                    <User size={16} />
+                    Customer
+                  </h2>
+                </div>
+                <div className="p-5 space-y-3 text-sm">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                      <User size={16} />
+                    </div>
+                    <div>
+                      <p className="text-[11px] text-gray-400 uppercase font-bold tracking-widest">Name</p>
+                      <p className="font-bold text-gray-900">{order.name || "Guest"}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-green-50 text-green-600 rounded-lg">
+                      <Phone size={16} />
+                    </div>
+                    <div>
+                      <p className="text-[11px] text-gray-400 uppercase font-bold tracking-widest">Phone</p>
+                      <p className="font-bold text-gray-900">{order.phone || order.contact_number || "N/A"}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-purple-50 text-purple-600 rounded-lg">
+                      <Mail size={16} />
+                    </div>
+                    <div>
+                      <p className="text-[11px] text-gray-400 uppercase font-bold tracking-widest">Email</p>
+                      <p className="font-bold text-gray-900">{order.email || "N/A"}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Order Items */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="p-6 border-b border-gray-100 flex justify-between items-center">
@@ -264,11 +350,11 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right font-bold ">
-                        
+
                         <div className="text-sm leading-tight">
                           <div>৳{item.total || item.total_price}</div>
                           <div className="font-semibold text-green-600 mt-1">
-                          ৳{ (item.order_price * item.quantity || 0).toFixed(2) }
+                            ৳{(item.order_price * item.quantity || 0).toFixed(2)}
                           </div>
                         </div>
                       </td>
@@ -277,7 +363,7 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
                 </tbody>
               </table>
             </div>
-                  
+
             {/* Price Summary with Left (DRP) and Right (MRP) Columns */}
             <div className="p-6 bg-gray-50/50 border-t border-gray-100">
               <div className="max-w-xs ml-auto grid grid-cols-2 gap-6">
@@ -363,14 +449,65 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
 
         {/* Right Column - Customer & Info */}
         <div className="space-y-8">
+          {/* Dropshipper Info (if dropshipping order) */}
+          {order.order_type === "dropshipping" && (
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+              <div className="p-6 border-b border-gray-100 bg-blue-50/10">
+                <h2 className="font-bold text-lg flex items-center gap-2 text-blue-700">
+                  <User size={20} />
+                  Dropshipper Information
+                </h2>
+              </div>
+              <div className="p-6 space-y-6">
+                <div className="flex items-start gap-4">
+                  <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
+                    <User size={20} />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 uppercase font-black tracking-widest mb-1">
+                      Store / Full Name
+                    </p>
+                    <p className="font-bold text-gray-900">
+                      {`${order.user?.first_name || ""} ${order.user?.last_name || ""}`.trim() || order.user?.name || "N/A"}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4">
+                  <div className="p-3 bg-green-50 text-green-600 rounded-xl">
+                    <Phone size={20} />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 uppercase font-black tracking-widest mb-1">
+                      Phone Number
+                    </p>
+                    <p className="font-bold text-gray-900">
+                      {order.user?.phone_number || "N/A"}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4">
+                  <div className="p-3 bg-purple-50 text-purple-600 rounded-xl">
+                    <Mail size={20} />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 uppercase font-black tracking-widest mb-1">
+                      Email Address
+                    </p>
+                    <p className="font-bold text-gray-900 truncate max-w-[180px]">
+                      {order.user?.email || "N/A"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Customer Info */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="p-6 border-b border-gray-100">
               <h2 className="font-bold text-lg flex items-center gap-2">
                 <User size={20} className="text-blue-600" />
-                {order.order_type === "dropshipping"
-                  ? "Dropshipper Information"
-                  : "Customer Information"}
+                Customer Information
               </h2>
             </div>
             <div className="p-6 space-y-6">

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   Eye,
   FileText,
@@ -17,6 +18,9 @@ import toast from "react-hot-toast";
 import Link from "next/link";
 
 const AdminOrdersPage = () => {
+  const searchParams = useSearchParams();
+  const typeFilter = searchParams.get("type") || "customer"; // Default to customer
+
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
@@ -51,11 +55,14 @@ const AdminOrdersPage = () => {
     try {
       const params = new URLSearchParams();
       if (activeStatus !== "all") params.append("status", activeStatus);
+      if (typeFilter) params.append("order_type", typeFilter);
 
       const res = await authFetch(`/admin/v1/orders?${params.toString()}`);
       if (res.ok) {
         const data = await res.json();
         setOrders(data.data || []);
+        console.log("Fetched orders:", data);
+
       }
     } catch (error) {
       console.error(error);
@@ -66,14 +73,11 @@ const AdminOrdersPage = () => {
 
   const fetchStats = async () => {
     try {
-      // This endpoint might need to be adjusted or stats calculated from all orders if API doesn't provide stats endpoint
-      // Assuming we fetch all to calc or specific stats endpoint exists.
-      // Original used `api.get('/admin/v1/orders?per_page=1000')` to calc stats client side.
-      // Let's try to fetch all IDs or status counts if API supports.
-      // For now, I'll mock stats or just count loaded orders if pagination allows.
-      // Let's implement client-side calc if we can fetch lightweight list, but for now simple approach:
+      const params = new URLSearchParams();
+      params.append("per_page", "1000");
+      if (typeFilter) params.append("order_type", typeFilter);
 
-      const res = await authFetch("/admin/v1/orders?per_page=1000");
+      const res = await authFetch(`/admin/v1/orders?${params.toString()}`);
       if (res.ok) {
         const data = await res.json();
         const allOrders = data.data || [];
@@ -107,11 +111,12 @@ const AdminOrdersPage = () => {
   useEffect(() => {
     fetchOrders();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeStatus]);
+  }, [activeStatus, typeFilter]);
 
   useEffect(() => {
     fetchStats();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [typeFilter]);
 
   const updateStatus = async (orderId: number, newStatus: string) => {
     if (
@@ -166,9 +171,8 @@ const AdminOrdersPage = () => {
     };
     return (
       <span
-        className={`px-2 py-1 rounded text-xs font-semibold uppercase ${
-          styles[status] || "bg-gray-100 text-gray-700"
-        }`}
+        className={`px-2 py-1 rounded text-xs font-semibold uppercase ${styles[status] || "bg-gray-100 text-gray-700"
+          }`}
       >
         {labels[status] || status.replace(/_/g, " ")}
       </span>
@@ -178,7 +182,7 @@ const AdminOrdersPage = () => {
   return (
     <div>
       <h1 className="text-2xl font-bold text-gray-800 mb-6">
-        Orders Management
+        {typeFilter === "dropshipper" ? "Dropshipper Orders" : "Customer Orders"} Management
       </h1>
 
       {/* Status Tabs */}
@@ -217,7 +221,10 @@ const AdminOrdersPage = () => {
             <thead className="bg-gray-50 text-gray-600 font-medium border-b border-gray-200">
               <tr>
                 <th className="p-4">Order ID</th>
-                <th className="p-4">Customer</th>
+                <th className="p-4 text-blue-700">{typeFilter === "dropshipper" ? "Dropshipper" : "Customer"}</th>
+                {typeFilter === "dropshipper" && (
+                  <th className="p-4 text-green-700">Customer</th>
+                )}
                 <th className="p-4">Date</th>
                 <th className="p-4">Total</th>
                 <th className="p-4">Status</th>
@@ -227,7 +234,7 @@ const AdminOrdersPage = () => {
             <tbody className="divide-y divide-gray-100 text-sm">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-gray-500">
+                  <td colSpan={typeFilter === "dropshipper" ? 7 : 6} className="p-8 text-center text-gray-500">
                     Loading orders...
                   </td>
                 </tr>
@@ -237,16 +244,47 @@ const AdminOrdersPage = () => {
                     <td className="p-4 font-medium">
                       #{order.order_number || order.id}
                     </td>
+                    {/* Dropshipper column */}
                     <td className="p-4">
-                      <div>
-                        <p className="font-medium text-gray-900">
-                          {order.name || order.user?.name || "Guest"}
-                        </p>
-                        <p className="text-gray-500 text-xs">
-                          {order.phone || order.contact_number}
-                        </p>
-                      </div>
+                      {typeFilter === "dropshipper" ? (
+                        <div>
+                          <p className="font-semibold text-gray-900 leading-tight">
+                            {`${order.user?.first_name || ""} ${order.user?.last_name || ""}`.trim() || order.user?.name || "N/A"}
+                          </p>
+                          <p className="text-gray-500 text-xs">
+                            {order.user?.phone_number || "N/A"}
+                          </p>
+                          <p className="text-gray-400 text-xs">
+                            {order.user?.email || ""}
+                          </p>
+                        </div>
+                      ) : (
+                        <div>
+                          <p className="font-medium text-gray-900">
+                            {order.name || order.user?.name || "Guest"}
+                          </p>
+                          <p className="text-gray-500 text-xs">
+                            {order.phone || order.contact_number}
+                          </p>
+                        </div>
+                      )}
                     </td>
+                    {/* Customer column — only for dropshipper view */}
+                    {typeFilter === "dropshipper" && (
+                      <td className="p-4">
+                        <div>
+                          <p className="font-medium text-gray-900 leading-tight">
+                            {order.name || "Guest"}
+                          </p>
+                          <p className="text-gray-500 text-xs">
+                            {order.phone || order.contact_number || "N/A"}
+                          </p>
+                          <p className="text-gray-400 text-xs">
+                            {order.email || ""}
+                          </p>
+                        </div>
+                      </td>
+                    )}
                     <td className="p-4 text-gray-600">
                       {new Date(order.created_at).toLocaleDateString()}
                     </td>
@@ -275,7 +313,7 @@ const AdminOrdersPage = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-gray-500">
+                  <td colSpan={typeFilter === "dropshipper" ? 7 : 6} className="p-8 text-center text-gray-500">
                     No orders found.
                   </td>
                 </tr>
@@ -313,50 +351,116 @@ const AdminOrdersPage = () => {
 
             <div className="p-6 flex-1 overflow-y-auto">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                <div>
-                  <h3 className="text-xs uppercase text-gray-500 font-bold mb-3 tracking-wider">
-                    Customer Details
-                  </h3>
-                  <div className="bg-gray-50 p-4 rounded-lg space-y-2 text-sm">
-                    <p>
-                      <span className="text-gray-500">Name:</span>{" "}
-                      <span className="font-medium">
-                        {selectedOrder.name || selectedOrder.user?.name}
-                      </span>
-                    </p>
-                    <p>
-                      <span className="text-gray-500">Phone:</span>{" "}
-                      <span className="font-medium">
-                        {selectedOrder.phone || selectedOrder.contact_number}
-                      </span>
-                    </p>
-                    <p>
-                      <span className="text-gray-500">Email:</span>{" "}
-                      <span className="font-medium">
-                        {selectedOrder.email ||
-                          selectedOrder.user?.email ||
-                          "N/A"}
-                      </span>
-                    </p>
-                    <p>
-                      <span className="text-gray-500">Address:</span>{" "}
-                      <span className="font-medium">
-                        {" "}
-                        <span className="font-medium">
-                          {(() => {
-                            try {
-                              const addr = JSON.parse(
-                                selectedOrder.shipping_address
-                              );
-                              return `${addr.address}, ${addr.city}`; // or `${addr.name}, ${addr.address}, ${addr.city}`
-                            } catch {
-                              return selectedOrder.shipping_address || "N/A";
-                            }
-                          })()}
-                        </span>
-                      </span>
-                    </p>
-                  </div>
+                <div className="space-y-4">
+                  {typeFilter === "dropshipper" ? (
+                    <>
+                      <div>
+                        <h3 className="text-xs uppercase text-blue-600 font-bold mb-2 tracking-wider">
+                          Dropshipper Details
+                        </h3>
+                        <div className="bg-blue-50/50 p-4 rounded-lg space-y-2 text-sm border border-blue-100/50">
+                          <p>
+                            <span className="text-gray-500">Name:</span>{" "}
+                            <span className="font-semibold text-slate-800">
+                              {`${selectedOrder.user?.first_name || ""} ${selectedOrder.user?.last_name || ""}`.trim() || selectedOrder.user?.name || "N/A"}
+                            </span>
+                          </p>
+                          <p>
+                            <span className="text-gray-500">Phone:</span>{" "}
+                            <span className="font-semibold text-slate-800">
+                              {selectedOrder.user?.phone_number || "N/A"}
+                            </span>
+                          </p>
+                          <p>
+                            <span className="text-gray-500">Email:</span>{" "}
+                            <span className="font-semibold text-slate-800">
+                              {selectedOrder.user?.email || "N/A"}
+                            </span>
+                          </p>
+                        </div>
+                      </div>
+
+                      <div>
+                        <h3 className="text-xs uppercase text-green-600 font-bold mb-2 tracking-wider">
+                          Customer Details
+                        </h3>
+                        <div className="bg-green-50/30 p-4 rounded-lg space-y-2 text-sm border border-green-100/30">
+                          <p>
+                            <span className="text-gray-500">Name:</span>{" "}
+                            <span className="font-semibold text-slate-800">
+                              {selectedOrder.name || "Guest"}
+                            </span>
+                          </p>
+                          <p>
+                            <span className="text-gray-500">Phone:</span>{" "}
+                            <span className="font-semibold text-slate-800">
+                              {selectedOrder.phone || selectedOrder.contact_number || "N/A"}
+                            </span>
+                          </p>
+                          <p>
+                            <span className="text-gray-500">Email:</span>{" "}
+                            <span className="font-semibold text-slate-800">
+                              {selectedOrder.email || "N/A"}
+                            </span>
+                          </p>
+                          <p>
+                            <span className="text-gray-500">Address:</span>{" "}
+                            <span className="font-medium">
+                              {(() => {
+                                try {
+                                  const addr = JSON.parse(selectedOrder.shipping_address);
+                                  return `${addr.address}, ${addr.city}`;
+                                } catch {
+                                  return selectedOrder.shipping_address || "N/A";
+                                }
+                              })()}
+                            </span>
+                          </p>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div>
+                      <h3 className="text-xs uppercase text-gray-500 font-bold mb-2 tracking-wider">
+                        Customer Details
+                      </h3>
+                      <div className="bg-gray-50 p-4 rounded-lg space-y-2 text-sm border border-gray-150">
+                        <p>
+                          <span className="text-gray-500">Name:</span>{" "}
+                          <span className="font-medium">
+                            {selectedOrder.name || selectedOrder.user?.name}
+                          </span>
+                        </p>
+                        <p>
+                          <span className="text-gray-500">Phone:</span>{" "}
+                          <span className="font-medium">
+                            {selectedOrder.phone || selectedOrder.contact_number}
+                          </span>
+                        </p>
+                        <p>
+                          <span className="text-gray-500">Email:</span>{" "}
+                          <span className="font-medium">
+                            {selectedOrder.email ||
+                              selectedOrder.user?.email ||
+                              "N/A"}
+                          </span>
+                        </p>
+                        <p>
+                          <span className="text-gray-500">Address:</span>{" "}
+                          <span className="font-medium">
+                            {(() => {
+                              try {
+                                const addr = JSON.parse(selectedOrder.shipping_address);
+                                return `${addr.address}, ${addr.city}`;
+                              } catch {
+                                return selectedOrder.shipping_address || "N/A";
+                              }
+                            })()}
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <div>
                   <h3 className="text-xs uppercase text-gray-500 font-bold mb-3 tracking-wider">
