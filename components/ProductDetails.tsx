@@ -107,12 +107,34 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
   const salePrice = product.sale_price ? parseFloat(product.sale_price) : null;
   const hasDiscount = salePrice && salePrice > 0 && salePrice < basePrice;
 
+  // --- Variation-wise price logic ---
+  const getVariationPrice = (): number | null => {
+    if (!product.variations || product.variations.length === 0) return null;
+    const matchedVariation = product.variations.find((v) => {
+      const colorMatch = !selectedColor || !v.color || v.color.toLowerCase() === selectedColor.name?.toLowerCase();
+      const attrs = v.attributes || {};
+      const sizeMatch = !selectedSize || !attrs.Size || attrs.Size === selectedSize;
+      const weightMatch = !selectedWeight || !attrs.Weight || attrs.Weight === (typeof selectedWeight === 'string' ? selectedWeight : selectedWeight?.name);
+      return colorMatch && sizeMatch && weightMatch;
+    });
+    if (matchedVariation && matchedVariation.price !== undefined && matchedVariation.price > 0) {
+      return matchedVariation.price;
+    }
+    return null;
+  };
+
+  const variationPrice = getVariationPrice();
+  // Use variation price if found, else fall back to discount/base price
+  const displayPrice = variationPrice !== null ? variationPrice : (hasDiscount ? salePrice! : basePrice);
+
+
   const handleAddToCart = (redirect = false) => {
     const itemToAdd = {
       id: product.id,
       name: product.name,
       slug: product.slug,
-      price: hasDiscount ? salePrice! : basePrice,
+      price: displayPrice,
+
       image: mainImage,
       quantity: quantity,
       variant: {
@@ -217,16 +239,32 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
             <span className="text-green-600 font-medium text-sm">In Stock</span>
           </div>
 
-          <div className="flex items-baseline gap-4 mb-8">
+          <div className="flex items-baseline gap-4 mb-4">
             <span className="text-4xl font-bold text-blue-600">
-              ৳{formatAmount(hasDiscount ? salePrice : basePrice)}
+              ৳{formatAmount(displayPrice)}
             </span>
-            {hasDiscount && (
+            {/* Show original base price as strikethrough if variation price or sale price applies */}
+            {(variationPrice !== null || hasDiscount) && displayPrice < basePrice && (
+              <span className="text-xl text-gray-400 line-through">
+                ৳{formatAmount(basePrice)}
+              </span>
+            )}
+            {hasDiscount && variationPrice === null && (
               <span className="text-xl text-gray-400 line-through">
                 ৳{formatAmount(basePrice)}
               </span>
             )}
           </div>
+
+          {/* Total Price */}
+          <div className="flex items-center gap-2 mb-8 bg-blue-50 border border-blue-100 rounded-xl px-4 py-3">
+            <span className="text-sm font-semibold text-gray-600">Total Price:</span>
+            <span className="text-xl font-bold text-blue-600">
+              ৳{formatAmount(displayPrice * quantity)}
+            </span>
+            <span className="text-xs text-gray-400">(Tax incl.)</span>
+          </div>
+
 
           <div className="mb-8 border-t border-b border-gray-100 py-6 space-y-4">
             <div

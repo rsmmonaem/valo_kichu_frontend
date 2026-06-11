@@ -48,6 +48,15 @@ export interface Product {
   product_code?: string;
   image_url?: string;
   gallery_image_urls?: string[];
+  variations?: {
+    id: number;
+    color?: string;
+    sku?: string;
+    stock?: number;
+    price?: number;
+    color_image?: string;
+    attributes?: Record<string, string>; // e.g. { Size: "M", Weight: "1kg" }
+  }[];
 }
 
 export const authFetch = async (endpoint: string, options: RequestInit = {}) => {

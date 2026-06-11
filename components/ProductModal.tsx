@@ -356,7 +356,28 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
   const salePrice =
     product && product.sale_price ? parseFloat(product.sale_price) : null;
   const hasDiscount = salePrice && salePrice > 0 && salePrice < basePrice;
-  const displayPrice = hasDiscount && salePrice ? salePrice : basePrice;
+
+  // --- Variation-wise price logic ---
+  const getVariationPrice = (): number | null => {
+    if (!product?.variations || product.variations.length === 0) return null;
+    const selectedSizeName = typeof size === 'string' ? size : (size as any)?.name || '';
+    const selectedWeightName = typeof weight === 'string' ? weight : (weight as any)?.name || '';
+    const matchedVariation = product.variations.find((v) => {
+      const colorMatch = !color?.name || !v.color || v.color.toLowerCase() === color.name?.toLowerCase();
+      const attrs = v.attributes || {};
+      const sizeMatch = !selectedSizeName || !attrs.Size || attrs.Size === selectedSizeName;
+      const weightMatch = !selectedWeightName || !attrs.Weight || attrs.Weight === selectedWeightName;
+      return colorMatch && sizeMatch && weightMatch;
+    });
+    if (matchedVariation && matchedVariation.price !== undefined && matchedVariation.price > 0) {
+      return matchedVariation.price;
+    }
+    return null;
+  };
+
+  const variationPrice = getVariationPrice();
+  const displayPrice = variationPrice !== null ? variationPrice : (hasDiscount && salePrice ? salePrice : basePrice);
+
 
   if (!product) return null;
 
@@ -524,16 +545,31 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                 </div>
 
                 {/* Price */}
-                <div className="flex items-center gap-4 mb-6">
+                <div className="flex items-center gap-4 mb-4">
                   <span className="text-3xl md:text-4xl font-extrabold text-blue-600">
                     ৳{formatAmount(displayPrice)}
                   </span>
-                  {hasDiscount && (
+                  {(variationPrice !== null || hasDiscount) && displayPrice < basePrice && (
+                    <span className="text-lg text-gray-400 line-through">
+                      ৳{formatAmount(basePrice)}
+                    </span>
+                  )}
+                  {hasDiscount && variationPrice === null && (
                     <span className="text-lg text-gray-400 line-through">
                       ৳{formatAmount(basePrice)}
                     </span>
                   )}
                 </div>
+
+                {/* Total Price */}
+                <div className="flex items-center gap-2 mb-4 bg-blue-50 border border-blue-100 rounded-2xl px-4 py-3">
+                  <span className="text-sm font-semibold text-gray-600">Total Price:</span>
+                  <span className="text-xl font-bold text-blue-600">
+                    ৳{formatAmount(displayPrice * quantity)}
+                  </span>
+                  <span className="text-xs text-gray-400">(Tax incl.)</span>
+                </div>
+
 
                 {/* Loyalty Points */}
                 <div className="flex items-center gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-2xl w-fit mb-6">
