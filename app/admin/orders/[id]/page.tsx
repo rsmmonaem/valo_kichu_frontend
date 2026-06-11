@@ -145,7 +145,7 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
   const drpTotal = drpSubtotal + parseFloat(order.shipping_cost || 0);
 
   // Calculate MRP totals (original prices)
-  const mrpSubtotal = parseFloat(order.total_amount || order.total_price || 0);
+  const mrpSubtotal = parseFloat(order.total_amount || order.subtotal || 0);
   const mrpTotal = mrpSubtotal + parseFloat(order.shipping_cost || 0);
 
   return (
