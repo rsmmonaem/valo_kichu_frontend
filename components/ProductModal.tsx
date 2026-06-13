@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { X, Minus, Plus, ShoppingCart, Star } from "lucide-react";
 import Image from "next/image";
@@ -8,7 +8,7 @@ import { useCart } from "@/context/CartContext";
 // import points from "@/public/coin.png";
 import { parseGalleryImages } from "@/lib/utils/parseGalleryImages";
 import { parseAttributes } from "@/lib/utils/parseAttributes";
-import { Product } from "@/lib/api"; // Import the same Product type
+import { Product, getProduct } from "@/lib/api"; // Import the same Product type
 import AddtocartToster from "./AddtocartToster";
 import DOMPurify from "dompurify";
 import { formatProductDescriptionUniversal } from "@/lib/utils/formatProductDescription";
@@ -19,8 +19,20 @@ interface ProductModalProps {
   onClose: () => void;
 }
 
-export default function ProductModal({ product, onClose }: ProductModalProps) {
+export default function ProductModal({ product: initialProduct, onClose }: ProductModalProps) {
   const router = useRouter();
+  const [product, setProduct] = useState(initialProduct);
+
+  // Fetch fresh product data on mount
+  useEffect(() => {
+    if (initialProduct?.slug) {
+      getProduct(initialProduct.slug).then(res => {
+        if (res.status && res.data) {
+          setProduct(res.data);
+        }
+      }).catch(console.error);
+    }
+  }, [initialProduct?.slug]);
   const [quantity, setQuantity] = useState(1);
   const [isMobile, setIsMobile] = useState(false);
   const [hasImageError, setHasImageError] = useState(false);
@@ -32,6 +44,33 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
   // Use Cart Context
   const { addToCart } = useCart?.() || { addToCart: () => { } };
 
+  // Safe parsing of product.variations and product.colors (handling potential JSON string or array or object)
+  const parsedVariations = useMemo(() => {
+    if (!product?.variations) return [];
+    if (typeof product.variations === 'string') {
+      try {
+        const parsed = JSON.parse(product.variations);
+        return Array.isArray(parsed) ? parsed : Object.values(parsed);
+      } catch {
+        return [];
+      }
+    }
+    return Array.isArray(product.variations) ? product.variations : Object.values(product.variations);
+  }, [product?.variations]);
+
+  const parsedColors = useMemo(() => {
+    if (!product?.colors) return [];
+    if (typeof product.colors === 'string') {
+      try {
+        const parsed = JSON.parse(product.colors);
+        return Array.isArray(parsed) ? parsed : Object.values(parsed);
+      } catch {
+        return [];
+      }
+    }
+    return Array.isArray(product.colors) ? product.colors : Object.values(product.colors);
+  }, [product?.colors]);
+
   // ---------------- PARSE DATA ----------------
   const galleryArray = product
     ? parseGalleryImages(product.gallery_images) || []
@@ -40,21 +79,37 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
     ? parseAttributes(product.attributes) || []
     : [];
 
-  // Extract size and color from attributes
-  const sizeData =
-    productAttributes.find((a) => a.name?.toLowerCase() === "size")?.values ||
-    [];
-
-  const colorData =
-    productAttributes
+  // Extract size and color from attributes + product data
+  // For colors: prefer product.colors field, then fall back to attributes
+  const colorData = (() => {
+    if (parsedColors.length > 0) {
+      return parsedColors.map((c: any, idx: number) => ({
+        id: c.id || idx + 1,
+        name: typeof c === "string" ? c : c.name || "",
+        img: c?.image || c?.color_image || "",
+      }));
+    }
+    return productAttributes
       .find((a) => a.name?.toLowerCase() === "color")
       ?.values.map((c: any, idx: number) => ({
         id: idx + 1,
         name: typeof c === "string" ? c : c.name || "",
         img: c?.image || "",
       })) || [];
+  })();
 
-  const weightData =
+  // For sizes: merge from attributes AND variations
+  const attrSizes =
+    productAttributes.find((a) => a.name?.toLowerCase() === "size")?.values || [];
+  const variationSizes = parsedVariations.length > 0
+    ? [...new Set(parsedVariations.map((v: any) => v.size || v.attributes?.Size || v.attributes?.size).filter(Boolean))]
+    : [];
+  const sizeData = attrSizes.length > 0
+    ? [...new Set([...attrSizes, ...variationSizes])]
+    : variationSizes;
+
+  // For weight: merge from attributes AND variations
+  const attrWeights =
     productAttributes
       .find((a) => a.name?.toLowerCase() === "weight")
       ?.values.map((c: any, idx: number) => ({
@@ -62,11 +117,17 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
         name: typeof c === "string" ? c : c.name || "",
         img: c?.image || "",
       })) || [];
+  const variationWeightNames = parsedVariations.length > 0
+    ? [...new Set(parsedVariations.map((v: any) => v.weight || v.attributes?.Weight || v.attributes?.weight).filter(Boolean))]
+    : [];
+  const weightData = attrWeights.length > 0
+    ? attrWeights
+    : variationWeightNames.map((w: any, idx: number) => ({ id: idx + 1, name: w, img: "" }));
 
   // Gallery images for thumbnails
   const galleryImages = (product?.gallery_image_urls && product.gallery_image_urls.length > 0)
-    ? product.gallery_image_urls.map((img, index) => ({ id: index + 1, img }))
-    : galleryArray.map((image, index) => {
+    ? product.gallery_image_urls.map((img: string, index: number) => ({ id: index + 1, img }))
+    : galleryArray.map((image: string, index: number) => {
       const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
       return {
         id: index + 1,
@@ -81,16 +142,105 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
   const [color, setColor] = useState(colorData[0] || {});
   const [weight, setWeight] = useState(weightData[0]);
 
+  console.log("ProductModal Debug JSON:", JSON.stringify({
+    productName: product?.name,
+    productColors: product?.colors,
+    productVariations: product?.variations,
+    parsedColors,
+    parsedVariations,
+    colorData,
+    sizeData,
+    weightData
+  }));
+
   // ---------------- EFFECTS ----------------
   useEffect(() => {
     if (!product) return;
-    // Initialize preview
+
+    // Reset states for the new product
+    const parsedAttrs = parseAttributes(product.attributes) || [];
+    const parsedColorsLocal = (() => {
+      if (!product.colors) return [];
+      if (typeof product.colors === 'string') {
+        try {
+          const parsed = JSON.parse(product.colors);
+          return Array.isArray(parsed) ? parsed : Object.values(parsed);
+        } catch { return []; }
+      }
+      return Array.isArray(product.colors) ? product.colors : Object.values(product.colors);
+    })();
+    const parsedVariationsLocal = (() => {
+      if (!product.variations) return [];
+      if (typeof product.variations === 'string') {
+        try {
+          const parsed = JSON.parse(product.variations);
+          return Array.isArray(parsed) ? parsed : Object.values(parsed);
+        } catch { return []; }
+      }
+      return Array.isArray(product.variations) ? product.variations : Object.values(product.variations);
+    })();
+
+    const colorDataLocal = (() => {
+      if (parsedColorsLocal.length > 0) {
+        return parsedColorsLocal.map((c: any, idx: number) => ({
+          id: c.id || idx + 1,
+          name: typeof c === "string" ? c : c.name || "",
+          img: c?.image || c?.color_image || "",
+        }));
+      }
+      return parsedAttrs
+        .find((a) => a.name?.toLowerCase() === "color")
+        ?.values.map((c: any, idx: number) => ({
+          id: idx + 1,
+          name: typeof c === "string" ? c : c.name || "",
+          img: c?.image || "",
+        })) || [];
+    })();
+
+    const attrSizesLocal = parsedAttrs.find((a) => a.name?.toLowerCase() === "size")?.values || [];
+    const variationSizesLocal = parsedVariationsLocal.length > 0
+      ? [...new Set(parsedVariationsLocal.map((v: any) => v.size || v.attributes?.Size || v.attributes?.size).filter(Boolean))]
+      : [];
+    const sizeDataLocal = attrSizesLocal.length > 0
+      ? [...new Set([...attrSizesLocal, ...variationSizesLocal])]
+      : variationSizesLocal;
+
+    const attrWeightsLocal = parsedAttrs
+      .find((a) => a.name?.toLowerCase() === "weight")
+      ?.values.map((c: any, idx: number) => ({
+        id: idx + 1,
+        name: typeof c === "string" ? c : c.name || "",
+        img: c?.image || "",
+      })) || [];
+    const variationWeightNamesLocal = parsedVariationsLocal.length > 0
+      ? [...new Set(parsedVariationsLocal.map((v: any) => v.weight || v.attributes?.Weight || v.attributes?.weight).filter(Boolean))]
+      : [];
+    const weightDataLocal = attrWeightsLocal.length > 0
+      ? attrWeightsLocal
+      : variationWeightNamesLocal.map((w: any, idx: number) => ({ id: idx + 1, name: w, img: "" }));
+
+    setSize(sizeDataLocal[0] || "");
+    setColor(colorDataLocal[0] || {});
+    setWeight(weightDataLocal[0]);
+
     // Standardize the API base URL to remove /api for storage links
     const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
 
-    const mainImage = product.image_url || ((typeof product.images === 'string') ? product.images : '') || product.image || product.thumbnail || galleryArray[0] || "";
+    const mainImage = product.image_url || ((typeof product.images === 'string') ? product.images : '') || product.image || product.thumbnail || "";
+
+    const galleryImagesLocal = (product.gallery_image_urls && product.gallery_image_urls.length > 0)
+      ? product.gallery_image_urls.map((img: string, index: number) => ({ id: index + 1, img }))
+      : (parseGalleryImages(product.gallery_images) || []).map((image: string, index: number) => {
+        return {
+          id: index + 1,
+          img: image.startsWith("http")
+            ? image
+            : `${baseUrl}/storage/products/${image.replace(/^\/?(storage\/products|products)\/?/, "")}`,
+        };
+      });
+
     const initialPreview =
-      galleryImages[0]?.img ||
+      galleryImagesLocal[0]?.img ||
       (mainImage.startsWith("http")
         ? mainImage
         : `${baseUrl}/storage/products/${mainImage.replace(/^\/?(storage\/products|products)\/?/, "")}`);
@@ -359,18 +509,32 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
 
   // --- Variation-wise price logic ---
   const getVariationPrice = (): number | null => {
-    if (!product?.variations || product.variations.length === 0) return null;
-    const selectedSizeName = typeof size === 'string' ? size : (size as any)?.name || '';
-    const selectedWeightName = typeof weight === 'string' ? weight : (weight as any)?.name || '';
-    const matchedVariation = product.variations.find((v) => {
-      const colorMatch = !color?.name || !v.color || v.color.toLowerCase() === color.name?.toLowerCase();
-      const attrs = v.attributes || {};
-      const sizeMatch = !selectedSizeName || !attrs.Size || attrs.Size === selectedSizeName;
-      const weightMatch = !selectedWeightName || !attrs.Weight || attrs.Weight === selectedWeightName;
+    if (parsedVariations.length === 0) return null;
+    const selectedColorName = (typeof color === 'string' ? color : color?.name || '').toLowerCase();
+    const selectedSizeName = (typeof size === 'string' ? size : (size as any)?.name || '').toLowerCase();
+    const selectedWeightName = (typeof weight === 'string' ? weight : (weight as any)?.name || '').toLowerCase();
+
+    const matchedVariation = parsedVariations.find((v: any) => {
+      // Color matching: support direct v.color or nested color
+      const variationColorName = (v.color || '').toLowerCase();
+      const colorMatch = !selectedColorName || !variationColorName || variationColorName === selectedColorName;
+
+      // Size matching: support direct v.size or nested attributes.Size
+      const variationSize = (v.size || v.attributes?.Size || v.attributes?.size || '').toLowerCase();
+      const sizeMatch = !selectedSizeName || !variationSize || variationSize === selectedSizeName;
+
+      // Weight matching: support direct v.weight or nested attributes.Weight
+      const variationWeight = (v.weight || v.attributes?.Weight || v.attributes?.weight || '').toLowerCase();
+      const weightMatch = !selectedWeightName || !variationWeight || variationWeight === selectedWeightName;
+
       return colorMatch && sizeMatch && weightMatch;
     });
-    if (matchedVariation && matchedVariation.price !== undefined && matchedVariation.price > 0) {
-      return matchedVariation.price;
+
+    if (matchedVariation) {
+      const finalPrice = matchedVariation.price !== undefined ? parseFloat(matchedVariation.price) : null;
+      if (finalPrice !== null && finalPrice > 0) {
+        return finalPrice;
+      }
     }
     return null;
   };
@@ -450,7 +614,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                 {/* Gallery Thumbnails */}
                 {galleryImages.length > 0 && (
                   <div className="grid grid-cols-3 gap-4 md:flex md:flex-wrap md:gap-5 mt-4 pb-2">
-                    {galleryImages.map((g) => (
+                    {galleryImages.map((g: any) => (
                       <button
                         key={g.id}
                         onClick={() => {
@@ -486,7 +650,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                   <div className="mt-6 bg-gray-50 rounded-2xl p-6 shadow-inner">
                     <h3 className="text-lg font-bold mb-4">Specifications</h3>
                     <div className="space-y-2">
-                      {productAttributes.map((attr, i) => (
+                      {productAttributes.map((attr: any, i: number) => (
                         <div
                           key={i}
                           className="flex justify-between border-b border-gray-200 pb-2 last:border-0"
@@ -593,7 +757,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                   <div className="mb-6">
                     <h3 className="font-semibold mb-3">Color: {color?.name}</h3>
                     <div className="grid grid-cols-3 gap-4">
-                      {colorData.map((c) => (
+                      {colorData.map((c: any) => (
                         <button
                           key={c.id}
                           onClick={() => {
@@ -635,7 +799,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                       Weight: {weight?.name || weight}
                     </h3>
                     <div className="grid grid-cols-3 gap-4">
-                      {weightData.map((w) => (
+                      {weightData.map((w: any) => (
                         <button
                           key={w.id}
                           onClick={() => setWeight(w)}
@@ -656,7 +820,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                   <div className="mb-6">
                     <h3 className="font-semibold mb-3">Size: {size}</h3>
                     <div className="grid grid-cols-4 gap-4">
-                      {sizeData.map((s) => (
+                      {sizeData.map((s: any) => (
                         <button
                           key={s}
                           onClick={() => setSize(s)}
@@ -703,7 +867,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                     <div className="mt-6 bg-gray-50 rounded-2xl p-6 shadow-inner">
                       <h3 className="text-lg font-bold mb-4">Key Features</h3>
                       <ul className="space-y-3">
-                        {product.key_features.map((f, i) => (
+                        {product.key_features.map((f: any, i: number) => (
                           <li
                             key={i}
                             className="flex items-start gap-3 text-gray-700"

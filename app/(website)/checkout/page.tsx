@@ -152,6 +152,7 @@ const CheckoutPage = () => {
             product_variation_id: item.variant?.id || null,
             variation_snapshot: variationSnapshot,
             quantity: item.quantity,
+            price: item.price, // Send the actual displayed price (sale/variation price) to backend
           };
         }),
         shipping_address: `${checkoutData.address_line1}, ${checkoutData.area}, ${checkoutData.city}, ${checkoutData.country}`, // Simplified address string
@@ -184,8 +185,7 @@ const CheckoutPage = () => {
         // Hande success
         clearCart();
         router.push(
-          `/order-success?order=${
-            data.order ? data.order.id : data.id || data.order_id
+          `/order-success?order=${data.order ? data.order.id : data.id || data.order_id
           }`
         );
         // toast.success("Order placed successfully!");
@@ -380,11 +380,10 @@ const CheckoutPage = () => {
                           }));
                           setShippingCost(method.cost); // Update the shipping cost based on the selected method
                         }}
-                        className={`p-3 text-center rounded-xl cursor-pointer transition hover:scale-105 ${
-                          checkoutData.area === method.name
-                            ? "bg-[#FFAC1C] text-white shadow-lg"
-                            : "bg-gray-100"
-                        }`}
+                        className={`p-3 text-center rounded-xl cursor-pointer transition hover:scale-105 ${checkoutData.area === method.name
+                          ? "bg-[#FFAC1C] text-white shadow-lg"
+                          : "bg-gray-100"
+                          }`}
                       >
                         {method.name} (৳{formatAmount(Math.floor(method.cost))})
                       </button>
@@ -489,11 +488,10 @@ const CheckoutPage = () => {
                           item.image && item.image.startsWith("http")
                             ? item.image
                             : item.image
-                            ? `${
-                                process.env.NEXT_PUBLIC_API_URL ||
-                                "http://127.0.0.1:8000"
+                              ? `${process.env.NEXT_PUBLIC_API_URL ||
+                              "http://127.0.0.1:8000"
                               }/${item.image}`
-                            : "/placeholder.png"
+                              : "/placeholder.png"
                         }
                         alt={item.name}
                         className="w-full h-full object-cover"
@@ -525,7 +523,7 @@ const CheckoutPage = () => {
 
                       {/* Quantity Controls and Remove Button */}
                       <div className="flex items-center justify-between mt-2">
-                      <button
+                        <button
                           type="button"
                           onClick={(e) => {
                             e.preventDefault();

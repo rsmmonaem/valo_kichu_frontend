@@ -62,46 +62,120 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
   const [selectedWeight, setSelectedWeight] = useState<any>(null);
   const [expanded, setExpanded] = useState<boolean>(false);
 
+  // Safe parsing of product.variations and product.colors (handling potential JSON string or array)
+  const parsedVariations = React.useMemo(() => {
+    if (!product?.variations) return [];
+    if (typeof product.variations === 'string') {
+      try {
+        const parsed = JSON.parse(product.variations);
+        return Array.isArray(parsed) ? parsed : Object.values(parsed);
+      } catch {
+        return [];
+      }
+    }
+    return Array.isArray(product.variations) ? product.variations : Object.values(product.variations);
+  }, [product?.variations]);
+
+  const parsedColors = React.useMemo(() => {
+    if (!product?.colors) return [];
+    if (typeof product.colors === 'string') {
+      try {
+        const parsed = JSON.parse(product.colors);
+        return Array.isArray(parsed) ? parsed : Object.values(parsed);
+      } catch {
+        return [];
+      }
+    }
+    return Array.isArray(product.colors) ? product.colors : Object.values(product.colors);
+  }, [product?.colors]);
+
   // Derived Data
-  const colorData =
-    attributes
+  // For colors: prefer product.colors field, then fall back to attributes
+  const colorData = (() => {
+    if (parsedColors.length > 0) {
+      return parsedColors.map((c: any, idx: number) => ({
+        id: c.id || idx,
+        name: typeof c === "string" ? c : c.name || "",
+        img: c?.image || c?.color_image || null,
+      }));
+    }
+    return attributes
       .find((a) => a.name.toLowerCase() === "color")
       ?.values.map((c: any, i: number) => ({
         id: i,
         name: typeof c === "string" ? c : c.name,
         img: c.image || null,
       })) || [];
+  })();
 
-  const sizeData =
+  // For sizes: merge from attributes AND variations
+  const attrSizes =
     attributes.find((a) => a.name.toLowerCase() === "size")?.values || [];
-  const weightData =
+  const variationSizes = parsedVariations.length > 0
+    ? [...new Set(parsedVariations.map((v: any) => v.size || v.attributes?.Size || v.attributes?.size).filter(Boolean))]
+    : [];
+  const sizeData = attrSizes.length > 0
+    ? [...new Set([...attrSizes, ...variationSizes])]
+    : variationSizes;
+
+  // For weight: merge from attributes AND variations
+  const attrWeightValues =
     attributes.find((a) => a.name.toLowerCase() === "weight")?.values || [];
+  const variationWeightValues = parsedVariations.length > 0
+    ? [...new Set(parsedVariations.map((v: any) => v.weight || v.attributes?.Weight || v.attributes?.weight).filter(Boolean))]
+    : [];
+  const weightData = attrWeightValues.length > 0
+    ? [...new Set([...attrWeightValues, ...variationWeightValues])]
+    : variationWeightValues;
 
   useEffect(() => {
     // Parse and set Initial Attributes
     const parsedAttrs = parseAttributes(product.attributes) || [];
     setAttributes(parsedAttrs);
 
-    // Set Defaults
-    const colors =
+    // Set Defaults - colors from parsedColors or attributes
+    const colorsFromAttrs =
       parsedAttrs.find((a) => a.name.toLowerCase() === "color")?.values || [];
-    if (colors.length > 0) {
-      const firstColor = colors[0];
+    if (parsedColors.length > 0) {
+      const firstColor = parsedColors[0];
+      setSelectedColor({
+        id: firstColor.id || 0,
+        name: typeof firstColor === "string" ? firstColor : firstColor.name,
+        img: firstColor.image || null,
+      });
+    } else if (colorsFromAttrs.length > 0) {
+      const firstColor = colorsFromAttrs[0];
       setSelectedColor({
         id: 0,
         name: typeof firstColor === "string" ? firstColor : firstColor.name,
         img: firstColor.image || null,
       });
+    } else {
+      setSelectedColor(null);
     }
 
-    const sizes =
+    const attrSizesInit =
       parsedAttrs.find((a) => a.name.toLowerCase() === "size")?.values || [];
-    if (sizes.length > 0) setSelectedSize(sizes[0]);
+    const varSizesInit = parsedVariations.length > 0
+      ? [...new Set(parsedVariations.map((v: any) => v.size || v.attributes?.Size || v.attributes?.size).filter(Boolean))]
+      : [];
+    const allSizesInit = attrSizesInit.length > 0
+      ? [...new Set([...attrSizesInit, ...varSizesInit])]
+      : varSizesInit;
+    if (allSizesInit.length > 0) {
+      setSelectedSize(allSizesInit[0]);
+    } else {
+      setSelectedSize(null);
+    }
 
     const weights =
       parsedAttrs.find((a) => a.name.toLowerCase() === "weight")?.values || [];
-    if (weights.length > 0) setSelectedWeight(weights[0]);
-  }, [product]);
+    if (weights.length > 0) {
+      setSelectedWeight(weights[0]);
+    } else {
+      setSelectedWeight(null);
+    }
+  }, [product, parsedColors, parsedVariations]);
 
   const basePrice = parseFloat(product.base_price || product.price || "0");
   const salePrice = product.sale_price ? parseFloat(product.sale_price) : null;
@@ -109,16 +183,32 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
 
   // --- Variation-wise price logic ---
   const getVariationPrice = (): number | null => {
-    if (!product.variations || product.variations.length === 0) return null;
-    const matchedVariation = product.variations.find((v) => {
-      const colorMatch = !selectedColor || !v.color || v.color.toLowerCase() === selectedColor.name?.toLowerCase();
-      const attrs = v.attributes || {};
-      const sizeMatch = !selectedSize || !attrs.Size || attrs.Size === selectedSize;
-      const weightMatch = !selectedWeight || !attrs.Weight || attrs.Weight === (typeof selectedWeight === 'string' ? selectedWeight : selectedWeight?.name);
+    if (parsedVariations.length === 0) return null;
+    const selectedColorName = (typeof selectedColor === 'string' ? selectedColor : selectedColor?.name || '').toLowerCase();
+    const selectedSizeName = (typeof selectedSize === 'string' ? selectedSize : selectedSize?.name || '').toLowerCase();
+    const selectedWeightName = (typeof selectedWeight === 'string' ? selectedWeight : selectedWeight?.name || '').toLowerCase();
+
+    const matchedVariation = parsedVariations.find((v: any) => {
+      // Color matching: support direct v.color or nested color
+      const variationColorName = (v.color || '').toLowerCase();
+      const colorMatch = !selectedColorName || !variationColorName || variationColorName === selectedColorName;
+
+      // Size matching: support direct v.size or nested attributes.Size
+      const variationSize = (v.size || v.attributes?.Size || v.attributes?.size || '').toLowerCase();
+      const sizeMatch = !selectedSizeName || !variationSize || variationSize === selectedSizeName;
+
+      // Weight matching: support direct v.weight or nested attributes.Weight
+      const variationWeight = (v.weight || v.attributes?.Weight || v.attributes?.weight || '').toLowerCase();
+      const weightMatch = !selectedWeightName || !variationWeight || variationWeight === selectedWeightName;
+
       return colorMatch && sizeMatch && weightMatch;
     });
-    if (matchedVariation && matchedVariation.price !== undefined && matchedVariation.price > 0) {
-      return matchedVariation.price;
+
+    if (matchedVariation) {
+      const finalPrice = matchedVariation.price !== undefined ? parseFloat(matchedVariation.price) : null;
+      if (finalPrice !== null && finalPrice > 0) {
+        return finalPrice;
+      }
     }
     return null;
   };
@@ -446,14 +536,28 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
         </div>
       </div>
       <div className="p-6 md:p-8 bg-white mt-8 rounded-lg border border-gray-100">
-        <div className={`${product.specifications ? "" : "hidden"}`}>
+        <div className={`${product.specifications && product.specifications.length > 0 ? "" : "hidden"}`}>
           <h1 className={`text-2xl font-medium`}>Specification</h1>
           <ul className="list-disc list-inside ml-2 mt-2 text-gray-600">
-            {product.specifications
-              ? JSON.parse(product.specifications).map(
-                (spec: string, idx: number) => <li key={idx}>{spec}</li>
-              )
-              : "No specifications available."}
+            {(() => {
+              let specs = [];
+              if (typeof product.specifications === 'string') {
+                try {
+                  specs = JSON.parse(product.specifications);
+                } catch {
+                  specs = [];
+                }
+              } else if (Array.isArray(product.specifications)) {
+                specs = product.specifications;
+              } else if (product.specifications && typeof product.specifications === 'object') {
+                specs = Object.values(product.specifications);
+              }
+              
+              if (specs && specs.length > 0) {
+                return specs.map((spec: any, idx: number) => <li key={idx}>{String(spec)}</li>);
+              }
+              return "No specifications available.";
+            })()}
           </ul>
         </div>
         <div>

@@ -48,6 +48,7 @@ export interface Product {
   product_code?: string;
   image_url?: string;
   gallery_image_urls?: string[];
+  colors?: { id: number; name: string; image?: string | null; color_class?: string }[];
   variations?: {
     id: number;
     color?: string;
@@ -178,7 +179,7 @@ export const getProducts = async (
   if (sort) url += `&sort_by=${sort}`; // Backend check: $sorting = $request->get('sorting') ?? $request->get('sort_by');
 
   const res = await fetch(url, {
-    next: { revalidate: 60 }
+    cache: 'no-store'
   });
   if (!res.ok) {
     throw new Error('Failed to fetch products');
