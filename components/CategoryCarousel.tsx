@@ -21,10 +21,13 @@ const CategoryCarousel: React.FC<CategoryCarouselProps> = ({ categories }) => {
     };
     const addPrefixToImage = (url?: string) => {
         if (!url) return '';
+        
+        const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
+        const correctedUrl = url.replace('http://localhost:8000', baseUrl);
     
-        const parts = url.split('/');
+        const parts = correctedUrl.split('/');
         const filename = parts.pop();
-        if (!filename) return url;
+        if (!filename) return correctedUrl;
     
         const newFilename = 'ss' + filename;
         return [...parts, newFilename].join('/');

@@ -6,6 +6,27 @@ import { authFetch } from '@/lib/api';
 import clsx from 'clsx';
 import { toast } from 'react-hot-toast';
 
+const getBaseUrl = () => {
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    return apiBase.replace(/\/api\/?$/, '');
+};
+
+const getCategoryImageUrl = (cat: Category) => {
+    if (cat.image_url) {
+        const baseUrl = getBaseUrl();
+        return cat.image_url.replace('http://localhost:8000', baseUrl);
+    }
+    return null;
+};
+
+const getCustomIconImageUrl = (cat: Category) => {
+    if (cat.custom_icon_url) {
+        const baseUrl = getBaseUrl();
+        return cat.custom_icon_url.replace('http://localhost:8000', baseUrl);
+    }
+    return null;
+};
+
 // interface Category {
 //     id: number;
 //     name: string;
@@ -297,9 +318,9 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ title, level }) => {
                                             <td className="p-4 pl-6 font-mono text-gray-500">#{cat.id}</td>
                                             <td className="p-4">
                                                 <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden border border-gray-200">
-                                                    {cat.image_url ? (
+                                                    {getCategoryImageUrl(cat) ? (
                                                         <img
-                                                            src={cat.image_url}
+                                                            src={getCategoryImageUrl(cat) || ''}
                                                             alt={cat.name}
                                                             className="w-full h-full object-cover"
                                                         />
@@ -347,7 +368,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ title, level }) => {
             {/* Modal */}
             {showModal && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
+                    <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto">
                         <h2 className="text-xl font-bold mb-4 text-gray-800">
                             {editingCategory ? "Edit Category" : "New Category"}
                         </h2>
@@ -443,7 +464,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ title, level }) => {
                                     {formData.image && (
                                         <div className="w-16 h-16 rounded-lg border border-gray-200 overflow-hidden shrink-0">
                                             <img
-                                                src={formData.image.startsWith('http') ? formData.image : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/storage/products/${formData.image}`}
+                                                src={formData.image.startsWith('http') ? formData.image : `${getBaseUrl()}/storage/products/${formData.image}`}
                                                 className="w-full h-full object-cover"
                                             />
                                         </div>
@@ -493,7 +514,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ title, level }) => {
                                                 {formData.custom_icon && (
                                                     <div className="w-12 h-12 rounded-lg border border-gray-200 overflow-hidden shrink-0 bg-white p-1">
                                                         <img
-                                                            src={formData.custom_icon.startsWith('http') ? formData.custom_icon : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/storage/${formData.custom_icon}`}
+                                                            src={formData.custom_icon.startsWith('http') ? formData.custom_icon : `${getBaseUrl()}/storage/${formData.custom_icon}`}
                                                             className="w-full h-full object-contain"
                                                         />
                                                     </div>

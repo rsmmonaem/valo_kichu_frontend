@@ -25,11 +25,14 @@ const MobileCategorySidebar: React.FC<MobileCategorySidebarProps> = ({ isOpen, o
 
     const addPrefixToImage = (url?: string) => {
         if (!url) return '';
-    
-        const parts = url.split('/');
+
+        const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
+        const correctedUrl = url.replace('http://localhost:8000', baseUrl);
+
+        const parts = correctedUrl.split('/');
         const filename = parts.pop();
-        if (!filename) return url;
-    
+        if (!filename) return correctedUrl;
+
         const newFilename = 'ss' + filename;
         return [...parts, newFilename].join('/');
     };
