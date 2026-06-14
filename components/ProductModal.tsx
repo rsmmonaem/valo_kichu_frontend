@@ -286,12 +286,19 @@ export default function ProductModal({ product: initialProduct, onClose }: Produ
   // ---------------- HANDLERS ----------------
   const handleAddToCart = () => {
     if (!product) return;
+    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
+    const rawImage = product.image || product.thumbnail || "";
+    const resolvedImage = product.image_url
+      ? product.image_url
+      : (rawImage.startsWith('http')
+        ? rawImage
+        : rawImage ? `${baseUrl}/storage/products/${rawImage.replace(/^\/?storage\/products\/?/, '')}` : '');
     const cartItem = {
       id: product.id,
       name: product.name,
       slug: product.slug,
       price: displayPrice,
-      image: product.image || product.thumbnail || "",
+      image: resolvedImage,
       quantity: quantity,
       variant: {
         size: typeof size === "string" ? size : "",
@@ -316,12 +323,19 @@ export default function ProductModal({ product: initialProduct, onClose }: Produ
 
   const handleBuyNow = () => {
     if (!product) return;
+    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
+    const rawImage = product.image || product.thumbnail || "";
+    const resolvedImage = product.image_url
+      ? product.image_url
+      : (rawImage.startsWith('http')
+        ? rawImage
+        : rawImage ? `${baseUrl}/storage/products/${rawImage.replace(/^\/?storage\/products\/?/, '')}` : '');
     const cartItem = {
       id: product.id,
       name: product.name,
       slug: product.slug,
       price: displayPrice,
-      image: product.image || product.thumbnail || "",
+      image: resolvedImage,
       quantity: quantity,
       variant: {
         size: typeof size === "string" ? size : "",
