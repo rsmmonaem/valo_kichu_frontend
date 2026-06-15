@@ -19,18 +19,16 @@ const CategoryCarousel: React.FC<CategoryCarouselProps> = ({ categories }) => {
             current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
         }
     };
-    const addPrefixToImage = (url?: string) => {
+    const getImageUrl = (url?: string) => {
         if (!url) return '';
-        
+        // If already an absolute URL, just fix the base (swap localhost with configured API base)
+        if (url.startsWith('http')) {
+            const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
+            return url.replace(/^https?:\/\/[^/]+/, baseUrl);
+        }
+        // Relative path — prepend the storage base
         const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
-        const correctedUrl = url.replace('http://localhost:8000', baseUrl);
-    
-        const parts = correctedUrl.split('/');
-        const filename = parts.pop();
-        if (!filename) return correctedUrl;
-    
-        const newFilename = 'ss' + filename;
-        return [...parts, newFilename].join('/');
+        return `${baseUrl}/storage/${url}`;
     };
 
     if (!categories || categories.length === 0) return null;
@@ -95,9 +93,9 @@ const CategoryCarousel: React.FC<CategoryCarouselProps> = ({ categories }) => {
                     >
                         {/* Image Section */}
                         <div className="w-full h-40 md:h-52 bg-gray-50 overflow-hidden">
-                            {cat.image ? (
+                            {(cat.image_url || cat.image) ? (
                                 <img
-                                    src={addPrefixToImage(cat.image_url)}
+                                    src={getImageUrl(cat.image_url || cat.image)}
                                     alt={cat.name}
                                     className="w-full h-full object-cover group-hover/item:scale-105 transition-transform duration-500"
                                     loading="lazy"
