@@ -44,12 +44,22 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
 
     const resolveImageUrl = (url: string) => {
+        if (!url) return null;
         let cleanUrl = url;
-        if (!url.startsWith('http')) {
-            cleanUrl = `${baseUrl}/storage/${url.replace(/^\/?storage\/?/, '')}`;
+
+        if (url.startsWith('http')) {
+            // Strip any embedded /api/ segment that Laravel may add when APP_URL includes /api
+            cleanUrl = url.replace(/(\/api)(\/storage\/)/, '$2');
+        } else {
+            // Relative path — always lives under /storage/products/
+            const filename = url
+                .replace(/^\/?storage\/products\//, '')
+                .replace(/^\/?products\//, '')
+                .replace(/^\/?storage\//, '');
+            cleanUrl = `${baseUrl}/storage/products/${filename}`;
         }
-        
-        // If we are locally and the filename starts with 'ss' (production thumbnail), point to production backend
+
+        // If still pointing at localhost with an ss-prefixed filename → fall back to production
         if (cleanUrl.includes('localhost:8000') || cleanUrl.includes('127.0.0.1')) {
             const filename = cleanUrl.split('/').pop() || '';
             if (filename.startsWith('ss')) {
@@ -61,7 +71,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
     const rawImage = product.image_url || displayImage;
     const finalImage = rawImage
-        ? resolveImageUrl(rawImage)
+        ? (resolveImageUrl(rawImage) || 'https://placehold.co/400x400?text=No+Image')
         : 'https://placehold.co/400x400?text=No+Image';
 
     const basePrice = parseFloat(product.base_price || product.price || '0');

@@ -35,14 +35,15 @@ export default function Footer() {
                 {/* {settings.footer_about_title || 'Valokichu'} */}
                 {settings.site_logo && (
                   <img
-                    src={
-                      settings.site_logo.startsWith("http")
-                        ? settings.site_logo
-                        : `${
-                            process.env.NEXT_PUBLIC_API_URL ||
-                            "http://localhost:8000"
-                          }/storage/${settings.site_logo}`
-                    }
+                    src={(() => {
+                      const logo = settings.site_logo;
+                      if (!logo) return '';
+                      const base = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
+                      if (logo.startsWith('http')) {
+                        return logo.replace(/(\/api)(\/storage\/)/, '$2');
+                      }
+                      return `${base}/storage/${logo.replace(/^\/?storage\//, '')}`;
+                    })()}
                     alt={settings.site_name || "Logo"}
                     className="h-14 w-auto group-hover:scale-105 transition-transform object-contain"
                   />
