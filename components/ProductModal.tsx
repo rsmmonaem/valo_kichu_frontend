@@ -72,58 +72,6 @@ export default function ProductModal({ product: initialProduct, onClose }: Produ
   }, [product?.colors]);
 
   // ---------------- PARSE DATA ----------------
-  const galleryArray = product
-    ? parseGalleryImages(product.gallery_images) || []
-    : [];
-  const productAttributes = product
-    ? parseAttributes(product.attributes) || []
-    : [];
-
-  // Extract size and color from attributes + product data
-  // For colors: prefer product.colors field, then fall back to attributes
-  const colorData = (() => {
-    if (parsedColors.length > 0) {
-      return parsedColors.map((c: any, idx: number) => ({
-        id: c.id || idx + 1,
-        name: typeof c === "string" ? c : c.name || "",
-        img: c?.image || c?.color_image || "",
-      }));
-    }
-    return productAttributes
-      .find((a) => a.name?.toLowerCase() === "color")
-      ?.values.map((c: any, idx: number) => ({
-        id: idx + 1,
-        name: typeof c === "string" ? c : c.name || "",
-        img: c?.image || "",
-      })) || [];
-  })();
-
-  // For sizes: merge from attributes AND variations
-  const attrSizes =
-    productAttributes.find((a) => a.name?.toLowerCase() === "size")?.values || [];
-  const variationSizes = parsedVariations.length > 0
-    ? [...new Set(parsedVariations.map((v: any) => v.size || v.attributes?.Size || v.attributes?.size).filter(Boolean))]
-    : [];
-  const sizeData = attrSizes.length > 0
-    ? [...new Set([...attrSizes, ...variationSizes])]
-    : variationSizes;
-
-  // For weight: merge from attributes AND variations
-  const attrWeights =
-    productAttributes
-      .find((a) => a.name?.toLowerCase() === "weight")
-      ?.values.map((c: any, idx: number) => ({
-        id: idx + 1,
-        name: typeof c === "string" ? c : c.name || "",
-        img: c?.image || "",
-      })) || [];
-  const variationWeightNames = parsedVariations.length > 0
-    ? [...new Set(parsedVariations.map((v: any) => v.weight || v.attributes?.Weight || v.attributes?.weight).filter(Boolean))]
-    : [];
-  const weightData = attrWeights.length > 0
-    ? attrWeights
-    : variationWeightNames.map((w: any, idx: number) => ({ id: idx + 1, name: w, img: "" }));
-
   const resolveImageUrl = (url: string) => {
     if (!url) return '';
     const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
@@ -140,6 +88,72 @@ export default function ProductModal({ product: initialProduct, onClose }: Produ
     }
     return cleanUrl;
   };
+
+  const getVariationAttr = (v: any, attrName: string): string => {
+    if (!v) return '';
+    let attrs = v.attributes || {};
+    if (typeof attrs === 'string') {
+      try {
+        attrs = JSON.parse(attrs);
+      } catch {
+        attrs = {};
+      }
+    }
+    const foundKey = Object.keys(attrs).find(k => k.toLowerCase() === attrName.toLowerCase());
+    return foundKey ? String(attrs[foundKey]) : '';
+  };
+
+  const galleryArray = product
+    ? parseGalleryImages(product.gallery_images) || []
+    : [];
+  const productAttributes = product
+    ? parseAttributes(product.attributes) || []
+    : [];
+
+  // Extract size and color from attributes + product data
+  // For colors: prefer product.colors field, then fall back to attributes
+  const colorData = (() => {
+    if (parsedColors.length > 0) {
+      return parsedColors.map((c: any, idx: number) => ({
+        id: c.id || idx + 1,
+        name: typeof c === "string" ? c : c.name || "",
+        img: resolveImageUrl(c?.image || c?.color_image || ""),
+      }));
+    }
+    return productAttributes
+      .find((a) => a.name?.toLowerCase() === "color")
+      ?.values.map((c: any, idx: number) => ({
+        id: idx + 1,
+        name: typeof c === "string" ? c : c.name || "",
+        img: resolveImageUrl(c?.image || ""),
+      })) || [];
+  })();
+
+  // For sizes: merge from attributes AND variations
+  const attrSizes =
+    productAttributes.find((a) => a.name?.toLowerCase() === "size")?.values || [];
+  const variationSizes = parsedVariations.length > 0
+    ? [...new Set(parsedVariations.map((v: any) => v.size || getVariationAttr(v, 'size')).filter(Boolean))]
+    : [];
+  const sizeData = attrSizes.length > 0
+    ? [...new Set([...attrSizes, ...variationSizes])]
+    : variationSizes;
+
+  // For weight: merge from attributes AND variations
+  const attrWeights =
+    productAttributes
+      .find((a) => a.name?.toLowerCase() === "weight")
+      ?.values.map((c: any, idx: number) => ({
+        id: idx + 1,
+        name: typeof c === "string" ? c : c.name || "",
+        img: resolveImageUrl(c?.image || ""),
+      })) || [];
+  const variationWeightNames = parsedVariations.length > 0
+    ? [...new Set(parsedVariations.map((v: any) => v.weight || getVariationAttr(v, 'weight')).filter(Boolean))]
+    : [];
+  const weightData = attrWeights.length > 0
+    ? attrWeights
+    : variationWeightNames.map((w: any, idx: number) => ({ id: idx + 1, name: w, img: "" }));
 
   // Gallery images for thumbnails
   const galleryImages = (product?.gallery_image_urls && product.gallery_image_urls.length > 0)
@@ -199,7 +213,7 @@ export default function ProductModal({ product: initialProduct, onClose }: Produ
         return parsedColorsLocal.map((c: any, idx: number) => ({
           id: c.id || idx + 1,
           name: typeof c === "string" ? c : c.name || "",
-          img: c?.image || c?.color_image || "",
+          img: resolveImageUrl(c?.image || c?.color_image || ""),
         }));
       }
       return parsedAttrs
@@ -207,13 +221,13 @@ export default function ProductModal({ product: initialProduct, onClose }: Produ
         ?.values.map((c: any, idx: number) => ({
           id: idx + 1,
           name: typeof c === "string" ? c : c.name || "",
-          img: c?.image || "",
+          img: resolveImageUrl(c?.image || ""),
         })) || [];
     })();
 
     const attrSizesLocal = parsedAttrs.find((a) => a.name?.toLowerCase() === "size")?.values || [];
     const variationSizesLocal = parsedVariationsLocal.length > 0
-      ? [...new Set(parsedVariationsLocal.map((v: any) => v.size || v.attributes?.Size || v.attributes?.size).filter(Boolean))]
+      ? [...new Set(parsedVariationsLocal.map((v: any) => v.size || getVariationAttr(v, 'size')).filter(Boolean))]
       : [];
     const sizeDataLocal = attrSizesLocal.length > 0
       ? [...new Set([...attrSizesLocal, ...variationSizesLocal])]
@@ -224,10 +238,10 @@ export default function ProductModal({ product: initialProduct, onClose }: Produ
       ?.values.map((c: any, idx: number) => ({
         id: idx + 1,
         name: typeof c === "string" ? c : c.name || "",
-        img: c?.image || "",
+        img: resolveImageUrl(c?.image || ""),
       })) || [];
     const variationWeightNamesLocal = parsedVariationsLocal.length > 0
-      ? [...new Set(parsedVariationsLocal.map((v: any) => v.weight || v.attributes?.Weight || v.attributes?.weight).filter(Boolean))]
+      ? [...new Set(parsedVariationsLocal.map((v: any) => v.weight || getVariationAttr(v, 'weight')).filter(Boolean))]
       : [];
     const weightDataLocal = attrWeightsLocal.length > 0
       ? attrWeightsLocal
@@ -535,16 +549,16 @@ export default function ProductModal({ product: initialProduct, onClose }: Produ
 
     const matchedVariation = parsedVariations.find((v: any) => {
       // Color matching: support direct v.color or nested color
-      const variationColorName = (v.color || '').toLowerCase();
-      const colorMatch = !selectedColorName || !variationColorName || variationColorName === selectedColorName;
+      const variationColorName = (v.color || getVariationAttr(v, 'color') || '').toLowerCase();
+      const colorMatch = !variationColorName || variationColorName === selectedColorName;
 
       // Size matching: support direct v.size or nested attributes.Size
-      const variationSize = (v.size || v.attributes?.Size || v.attributes?.size || '').toLowerCase();
-      const sizeMatch = !selectedSizeName || !variationSize || variationSize === selectedSizeName;
+      const variationSize = (v.size || getVariationAttr(v, 'size') || '').toLowerCase();
+      const sizeMatch = !variationSize || variationSize === selectedSizeName;
 
       // Weight matching: support direct v.weight or nested attributes.Weight
-      const variationWeight = (v.weight || v.attributes?.Weight || v.attributes?.weight || '').toLowerCase();
-      const weightMatch = !selectedWeightName || !variationWeight || variationWeight === selectedWeightName;
+      const variationWeight = (v.weight || getVariationAttr(v, 'weight') || '').toLowerCase();
+      const weightMatch = !variationWeight || variationWeight === selectedWeightName;
 
       return colorMatch && sizeMatch && weightMatch;
     });
@@ -791,20 +805,7 @@ export default function ProductModal({ product: initialProduct, onClose }: Produ
                             : "bg-gray-100"
                             }`}
                         >
-                          {c.img ? (
-                            <div className="relative w-full aspect-square rounded-lg overflow-hidden">
-                              <img
-                                src={
-                                  c.img ||
-                                  "https://placehold.co/100x100?text=..."
-                                }
-                                alt={c.name}
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-                          ) : (
-                            <span className="block text-center">{c.name}</span>
-                          )}
+                          <span className="block text-center">{c.name}</span>
                         </button>
                       ))}
                     </div>

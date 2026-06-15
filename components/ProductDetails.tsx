@@ -53,6 +53,20 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
     return cleanUrl;
   };
 
+  const getVariationAttr = (v: any, attrName: string): string => {
+    if (!v) return '';
+    let attrs = v.attributes || {};
+    if (typeof attrs === 'string') {
+      try {
+        attrs = JSON.parse(attrs);
+      } catch {
+        attrs = {};
+      }
+    }
+    const foundKey = Object.keys(attrs).find(k => k.toLowerCase() === attrName.toLowerCase());
+    return foundKey ? String(attrs[foundKey]) : '';
+  };
+
   const mainImage = resolveImageUrl(product.image_url || ((typeof product.images === 'string') ? product.images : '') || product.image || '');
 
   const allImages = product.gallery_image_urls && product.gallery_image_urls.length > 0
@@ -62,6 +76,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
       : [mainImage]);
 
   const [selectedImage, setSelectedImage] = useState(0);
+  const [mainImageOverride, setMainImageOverride] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [showCartAnimation, setShowCartAnimation] = useState(false); // New state for animation
 
@@ -106,7 +121,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
       return parsedColors.map((c: any, idx: number) => ({
         id: c.id || idx,
         name: typeof c === "string" ? c : c.name || "",
-        img: c?.image || c?.color_image || null,
+        img: resolveImageUrl(c?.image || c?.color_image || ""),
       }));
     }
     return attributes
@@ -114,7 +129,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
       ?.values.map((c: any, i: number) => ({
         id: i,
         name: typeof c === "string" ? c : c.name,
-        img: c.image || null,
+        img: resolveImageUrl(c.image || ""),
       })) || [];
   })();
 
@@ -122,7 +137,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
   const attrSizes =
     attributes.find((a) => a.name.toLowerCase() === "size")?.values || [];
   const variationSizes = parsedVariations.length > 0
-    ? [...new Set(parsedVariations.map((v: any) => v.size || v.attributes?.Size || v.attributes?.size).filter(Boolean))]
+    ? [...new Set(parsedVariations.map((v: any) => v.size || getVariationAttr(v, 'size')).filter(Boolean))]
     : [];
   const sizeData = attrSizes.length > 0
     ? [...new Set([...attrSizes, ...variationSizes])]
@@ -132,7 +147,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
   const attrWeightValues =
     attributes.find((a) => a.name.toLowerCase() === "weight")?.values || [];
   const variationWeightValues = parsedVariations.length > 0
-    ? [...new Set(parsedVariations.map((v: any) => v.weight || v.attributes?.Weight || v.attributes?.weight).filter(Boolean))]
+    ? [...new Set(parsedVariations.map((v: any) => v.weight || getVariationAttr(v, 'weight')).filter(Boolean))]
     : [];
   const weightData = attrWeightValues.length > 0
     ? [...new Set([...attrWeightValues, ...variationWeightValues])]
@@ -151,14 +166,14 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
       setSelectedColor({
         id: firstColor.id || 0,
         name: typeof firstColor === "string" ? firstColor : firstColor.name,
-        img: firstColor.image || null,
+        img: resolveImageUrl(firstColor.image || firstColor.color_image || ""),
       });
     } else if (colorsFromAttrs.length > 0) {
       const firstColor = colorsFromAttrs[0];
       setSelectedColor({
         id: 0,
         name: typeof firstColor === "string" ? firstColor : firstColor.name,
-        img: firstColor.image || null,
+        img: resolveImageUrl(firstColor.image || ""),
       });
     } else {
       setSelectedColor(null);
@@ -167,7 +182,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
     const attrSizesInit =
       parsedAttrs.find((a) => a.name.toLowerCase() === "size")?.values || [];
     const varSizesInit = parsedVariations.length > 0
-      ? [...new Set(parsedVariations.map((v: any) => v.size || v.attributes?.Size || v.attributes?.size).filter(Boolean))]
+      ? [...new Set(parsedVariations.map((v: any) => v.size || getVariationAttr(v, 'size')).filter(Boolean))]
       : [];
     const allSizesInit = attrSizesInit.length > 0
       ? [...new Set([...attrSizesInit, ...varSizesInit])]
@@ -200,16 +215,16 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
 
     const matchedVariation = parsedVariations.find((v: any) => {
       // Color matching: support direct v.color or nested color
-      const variationColorName = (v.color || '').toLowerCase();
-      const colorMatch = !selectedColorName || !variationColorName || variationColorName === selectedColorName;
+      const variationColorName = (v.color || getVariationAttr(v, 'color') || '').toLowerCase();
+      const colorMatch = !variationColorName || variationColorName === selectedColorName;
 
       // Size matching: support direct v.size or nested attributes.Size
-      const variationSize = (v.size || v.attributes?.Size || v.attributes?.size || '').toLowerCase();
-      const sizeMatch = !selectedSizeName || !variationSize || variationSize === selectedSizeName;
+      const variationSize = (v.size || getVariationAttr(v, 'size') || '').toLowerCase();
+      const sizeMatch = !variationSize || variationSize === selectedSizeName;
 
       // Weight matching: support direct v.weight or nested attributes.Weight
-      const variationWeight = (v.weight || v.attributes?.Weight || v.attributes?.weight || '').toLowerCase();
-      const weightMatch = !selectedWeightName || !variationWeight || variationWeight === selectedWeightName;
+      const variationWeight = (v.weight || getVariationAttr(v, 'weight') || '').toLowerCase();
+      const weightMatch = !variationWeight || variationWeight === selectedWeightName;
 
       return colorMatch && sizeMatch && weightMatch;
     });
@@ -271,7 +286,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
           <div className="aspect-square rounded-xl overflow-hidden bg-gray-50 mb-4 border border-gray-100 relative">
             {allImages.length > 0 ? (
               <Image
-                src={allImages[selectedImage]}
+                src={mainImageOverride || allImages[selectedImage]}
                 alt={product.name}
                 fill
                 priority
@@ -292,10 +307,13 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
             {allImages.map((img, idx) => (
               <button
                 key={idx}
-                onClick={() => setSelectedImage(idx)}
+                onClick={() => {
+                  setSelectedImage(idx);
+                  setMainImageOverride(null);
+                }}
                 className={clsx(
                   "w-20 h-20 flex shrink-0 rounded-lg overflow-hidden border-2 transition",
-                  selectedImage === idx
+                  selectedImage === idx && !mainImageOverride
                     ? "border-blue-600 ring-2 ring-blue-100"
                     : "border-gray-200 hover:border-gray-300"
                 )}
@@ -387,33 +405,17 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
                         onClick={() => {
                           setSelectedColor(c);
                           if (c.img) {
-                            // logic to switch image if needed
+                            setMainImageOverride(c.img);
                           }
                         }}
                         className={clsx(
-                          "p-1 rounded-lg border-2 transition relative",
+                          "px-4 py-2 text-sm font-medium rounded-lg border transition",
                           selectedColor?.id === c.id
-                            ? "border-blue-600"
-                            : "border-gray-200 hover:border-gray-300"
+                            ? "bg-blue-600 text-white border-blue-600"
+                            : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
                         )}
                       >
-                        {c.img ? (
-                          <div className="w-10 h-10 rounded overflow-hidden">
-                            <img
-                              src={
-                                c.img.startsWith("http")
-                                  ? c.img
-                                  : `${process.env.NEXT_PUBLIC_API_URL}/storage/${c.img}`
-                              }
-                              alt={c.name}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        ) : (
-                          <div className="px-3 py-1 bg-gray-100 text-sm font-medium text-gray-700 min-w-[2rem] text-center">
-                            {c.name}
-                          </div>
-                        )}
+                        {c.name}
                       </button>
                     ))}
                   </div>
