@@ -37,18 +37,28 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
   const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
 
   // Use backend provided full URLs if available, else construct manually
-  const mainImage = product.image_url
-    ? product.image_url
-    : (typeof product.images === 'string' && product.images.startsWith('http'))
-      ? product.images
-      : (product.image?.startsWith("http")
-        ? product.image
-        : `${baseUrl}/storage/products/${product.image?.replace(/^\/?storage\/products\/?/, '')}`);
+  const resolveImageUrl = (url: string) => {
+    if (!url) return '';
+    let cleanUrl = url;
+    if (!url.startsWith('http')) {
+      cleanUrl = `${baseUrl}/storage/products/${url.replace(/^\/?(storage\/products|products)\/?/, '')}`;
+    }
+
+    if (cleanUrl.includes('localhost:8000') || cleanUrl.includes('127.0.0.1')) {
+      const filename = cleanUrl.split('/').pop() || '';
+      if (filename.startsWith('ss')) {
+        return cleanUrl.replace(/^https?:\/\/[^/]+/, 'https://backend.valokichu.com');
+      }
+    }
+    return cleanUrl;
+  };
+
+  const mainImage = resolveImageUrl(product.image_url || ((typeof product.images === 'string') ? product.images : '') || product.image || '');
 
   const allImages = product.gallery_image_urls && product.gallery_image_urls.length > 0
-    ? product.gallery_image_urls
+    ? product.gallery_image_urls.map(img => resolveImageUrl(img))
     : (galleryArray.length > 0
-      ? galleryArray.map(img => img.startsWith("http") ? img : `${baseUrl}/storage/products/${img.replace(/^\/?storage\/products\/?/, '')}`)
+      ? galleryArray.map(img => resolveImageUrl(img))
       : [mainImage]);
 
   const [selectedImage, setSelectedImage] = useState(0);

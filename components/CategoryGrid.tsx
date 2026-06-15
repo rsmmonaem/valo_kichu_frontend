@@ -14,12 +14,19 @@ const CategoryGrid: React.FC<CategoryGridProps> = ({ categories }) => {
   const getImageUrl = (url?: string) => {
     if (!url) return "";
     const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
-    // Absolute URL — just swap the host
-    if (url.startsWith('http')) {
-      return url.replace(/^https?:\/\/[^/]+/, baseUrl);
+    let cleanUrl = url;
+    if (!url.startsWith('http')) {
+      cleanUrl = `${baseUrl}/storage/${url.replace(/^\/?storage\/?/, '')}`;
     }
-    // Relative path — prepend storage base
-    return `${baseUrl}/storage/${url}`;
+    
+    // If we are locally and the filename starts with 'ss', point to production backend
+    if (cleanUrl.includes('localhost:8000') || cleanUrl.includes('127.0.0.1')) {
+      const filename = cleanUrl.split('/').pop() || '';
+      if (filename.startsWith('ss')) {
+        return cleanUrl.replace(/^https?:\/\/[^/]+/, 'https://backend.valokichu.com');
+      }
+    }
+    return cleanUrl;
   };
 
   return (

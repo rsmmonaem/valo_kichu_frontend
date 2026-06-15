@@ -21,14 +21,20 @@ const CategoryCarousel: React.FC<CategoryCarouselProps> = ({ categories }) => {
     };
     const getImageUrl = (url?: string) => {
         if (!url) return '';
-        // If already an absolute URL, just fix the base (swap localhost with configured API base)
-        if (url.startsWith('http')) {
-            const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
-            return url.replace(/^https?:\/\/[^/]+/, baseUrl);
-        }
-        // Relative path — prepend the storage base
         const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
-        return `${baseUrl}/storage/${url}`;
+        let cleanUrl = url;
+        if (!url.startsWith('http')) {
+            cleanUrl = `${baseUrl}/storage/${url.replace(/^\/?storage\/?/, '')}`;
+        }
+        
+        // If we are locally and the filename starts with 'ss', point to production backend
+        if (cleanUrl.includes('localhost:8000') || cleanUrl.includes('127.0.0.1')) {
+            const filename = cleanUrl.split('/').pop() || '';
+            if (filename.startsWith('ss')) {
+                return cleanUrl.replace(/^https?:\/\/[^/]+/, 'https://backend.valokichu.com');
+            }
+        }
+        return cleanUrl;
     };
 
     if (!categories || categories.length === 0) return null;

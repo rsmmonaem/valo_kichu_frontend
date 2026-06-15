@@ -43,15 +43,26 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     // Standardize the API base URL to remove /api for storage links
     const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
 
-    const finalImage = product.image_url
-        ? product.image_url
-        : (displayImage && displayImage.startsWith('http'))
-            ? displayImage
-            : displayImage
-                ? `${baseUrl}/storage/${displayImage.replace(/^\/?storage\/?/, '')}`
-                : 'https://placehold.co/400x400?text=No+Image';
+    const resolveImageUrl = (url: string) => {
+        let cleanUrl = url;
+        if (!url.startsWith('http')) {
+            cleanUrl = `${baseUrl}/storage/${url.replace(/^\/?storage\/?/, '')}`;
+        }
+        
+        // If we are locally and the filename starts with 'ss' (production thumbnail), point to production backend
+        if (cleanUrl.includes('localhost:8000') || cleanUrl.includes('127.0.0.1')) {
+            const filename = cleanUrl.split('/').pop() || '';
+            if (filename.startsWith('ss')) {
+                return cleanUrl.replace(/^https?:\/\/[^/]+/, 'https://backend.valokichu.com');
+            }
+        }
+        return cleanUrl;
+    };
 
-    console.log('Final image URL for product:', product.image_url);
+    const rawImage = product.image_url || displayImage;
+    const finalImage = rawImage
+        ? resolveImageUrl(rawImage)
+        : 'https://placehold.co/400x400?text=No+Image';
 
     const basePrice = parseFloat(product.base_price || product.price || '0');
     const salePrice = product.sale_price ? parseFloat(product.sale_price) : null;

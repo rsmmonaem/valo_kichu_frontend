@@ -124,16 +124,30 @@ export default function ProductModal({ product: initialProduct, onClose }: Produ
     ? attrWeights
     : variationWeightNames.map((w: any, idx: number) => ({ id: idx + 1, name: w, img: "" }));
 
+  const resolveImageUrl = (url: string) => {
+    if (!url) return '';
+    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
+    let cleanUrl = url;
+    if (!url.startsWith('http')) {
+      cleanUrl = `${baseUrl}/storage/products/${url.replace(/^\/?(storage\/products|products)\/?/, "")}`;
+    }
+
+    if (cleanUrl.includes('localhost:8000') || cleanUrl.includes('127.0.0.1')) {
+      const filename = cleanUrl.split('/').pop() || '';
+      if (filename.startsWith('ss')) {
+        return cleanUrl.replace(/^https?:\/\/[^/]+/, 'https://backend.valokichu.com');
+      }
+    }
+    return cleanUrl;
+  };
+
   // Gallery images for thumbnails
   const galleryImages = (product?.gallery_image_urls && product.gallery_image_urls.length > 0)
-    ? product.gallery_image_urls.map((img: string, index: number) => ({ id: index + 1, img }))
+    ? product.gallery_image_urls.map((img: string, index: number) => ({ id: index + 1, img: resolveImageUrl(img) }))
     : galleryArray.map((image: string, index: number) => {
-      const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
       return {
         id: index + 1,
-        img: image.startsWith("http")
-          ? image
-          : `${baseUrl}/storage/products/${image.replace(/^\/?(storage\/products|products)\/?/, "")}`,
+        img: resolveImageUrl(image),
       };
     }) || [];
 
@@ -223,27 +237,18 @@ export default function ProductModal({ product: initialProduct, onClose }: Produ
     setColor(colorDataLocal[0] || {});
     setWeight(weightDataLocal[0]);
 
-    // Standardize the API base URL to remove /api for storage links
-    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
-
     const mainImage = product.image_url || ((typeof product.images === 'string') ? product.images : '') || product.image || product.thumbnail || "";
 
     const galleryImagesLocal = (product.gallery_image_urls && product.gallery_image_urls.length > 0)
-      ? product.gallery_image_urls.map((img: string, index: number) => ({ id: index + 1, img }))
+      ? product.gallery_image_urls.map((img: string, index: number) => ({ id: index + 1, img: resolveImageUrl(img) }))
       : (parseGalleryImages(product.gallery_images) || []).map((image: string, index: number) => {
         return {
           id: index + 1,
-          img: image.startsWith("http")
-            ? image
-            : `${baseUrl}/storage/products/${image.replace(/^\/?(storage\/products|products)\/?/, "")}`,
+          img: resolveImageUrl(image),
         };
       });
 
-    const initialPreview =
-      galleryImagesLocal[0]?.img ||
-      (mainImage.startsWith("http")
-        ? mainImage
-        : `${baseUrl}/storage/products/${mainImage.replace(/^\/?(storage\/products|products)\/?/, "")}`);
+    const initialPreview = galleryImagesLocal[0]?.img || resolveImageUrl(mainImage);
 
     setPreview(initialPreview || "https://placehold.co/600x600?text=No+Image");
     setHasImageError(false);
