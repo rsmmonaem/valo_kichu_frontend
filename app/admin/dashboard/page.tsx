@@ -153,7 +153,22 @@ const AdminDashboard = () => {
                                 <div key={index} className="flex items-center gap-4 pb-4 border-b last:border-0 last:pb-0">
                                     <div className="w-10 h-10 rounded bg-gray-100 overflow-hidden">
                                         <img
-                                            src={item.image && item.image.startsWith('http') ? item.image : (item.image ? `${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}/storage/products/${item.image}` : '/placeholder.png')}
+                                            src={(() => {
+                                                const imgUrl = item.image_url || item.image || '';
+                                                if (!imgUrl) return '/placeholder.png';
+                                                const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
+                                                let cleanUrl = imgUrl;
+                                                if (!imgUrl.startsWith('http')) {
+                                                    cleanUrl = `${baseUrl}/storage/products/${imgUrl.replace(/^\/?(storage\/products|products)\/?/, '')}`;
+                                                }
+                                                if (cleanUrl.includes('localhost:8000') || cleanUrl.includes('127.0.0.1')) {
+                                                    const filename = cleanUrl.split('/').pop() || '';
+                                                    if (filename.startsWith('ss')) {
+                                                        return cleanUrl.replace(/^https?:\/\/[^/]+/, 'https://backend.valokichu.com');
+                                                    }
+                                                }
+                                                return cleanUrl;
+                                            })()}
                                             alt={item.name}
                                             className="w-full h-full object-cover"
                                         />

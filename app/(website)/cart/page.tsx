@@ -52,7 +52,22 @@ const CartPage = () => {
                                 <div className="col-span-6 flex gap-4">
                                     <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden shrink-0">
                                         <img
-                                            src={item.image && item.image.startsWith('http') ? item.image : (item.image ? `${(process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000').replace(/\/api\/?$/, '')}/storage/products/${item.image.replace(/^\/?storage\/products\/?/, '').replace(/^\/?products\/?/, '')}` : '/placeholder.png')}
+                                            src={(() => {
+                                                const imgUrl = item.image || '';
+                                                if (!imgUrl) return '/placeholder.png';
+                                                const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
+                                                let cleanUrl = imgUrl;
+                                                if (!imgUrl.startsWith('http')) {
+                                                    cleanUrl = `${baseUrl}/storage/products/${imgUrl.replace(/^\/?(storage\/products|products)\/?/, '').replace(/^\/?storage\/?/, '')}`;
+                                                }
+                                                if (cleanUrl.includes('localhost:8000') || cleanUrl.includes('127.0.0.1')) {
+                                                    const filename = cleanUrl.split('/').pop() || '';
+                                                    if (filename.startsWith('ss')) {
+                                                        return cleanUrl.replace(/^https?:\/\/[^/]+/, 'https://backend.valokichu.com');
+                                                    }
+                                                }
+                                                return cleanUrl;
+                                            })()}
                                             alt={item.name}
                                             className="w-full h-full object-cover"
                                         />

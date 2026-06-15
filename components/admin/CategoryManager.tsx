@@ -14,7 +14,14 @@ const getBaseUrl = () => {
 const getCategoryImageUrl = (cat: Category) => {
     if (cat.image_url) {
         const baseUrl = getBaseUrl();
-        return cat.image_url.replace('http://localhost:8000', baseUrl);
+        let cleanUrl = cat.image_url.replace('http://localhost:8000', baseUrl);
+        if (cleanUrl.includes('localhost:8000') || cleanUrl.includes('127.0.0.1')) {
+            const filename = cleanUrl.split('/').pop() || '';
+            if (filename.startsWith('ss')) {
+                return cleanUrl.replace(/^https?:\/\/[^/]+/, 'https://backend.valokichu.com');
+            }
+        }
+        return cleanUrl;
     }
     return null;
 };
@@ -22,7 +29,14 @@ const getCategoryImageUrl = (cat: Category) => {
 const getCustomIconImageUrl = (cat: Category) => {
     if (cat.custom_icon_url) {
         const baseUrl = getBaseUrl();
-        return cat.custom_icon_url.replace('http://localhost:8000', baseUrl);
+        let cleanUrl = cat.custom_icon_url.replace('http://localhost:8000', baseUrl);
+        if (cleanUrl.includes('localhost:8000') || cleanUrl.includes('127.0.0.1')) {
+            const filename = cleanUrl.split('/').pop() || '';
+            if (filename.startsWith('ss')) {
+                return cleanUrl.replace(/^https?:\/\/[^/]+/, 'https://backend.valokichu.com');
+            }
+        }
+        return cleanUrl;
     }
     return null;
 };
@@ -464,7 +478,22 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ title, level }) => {
                                     {formData.image && (
                                         <div className="w-16 h-16 rounded-lg border border-gray-200 overflow-hidden shrink-0">
                                             <img
-                                                src={formData.image.startsWith('http') ? formData.image : `${getBaseUrl()}/storage/products/${formData.image}`}
+                                                src={(() => {
+                                                    const imgUrl = formData.image;
+                                                    if (!imgUrl) return '';
+                                                    const baseUrl = getBaseUrl();
+                                                    let cleanUrl = imgUrl;
+                                                    if (!imgUrl.startsWith('http')) {
+                                                        cleanUrl = `${baseUrl}/storage/products/${imgUrl.replace(/^\/?(storage\/products|products)\/?/, '')}`;
+                                                    }
+                                                    if (cleanUrl.includes('localhost:8000') || cleanUrl.includes('127.0.0.1')) {
+                                                        const filename = cleanUrl.split('/').pop() || '';
+                                                        if (filename.startsWith('ss')) {
+                                                            return cleanUrl.replace(/^https?:\/\/[^/]+/, 'https://backend.valokichu.com');
+                                                        }
+                                                    }
+                                                    return cleanUrl;
+                                                })()}
                                                 className="w-full h-full object-cover"
                                             />
                                         </div>
@@ -514,7 +543,22 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ title, level }) => {
                                                 {formData.custom_icon && (
                                                     <div className="w-12 h-12 rounded-lg border border-gray-200 overflow-hidden shrink-0 bg-white p-1">
                                                         <img
-                                                            src={formData.custom_icon.startsWith('http') ? formData.custom_icon : `${getBaseUrl()}/storage/${formData.custom_icon}`}
+                                                            src={(() => {
+                                                                const imgUrl = formData.custom_icon;
+                                                                if (!imgUrl) return '';
+                                                                const baseUrl = getBaseUrl();
+                                                                let cleanUrl = imgUrl;
+                                                                if (!imgUrl.startsWith('http')) {
+                                                                    cleanUrl = `${baseUrl}/storage/${imgUrl.replace(/^\/?storage\/?/, '')}`;
+                                                                }
+                                                                if (cleanUrl.includes('localhost:8000') || cleanUrl.includes('127.0.0.1')) {
+                                                                    const filename = cleanUrl.split('/').pop() || '';
+                                                                    if (filename.startsWith('ss')) {
+                                                                        return cleanUrl.replace(/^https?:\/\/[^/]+/, 'https://backend.valokichu.com');
+                                                                    }
+                                                                }
+                                                                return cleanUrl;
+                                                            })()}
                                                             className="w-full h-full object-contain"
                                                         />
                                                     </div>

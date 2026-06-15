@@ -13,6 +13,22 @@ interface ProductFormProps {
 }
 
 const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }) => {
+    const resolveImageUrl = (imgNameOrUrl: string) => {
+        if (!imgNameOrUrl) return '';
+        const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
+        let cleanUrl = imgNameOrUrl;
+        if (!imgNameOrUrl.startsWith('http')) {
+            cleanUrl = `${baseUrl}/storage/products/${imgNameOrUrl.replace(/^\/?(storage\/products|products)\/?/, '')}`;
+        }
+        if (cleanUrl.includes('localhost:8000') || cleanUrl.includes('127.0.0.1')) {
+            const filename = cleanUrl.split('/').pop() || '';
+            if (filename.startsWith('ss')) {
+                return cleanUrl.replace(/^https?:\/\/[^/]+/, 'https://backend.valokichu.com');
+            }
+        }
+        return cleanUrl;
+    };
+
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [galleryUploading, setGalleryUploading] = useState(false);
@@ -1533,7 +1549,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
                                     </label>
                                     <div className="border border-gray-300 rounded-lg p-4">
                                         <img
-                                            src={`${process.env.NEXT_PUBLIC_API_URL}/storage/products/${formData.image}`}
+                                            src={resolveImageUrl(formData.image)}
                                             alt="preview"
                                             className="w-full max-w-md h-48 object-cover rounded-lg mx-auto"
                                         />
@@ -1600,7 +1616,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
                                             <div key={`gallery-${index}`} className="relative group">
                                                 <div className="aspect-square overflow-hidden rounded-lg border border-gray-300 bg-gray-100">
                                                     <img
-                                                        src={`${process.env.NEXT_PUBLIC_API_URL}/storage/products/${image}`}
+                                                        src={resolveImageUrl(image)}
                                                         alt={`Gallery Image ${index + 1}`}
                                                         className="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
                                                     />
@@ -1703,7 +1719,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
                                         />
                                         {color.image && (
                                             <img
-                                                src={`${process.env.NEXT_PUBLIC_API_URL}/storage/products/${color.image}`}
+                                                src={resolveImageUrl(color.image)}
                                                 alt={`${color.name} preview`}
                                                 className="w-16 h-16 object-cover rounded-lg border border-gray-300"
                                             />

@@ -196,37 +196,53 @@ const SettingsPage = () => {
 
     if (loading) return <div className="p-8 text-center text-gray-500">Loading settings...</div>;
 
-    return (
-        <div className="max-w-4xl mx-auto">
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold text-gray-800">Global Settings</h1>
-                <button
-                    onClick={handleSave}
-                    disabled={saving}
-                    className="bg-blue-600 text-white px-6 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 shadow-md shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                    {saving ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
-                    Save Changes
-                </button>
-            </div>
+        const resolveSettingImageUrl = (imgNameOrUrl: string) => {
+            if (!imgNameOrUrl) return '';
+            const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
+            let cleanUrl = imgNameOrUrl;
+            if (!imgNameOrUrl.startsWith('http')) {
+                cleanUrl = `${baseUrl}/storage/${imgNameOrUrl.replace(/^\/?storage\/?/, '')}`;
+            }
+            if (cleanUrl.includes('localhost:8000') || cleanUrl.includes('127.0.0.1')) {
+                const filename = cleanUrl.split('/').pop() || '';
+                if (filename.startsWith('ss')) {
+                    return cleanUrl.replace(/^https?:\/\/[^/]+/, 'https://backend.valokichu.com');
+                }
+            }
+            return cleanUrl;
+        };
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-6">
+        return (
+            <div className="max-w-4xl mx-auto">
+                <div className="flex justify-between items-center mb-6">
+                    <h1 className="text-2xl font-bold text-gray-800">Global Settings</h1>
+                    <button
+                        onClick={handleSave}
+                        disabled={saving}
+                        className="bg-blue-600 text-white px-6 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 shadow-md shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {saving ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
+                        Save Changes
+                    </button>
+                </div>
 
-                {/* Visual Identity Section */}
-                <div className="border-b border-gray-100 pb-6">
-                    <h2 className="text-lg font-semibold text-gray-800 mb-4">Visual Identity</h2>
-                    <div className="grid md:grid-cols-2 gap-6">
-                        {/* Logo Upload */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Site Logo</label>
-                            <div className="flex items-center gap-4">
-                                <div className="w-24 h-24 bg-gray-50 border border-gray-200 rounded-lg flex items-center justify-center overflow-hidden relative">
-                                    {settings.site_logo ? (
-                                        <img src={settings.site_logo.startsWith('http') ? settings.site_logo : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/storage/${settings.site_logo}`} className="w-full h-full object-contain" />
-                                    ) : (
-                                        <ImageIcon className="text-gray-300" />
-                                    )}
-                                </div>
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-6">
+
+                    {/* Visual Identity Section */}
+                    <div className="border-b border-gray-100 pb-6">
+                        <h2 className="text-lg font-semibold text-gray-800 mb-4">Visual Identity</h2>
+                        <div className="grid md:grid-cols-2 gap-6">
+                            {/* Logo Upload */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Site Logo</label>
+                                <div className="flex items-center gap-4">
+                                    <div className="w-24 h-24 bg-gray-50 border border-gray-200 rounded-lg flex items-center justify-center overflow-hidden relative">
+                                        {settings.site_logo ? (
+                                            <img src={resolveSettingImageUrl(settings.site_logo)} className="w-full h-full object-contain" />
+                                        ) : (
+                                            <ImageIcon className="text-gray-300" />
+                                        )}
+                                    </div>
                                 <label className="cursor-pointer bg-white border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 text-sm font-medium">
                                     Change Logo
                                     <input type="file" className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, 'site_logo')} />

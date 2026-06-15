@@ -107,7 +107,22 @@ const AdminProductsPage = () => {
                                             <div className="flex items-center gap-3">
                                                 <div className="w-10 h-10 bg-gray-100 rounded shrink-0 overflow-hidden">
                                                     <img
-                                                        src={product.image && product.image.startsWith('http') ? product.image : (product.image ? `${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}/storage/products/${product.image}` : '/placeholder.png')}
+                                                        src={(() => {
+                                                            const imgUrl = product.image_url || product.image || '';
+                                                            if (!imgUrl) return '/placeholder.png';
+                                                            const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
+                                                            let cleanUrl = imgUrl;
+                                                            if (!imgUrl.startsWith('http')) {
+                                                                cleanUrl = `${baseUrl}/storage/products/${imgUrl.replace(/^\/?(storage\/products|products)\/?/, '')}`;
+                                                            }
+                                                            if (cleanUrl.includes('localhost:8000') || cleanUrl.includes('127.0.0.1')) {
+                                                                const filename = cleanUrl.split('/').pop() || '';
+                                                                if (filename.startsWith('ss')) {
+                                                                    return cleanUrl.replace(/^https?:\/\/[^/]+/, 'https://backend.valokichu.com');
+                                                                }
+                                                            }
+                                                            return cleanUrl;
+                                                        })()}
                                                         alt={product.name}
                                                         className="w-full h-full object-cover"
                                                     />
