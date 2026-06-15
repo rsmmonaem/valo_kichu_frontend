@@ -111,12 +111,16 @@ const Header: React.FC<HeaderProps> = ({ categories }) => {
                     src={(() => {
                       const logo = settings.site_logo;
                       if (!logo) return '';
-                      const base = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
                       if (logo.startsWith('http')) {
-                        // Strip any /api/ that may have been embedded by backend APP_URL
                         return logo.replace(/(\/api)(\/storage\/)/, '$2');
                       }
-                      return `${base}/storage/${logo.replace(/^\/?storage\//, '')}`;
+                      // settings/ assets only exist on production server
+                      const cleanPath = logo.replace(/^\/?storage\//, '');
+                      if (cleanPath.startsWith('settings/')) {
+                        return `https://backend.valokichu.com/storage/${cleanPath}`;
+                      }
+                      const base = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
+                      return `${base}/storage/${cleanPath}`;
                     })()}
                     alt={settings.site_name || "Logo"}
                     className="h-14 md:h-20 w-auto group-hover:scale-105 transition-transform object-contain"
@@ -223,25 +227,25 @@ const Header: React.FC<HeaderProps> = ({ categories }) => {
 
         {/* Categories Bar (Desktop) */}
         {false && (
-                  <div className="border-t border-gray-100 bg-white hidden md:block relative">
-                  <div className="container mx-auto px-4">
-                    <div className="flex items-center gap-6 py-2 text-sm font-medium text-gray-700">
-                      {/* All Categories Dropdown Trigger */}
-                      <div className="relative group cursor-pointer z-50">
-                        <div className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-md hover:bg-gray-800 transition-colors">
-                          <Menu size={18} />
-                          <span>Categories</span>
-                          <ChevronDown size={14} />
-                        </div>
-                        <CategoryDropdown categories={categories} />
-                      </div>
-        
-                      {/* Dynamic Category Bar */}
-                      <CategoryBar />
-                    </div>
+          <div className="border-t border-gray-100 bg-white hidden md:block relative">
+            <div className="container mx-auto px-4">
+              <div className="flex items-center gap-6 py-2 text-sm font-medium text-gray-700">
+                {/* All Categories Dropdown Trigger */}
+                <div className="relative group cursor-pointer z-50">
+                  <div className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-md hover:bg-gray-800 transition-colors">
+                    <Menu size={18} />
+                    <span>Categories</span>
+                    <ChevronDown size={14} />
                   </div>
+                  <CategoryDropdown categories={categories} />
                 </div>
-         )}
+
+                {/* Dynamic Category Bar */}
+                <CategoryBar />
+              </div>
+            </div>
+          </div>
+        )}
 
       </header>
 

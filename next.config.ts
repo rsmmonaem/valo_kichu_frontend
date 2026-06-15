@@ -4,11 +4,18 @@ const nextConfig: NextConfig = {
   output: 'standalone',
   /* config options here */
   images: {
+    dangerouslyAllowLocalIP: true,
     remotePatterns: [
       // ✅ LOCAL DEV (Laravel)
       {
         protocol: 'http',
         hostname: 'localhost',
+        port: '8000',
+        pathname: '/**',
+      },
+      {
+        protocol: 'http',
+        hostname: '127.0.0.1',
         port: '8000',
         pathname: '/**',
       },

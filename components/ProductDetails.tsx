@@ -562,7 +562,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
               } else if (product.specifications && typeof product.specifications === 'object') {
                 specs = Object.values(product.specifications);
               }
-              
+
               if (specs && specs.length > 0) {
                 return specs.map((spec: any, idx: number) => <li key={idx}>{String(spec)}</li>);
               }
