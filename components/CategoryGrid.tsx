@@ -20,7 +20,7 @@ const CategoryGrid: React.FC<CategoryGridProps> = ({ categories }) => {
     }
     
     // If we are locally and the filename starts with 'ss', point to production backend
-    if (cleanUrl.includes('localhost:8000') || cleanUrl.includes('127.0.0.1')) {
+    if (cleanUrl.includes('localhost:8000') || cleanUrl.includes('127.0.0.1') || cleanUrl.includes('backend.valokichu.com')) {
       const filename = cleanUrl.split('/').pop() || '';
       if (filename.startsWith('ss')) {
         return cleanUrl.replace(/^https?:\/\/[^/]+/, 'https://backend.valokichu.com');
