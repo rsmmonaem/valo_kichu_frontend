@@ -23,18 +23,21 @@ const MobileCategorySidebar: React.FC<MobileCategorySidebarProps> = ({ isOpen, o
     };
 
 
-    const addPrefixToImage = (url?: string) => {
+    const getImageUrl = (url?: string) => {
         if (!url) return '';
-
         const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
-        const correctedUrl = url.replace('http://localhost:8000', baseUrl);
-
-        const parts = correctedUrl.split('/');
-        const filename = parts.pop();
-        if (!filename) return correctedUrl;
-
-        const newFilename = 'ss' + filename;
-        return [...parts, newFilename].join('/');
+        let cleanUrl = url;
+        if (!url.startsWith('http')) {
+            cleanUrl = `${baseUrl}/storage/${url.replace(/^\/?storage\/?/, '')}`;
+        }
+        // Only apply ss-prefix logic when running locally (not on live)
+        if (cleanUrl.includes('localhost:8000') || cleanUrl.includes('127.0.0.1')) {
+            const filename = cleanUrl.split('/').pop() || '';
+            if (filename.startsWith('ss')) {
+                return cleanUrl.replace(/^https?:\/\/[^/]+/, 'https://backend.valokichu.com');
+            }
+        }
+        return cleanUrl;
     };
     return (
         <>
@@ -108,7 +111,7 @@ const MobileCategorySidebar: React.FC<MobileCategorySidebarProps> = ({ isOpen, o
                                         <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-sm font-bold text-gray-500 overflow-hidden border border-gray-200">
                                             {cat.image_url ? (
                                                 <img
-                                                    src={addPrefixToImage(cat.image_url)}
+                                                    src={getImageUrl(cat.image_url)}
                                                     alt={cat.name}
                                                     className="w-full h-full object-cover"
                                                 />

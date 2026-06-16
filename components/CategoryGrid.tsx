@@ -11,16 +11,21 @@ interface CategoryGridProps {
 const CategoryGrid: React.FC<CategoryGridProps> = ({ categories }) => {
   if (!categories || categories.length === 0) return null;
 
-  const addPrefixToImage = (url?: string) => {
-    if (!url) return "";
-    
+  const getImageUrl = (url?: string) => {
+    if (!url) return '';
     const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
-    const correctedUrl = url.replace('http://localhost:8000', baseUrl);
-
-    const parts = correctedUrl.split("/");
-    const filename = parts.pop();
-    if (!filename) return correctedUrl;
-    return [...parts, "ss" + filename].join("/");
+    let cleanUrl = url;
+    if (!url.startsWith('http')) {
+      cleanUrl = `${baseUrl}/storage/${url.replace(/^\/?storage\/?/, '')}`;
+    }
+    // Only apply ss-prefix logic when running locally (not on live)
+    if (cleanUrl.includes('localhost:8000') || cleanUrl.includes('127.0.0.1')) {
+      const filename = cleanUrl.split('/').pop() || '';
+      if (filename.startsWith('ss')) {
+        return cleanUrl.replace(/^https?:\/\/[^/]+/, 'https://backend.valokichu.com');
+      }
+    }
+    return cleanUrl;
   };
 
   return (
@@ -33,9 +38,9 @@ const CategoryGrid: React.FC<CategoryGridProps> = ({ categories }) => {
         >
           {/* Image Section */}
           <div className="w-full h-40 md:h-52 bg-gray-50 overflow-hidden">
-            {cat.image ? (
+            {(cat.image_url || cat.image) ? (
               <img
-                src={addPrefixToImage(cat.image_url)}
+                src={getImageUrl(cat.image_url || cat.image)}
                 alt={cat.name}
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 loading="lazy"
