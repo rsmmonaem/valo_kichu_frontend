@@ -15,15 +15,15 @@ const CategoryGrid: React.FC<CategoryGridProps> = ({ categories }) => {
     if (!url) return '';
     const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
     let cleanUrl = url;
+    // If relative path, build full URL
     if (!url.startsWith('http')) {
       cleanUrl = `${baseUrl}/storage/${url.replace(/^\/?storage\/?/, '')}`;
     }
-    // Only apply ss-prefix logic when running locally (not on live)
-    if (cleanUrl.includes('localhost:8000') || cleanUrl.includes('127.0.0.1')) {
-      const filename = cleanUrl.split('/').pop() || '';
-      if (filename.startsWith('ss')) {
-        return cleanUrl.replace(/^https?:\/\/[^/]+/, 'https://backend.valokichu.com');
-      }
+    // Always add ss prefix to filename (server stores thumbnails with ss prefix)
+    const parts = cleanUrl.split('/');
+    const filename = parts.pop() || '';
+    if (filename && !filename.startsWith('ss')) {
+      return [...parts, 'ss' + filename].join('/');
     }
     return cleanUrl;
   };
