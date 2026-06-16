@@ -156,16 +156,16 @@ const AdminDashboard = () => {
                                             src={(() => {
                                                 const imgUrl = item.image_url || item.image || '';
                                                 if (!imgUrl) return '/placeholder.png';
+                                                const liveBase = 'https://backend.valokichu.com';
                                                 const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
                                                 let cleanUrl = imgUrl;
+                                                // If it's a relative path, prepend the base storage URL
                                                 if (!imgUrl.startsWith('http')) {
                                                     cleanUrl = `${baseUrl}/storage/products/${imgUrl.replace(/^\/?(storage\/products|products)\/?/, '')}`;
                                                 }
-                                                if (cleanUrl.includes('localhost:8000') || cleanUrl.includes('127.0.0.1')) {
-                                                    const filename = cleanUrl.split('/').pop() || '';
-                                                    if (filename.startsWith('ss')) {
-                                                        return cleanUrl.replace(/^https?:\/\/[^/]+/, 'https://backend.valokichu.com');
-                                                    }
+                                                // Replace any localhost/127.0.0.1 URL with the live backend URL
+                                                if (cleanUrl.includes('localhost') || cleanUrl.includes('127.0.0.1')) {
+                                                    cleanUrl = cleanUrl.replace(/^https?:\/\/[^/]+/, liveBase);
                                                 }
                                                 return cleanUrl;
                                             })()}
