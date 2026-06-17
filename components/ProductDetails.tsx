@@ -144,14 +144,20 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
     : variationSizes;
 
   // For weight: merge from attributes AND variations
-  const attrWeightValues =
-    attributes.find((a) => a.name.toLowerCase() === "weight")?.values || [];
-  const variationWeightValues = parsedVariations.length > 0
+  const attrWeights =
+    attributes
+      .find((a) => a.name?.toLowerCase() === "weight")
+      ?.values.map((c: any, idx: number) => ({
+        id: idx + 1,
+        name: typeof c === "string" ? c : c.name || "",
+        img: resolveImageUrl(c?.image || ""),
+      })) || [];
+  const variationWeightNames = parsedVariations.length > 0
     ? [...new Set(parsedVariations.map((v: any) => v.weight || getVariationAttr(v, 'weight')).filter(Boolean))]
     : [];
-  const weightData = attrWeightValues.length > 0
-    ? [...new Set([...attrWeightValues, ...variationWeightValues])]
-    : variationWeightValues;
+  const weightData = attrWeights.length > 0
+    ? attrWeights
+    : variationWeightNames.map((w: any, idx: number) => ({ id: idx + 1, name: w, img: "" }));
 
   useEffect(() => {
     // Parse and set Initial Attributes
@@ -193,10 +199,22 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
       setSelectedSize(null);
     }
 
-    const weights =
-      parsedAttrs.find((a) => a.name.toLowerCase() === "weight")?.values || [];
-    if (weights.length > 0) {
-      setSelectedWeight(weights[0]);
+    const attrWeightsLocal = parsedAttrs
+      .find((a) => a.name?.toLowerCase() === "weight")
+      ?.values.map((c: any, idx: number) => ({
+        id: idx + 1,
+        name: typeof c === "string" ? c : c.name || "",
+        img: resolveImageUrl(c?.image || ""),
+      })) || [];
+    const variationWeightNamesLocal = parsedVariations.length > 0
+      ? [...new Set(parsedVariations.map((v: any) => v.weight || getVariationAttr(v, 'weight')).filter(Boolean))]
+      : [];
+    const weightDataLocal = attrWeightsLocal.length > 0
+      ? attrWeightsLocal
+      : variationWeightNamesLocal.map((w: any, idx: number) => ({ id: idx + 1, name: w, img: "" }));
+
+    if (weightDataLocal.length > 0) {
+      setSelectedWeight(weightDataLocal[0]);
     } else {
       setSelectedWeight(null);
     }
@@ -255,7 +273,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
       variant: {
         color: selectedColor?.name,
         size: selectedSize,
-        weight: selectedWeight,
+        weight: typeof selectedWeight === "string" ? selectedWeight : selectedWeight?.name || "",
       },
     };
 
@@ -441,6 +459,31 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
                         )}
                       >
                         {s}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Weight Selector */}
+              {weightData.length > 0 && (
+                <div className="mb-2">
+                  <span className="font-bold text-gray-800 text-sm block mb-2">
+                    Weight: {typeof selectedWeight === "string" ? selectedWeight : selectedWeight?.name || ""}
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    {weightData.map((w: any, idx: number) => (
+                      <button
+                        key={idx}
+                        onClick={() => setSelectedWeight(w)}
+                        className={clsx(
+                          "px-4 py-2 text-sm font-medium rounded-lg border transition",
+                          (selectedWeight?.id === w.id || selectedWeight === w)
+                            ? "bg-blue-600 text-white border-blue-600"
+                            : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
+                        )}
+                      >
+                        {w.name || w}
                       </button>
                     ))}
                   </div>
