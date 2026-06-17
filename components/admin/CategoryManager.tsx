@@ -26,23 +26,25 @@ const getBaseUrl = () => {
 //     return null;
 // };
 const getCategoryImageUrl = (cat: Category) => {
-    if (cat.image_url) {
-        const baseUrl = getBaseUrl();
-        let cleanUrl = cat.image_url.replace('http://localhost:8000', baseUrl);
+    if (!cat.image_url) return null;
 
-        const prefixedCategoryName = `ss${cat.name}`;
+    const baseUrl = getBaseUrl();
+    let cleanUrl = cat.image_url.replace('http://localhost:8000', baseUrl);
 
-        if (cleanUrl.includes('localhost:8000') || cleanUrl.includes('127.0.0.1')) {
-            return cleanUrl.replace(
-                /^https?:\/\/[^/]+/,
-                'https://backend.valokichu.com'
-            );
-        }
-        console.log(prefixedCategoryName);
-        return cleanUrl;
+    // Relative URL হলে full URL বানাও
+    if (!cleanUrl.startsWith('http')) {
+        cleanUrl = `${baseUrl}/storage/${cleanUrl.replace(/^\/?storage\/?/, '')}`;
     }
 
-    return null;
+    // Filename এর আগে ss add করো
+    const parts = cleanUrl.split('/');
+    const filename = parts.pop() || '';
+
+    if (filename && !filename.startsWith('ss')) {
+        return [...parts, 'ss' + filename].join('/');
+    }
+
+    return cleanUrl;
 };
 
 
