@@ -11,20 +11,40 @@ const getBaseUrl = () => {
     return apiBase.replace(/\/api\/?$/, '');
 };
 
+// const getCategoryImageUrl = (cat: Category) => {
+//     if (cat.image_url) {
+//         const baseUrl = getBaseUrl();
+//         let cleanUrl = cat.image_url.replace('http://localhost:8000', baseUrl);
+//         if (cleanUrl.includes('localhost:8000') || cleanUrl.includes('127.0.0.1')) {
+//             const filename = cleanUrl.split('/').pop() || '';
+//             if (filename.startsWith('ss')) {
+//                 return cleanUrl.replace(/^https?:\/\/[^/]+/, 'https://backend.valokichu.com');
+//             }
+//         }
+//         return cleanUrl;
+//     }
+//     return null;
+// };
 const getCategoryImageUrl = (cat: Category) => {
     if (cat.image_url) {
         const baseUrl = getBaseUrl();
         let cleanUrl = cat.image_url.replace('http://localhost:8000', baseUrl);
+
+        const prefixedCategoryName = `ss${cat.name}`;
+
         if (cleanUrl.includes('localhost:8000') || cleanUrl.includes('127.0.0.1')) {
-            const filename = cleanUrl.split('/').pop() || '';
-            if (filename.startsWith('ss')) {
-                return cleanUrl.replace(/^https?:\/\/[^/]+/, 'https://backend.valokichu.com');
-            }
+            return cleanUrl.replace(
+                /^https?:\/\/[^/]+/,
+                'https://backend.valokichu.com'
+            );
         }
+        console.log(prefixedCategoryName);
         return cleanUrl;
     }
+
     return null;
 };
+
 
 const getCustomIconImageUrl = (cat: Category) => {
     if (cat.custom_icon_url) {
