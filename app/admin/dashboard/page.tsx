@@ -155,6 +155,7 @@ const AdminDashboard = () => {
                                         <img
                                             src={(() => {
                                                 const imgUrl = item.image_url || item.image || '';
+                                                console.log('Item:', item);
                                                 if (!imgUrl) return '/placeholder.png';
                                                 const liveBase = 'https://backend.valokichu.com';
                                                 const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
