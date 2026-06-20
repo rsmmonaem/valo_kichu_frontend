@@ -29,6 +29,7 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [statusUpdating, setStatusUpdating] = useState(false);
+  const [paymentStatusUpdating, setPaymentStatusUpdating] = useState(false);
 
   const fetchOrderDetails = async () => {
     setLoading(true);
@@ -82,6 +83,35 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
     }
   };
 
+  const updatePaymentStatus = async (newPaymentStatus: string) => {
+    if (
+      !window.confirm(`Update payment status to ${newPaymentStatus}?`)
+    )
+      return;
+    setPaymentStatusUpdating(true);
+    try {
+      const res = await authFetch(`/admin/v1/orders/${orderId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ payment_status: newPaymentStatus }),
+      });
+
+      if (res.ok) {
+        toast.success("Payment status updated");
+        fetchOrderDetails();
+      } else {
+        toast.error("Failed to update payment status");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Something went wrong");
+    } finally {
+      setPaymentStatusUpdating(false);
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     const styles: any = {
       pending: "bg-yellow-100 text-yellow-700",
@@ -101,6 +131,25 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
         )}
       >
         {status.replace(/_/g, " ")}
+      </span>
+    );
+  };
+
+  const getPaymentStatusBadge = (status: string) => {
+    const styles: any = {
+      unpaid: "bg-red-100 text-red-700 border-red-200",
+      paid: "bg-green-100 text-green-700 border-green-200",
+      partial: "bg-amber-100 text-amber-750 border-amber-200",
+    };
+    const key = status ? status.toLowerCase() : "unpaid";
+    return (
+      <span
+        className={clsx(
+          "px-3 py-1 rounded-full text-sm font-semibold uppercase tracking-wider border",
+          styles[key] || "bg-gray-100 text-gray-700"
+        )}
+      >
+        {key}
       </span>
     );
   };
@@ -162,11 +211,12 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
               #{order.order_number || order.id}
             </span>
           </div>
-          <div className="flex items-center gap-4">
-            <h1 className="text-3xl font-bold text-gray-900">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-3xl font-bold text-gray-900 mr-2">
               Order #{order.order_number || order.id}
             </h1>
             {getStatusBadge(order.status)}
+            {getPaymentStatusBadge(order.payment_status)}
           </div>
           <p className="text-gray-500 mt-1">
             Placed on {new Date(order.created_at).toLocaleString()}
@@ -445,6 +495,35 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
               ))}
             </div>
           </div>
+
+          {/* Payment Status Update Actions */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h2 className="font-bold text-lg mb-6 flex items-center gap-2">
+              <CreditCard size={20} className="text-indigo-600" />
+              Update Payment Status
+            </h2>
+            <div className="grid grid-cols-3 gap-4">
+              {[
+                { key: "unpaid", label: "Unpaid", activeClass: "bg-red-600 text-white border-red-600 shadow-lg shadow-red-100" },
+                { key: "paid", label: "Paid", activeClass: "bg-green-600 text-white border-green-600 shadow-lg shadow-green-100" },
+                { key: "partial", label: "Partial", activeClass: "bg-amber-500 text-white border-amber-500 shadow-lg shadow-amber-100" },
+              ].map((p) => (
+                <button
+                  key={p.key}
+                  disabled={paymentStatusUpdating}
+                  onClick={() => updatePaymentStatus(p.key)}
+                  className={clsx(
+                    "px-4 py-3 rounded-xl border-2 text-sm font-bold transition-all uppercase tracking-wider",
+                    (order.payment_status || "unpaid") === p.key
+                      ? p.activeClass
+                      : "bg-white text-gray-600 border-gray-100 hover:border-gray-300"
+                  )}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Right Column - Customer & Info */}
@@ -605,6 +684,12 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
                 <span className="font-bold text-gray-900 uppercase">
                   {order.payment_method || "COD"}
                 </span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500 font-medium">
+                  Payment Status:
+                </span>
+                {getPaymentStatusBadge(order.payment_status)}
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500 font-medium">

@@ -37,6 +37,7 @@ const AdminOrdersPage = () => {
     refunded: 0,
   });
   const [statusUpdating, setStatusUpdating] = useState(false);
+  const [paymentStatusUpdating, setPaymentStatusUpdating] = useState(false);
 
   const statusTabs = [
     { key: "all", label: "All Orders", color: "gray" },
@@ -148,6 +149,60 @@ const AdminOrdersPage = () => {
     }
   };
 
+  const updatePaymentStatus = async (orderId: number, newPaymentStatus: string) => {
+    if (
+      !window.confirm(`Update payment status to ${newPaymentStatus}?`)
+    )
+      return;
+    setPaymentStatusUpdating(true);
+    try {
+      const res = await authFetch(`/admin/v1/orders/${orderId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ payment_status: newPaymentStatus }),
+      });
+
+      if (res.ok) {
+        fetchOrders();
+        if (selectedOrder && selectedOrder.id === orderId) {
+          setSelectedOrder({ ...selectedOrder, payment_status: newPaymentStatus });
+        }
+        toast.success("Payment status updated");
+      } else {
+        toast.error("Failed to update payment status");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Something went wrong");
+    } finally {
+      setPaymentStatusUpdating(false);
+    }
+  };
+
+  const getPaymentStatusBadge = (status: string) => {
+    const styles: any = {
+      unpaid: "bg-red-105 text-red-700 border-red-200 bg-red-100",
+      paid: "bg-green-105 text-green-705 border-green-200 bg-green-100",
+      partial: "bg-amber-105 text-amber-705 border-amber-200 bg-amber-100",
+    };
+    const labels: any = {
+      unpaid: "Unpaid",
+      paid: "Paid",
+      partial: "Partial",
+    };
+    const key = status ? status.toLowerCase() : "unpaid";
+    return (
+      <span
+        className={`px-2 py-1 rounded text-xs font-semibold uppercase ${styles[key] || "bg-gray-150 text-gray-700"
+          }`}
+      >
+        {labels[key] || key}
+      </span>
+    );
+  };
+
   const getStatusBadge = (status: string) => {
     const styles: any = {
       pending: "bg-yellow-100 text-yellow-700",
@@ -228,13 +283,14 @@ const AdminOrdersPage = () => {
                 <th className="p-4">Date</th>
                 <th className="p-4">Total</th>
                 <th className="p-4">Status</th>
+                <th className="p-4">Payment Status</th>
                 <th className="p-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 text-sm">
               {loading ? (
                 <tr>
-                  <td colSpan={typeFilter === "dropshipper" ? 7 : 6} className="p-8 text-center text-gray-500">
+                  <td colSpan={typeFilter === "dropshipper" ? 8 : 7} className="p-8 text-center text-gray-500">
                     Loading orders...
                   </td>
                 </tr>
@@ -292,6 +348,23 @@ const AdminOrdersPage = () => {
                       ৳{order.total_amount || order.total_price}
                     </td>
                     <td className="p-4">{getStatusBadge(order.status)}</td>
+                    <td className="p-4">
+                      <select
+                        disabled={paymentStatusUpdating}
+                        value={order.payment_status || "unpaid"}
+                        onChange={(e) => updatePaymentStatus(order.id, e.target.value)}
+                        className={clsx(
+                          "px-2 py-1 rounded text-xs font-semibold uppercase border cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500",
+                          (order.payment_status === "paid") && "bg-green-100 text-green-700 border-green-200",
+                          (order.payment_status === "partial") && "bg-amber-100 text-amber-700 border-amber-200",
+                          (!order.payment_status || order.payment_status === "unpaid") && "bg-red-100 text-red-700 border-red-200"
+                        )}
+                      >
+                        <option value="unpaid" className="bg-white text-red-700 font-semibold">Unpaid</option>
+                        <option value="paid" className="bg-white text-green-700 font-semibold">Paid</option>
+                        <option value="partial" className="bg-white text-amber-700 font-semibold">Partial</option>
+                      </select>
+                    </td>
                     <td className="p-4 text-right flex justify-end gap-3">
                       {/* <button
                         onClick={() => setSelectedOrder(order)}
@@ -313,7 +386,7 @@ const AdminOrdersPage = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={typeFilter === "dropshipper" ? 7 : 6} className="p-8 text-center text-gray-500">
+                  <td colSpan={typeFilter === "dropshipper" ? 8 : 7} className="p-8 text-center text-gray-500">
                     No orders found.
                   </td>
                 </tr>
@@ -462,33 +535,66 @@ const AdminOrdersPage = () => {
                     </div>
                   )}
                 </div>
-                <div>
-                  <h3 className="text-xs uppercase text-gray-500 font-bold mb-3 tracking-wider">
-                    Order Status
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {[
-                      "pending",
-                      "confirmed",
-                      "processing",
-                      "shipping",
-                      "delivered",
-                      "cancelled",
-                    ].map((s) => (
-                      <button
-                        key={s}
-                        disabled={statusUpdating}
-                        onClick={() => updateStatus(selectedOrder.id, s)}
-                        className={clsx(
-                          "px-3 py-1.5 text-xs rounded border font-medium transition-colors capitalize",
-                          selectedOrder.status === s
-                            ? "bg-slate-800 text-white border-slate-800"
-                            : "bg-white text-gray-600 border-gray-200 hover:border-gray-400"
-                        )}
-                      >
-                        {s}
-                      </button>
-                    ))}
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-xs uppercase text-gray-500 font-bold mb-3 tracking-wider">
+                      Order Status
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {[
+                        "pending",
+                        "confirmed",
+                        "processing",
+                        "shipping",
+                        "delivered",
+                        "cancelled",
+                      ].map((s) => (
+                        <button
+                          key={s}
+                          disabled={statusUpdating}
+                          onClick={() => updateStatus(selectedOrder.id, s)}
+                          className={clsx(
+                            "px-3 py-1.5 text-xs rounded border font-medium transition-colors capitalize",
+                            selectedOrder.status === s
+                              ? "bg-slate-800 text-white border-slate-800"
+                              : "bg-white text-gray-600 border-gray-200 hover:border-gray-400"
+                          )}
+                        >
+                          {s}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-xs uppercase text-gray-500 font-bold mb-3 tracking-wider">
+                      Payment Status
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {[
+                        { key: "unpaid", label: "Unpaid" },
+                        { key: "paid", label: "Paid" },
+                        { key: "partial", label: "Partial" },
+                      ].map((p) => (
+                        <button
+                          key={p.key}
+                          disabled={paymentStatusUpdating}
+                          onClick={() => updatePaymentStatus(selectedOrder.id, p.key)}
+                          className={clsx(
+                            "px-3 py-1.5 text-xs rounded border font-medium transition-colors uppercase tracking-wider",
+                            (selectedOrder.payment_status || "unpaid") === p.key
+                              ? p.key === "paid"
+                                ? "bg-green-600 text-white border-green-600 shadow-md"
+                                : p.key === "partial"
+                                  ? "bg-amber-500 text-white border-amber-500 shadow-md"
+                                  : "bg-red-600 text-white border-red-600 shadow-md"
+                              : "bg-white text-gray-600 border-gray-200 hover:border-gray-400 hover:bg-gray-50"
+                          )}
+                        >
+                          {p.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
