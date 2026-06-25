@@ -41,6 +41,10 @@ For easy integration or checking in your browser, you can pass your credentials 
 
 Fetch all active products with your personalized dropshipper pricing.
 
+**Query Parameters:**
+* `page` (optional, integer): The page number of products to retrieve (e.g. `?page=2`). Each page returns up to 200 products.
+* `q` (optional, string): Search query to filter products by name, slug, or product code.
+
 **Response Example:**
 
 ```json
@@ -51,6 +55,7 @@ Fetch all active products with your personalized dropshipper pricing.
     "data": [
       {
         "id": 5,
+        "category_id": 3,
         "name": "Luxury Stainless Steel Watch",
         "slug": "luxury-watch-01",
         "base_price": "2500.00",
@@ -60,6 +65,15 @@ Fetch all active products with your personalized dropshipper pricing.
         "product_code": "VK-W01"
       }
     ],
+    "first_page_url": "https://backend.valokichu.com/api/dropshipping/products?page=1",
+    "from": 1,
+    "last_page": 7,
+    "last_page_url": "https://backend.valokichu.com/api/dropshipping/products?page=7",
+    "next_page_url": "https://backend.valokichu.com/api/dropshipping/products?page=2",
+    "path": "https://backend.valokichu.com/api/dropshipping/products",
+    "per_page": 200,
+    "prev_page_url": null,
+    "to": 200,
     "total": 1250
   }
 }
@@ -89,11 +103,55 @@ Check your current wallet balance.
 }
 ```
 
-### 4. Place Order
+### 4. Categories
+
+`GET /categories`
+
+Retrieve active product categories and their subcategories.
+
+**Query Parameters:**
+* `parent_only` (optional, boolean): If `1`, returns only the top-level parent categories instead of all active categories.
+
+**Response Example:**
+
+```json
+{
+  "status": "success",
+  "data": [
+    {
+      "id": 1,
+      "name": "Electronics",
+      "slug": "electronics",
+      "parent_id": null,
+      "image": "categories/electronics.png",
+      "is_active": true,
+      "priority": 1,
+      "image_url": "https://backend.valokichu.com/storage/products/categories/electronics.png",
+      "custom_icon_url": null,
+      "children": [
+        {
+          "id": 2,
+          "name": "Mobile Phones",
+          "slug": "mobile-phones",
+          "parent_id": 1,
+          "image": null,
+          "is_active": true,
+          "priority": 1,
+          "image_url": null,
+          "custom_icon_url": null,
+          "children": []
+        }
+      ]
+    }
+  ]
+}
+```
+
+### 5. Place Order
 
 `POST /orders`
 
-Place a new order for a customer. You can place an order for a single product or multiple products in one request.
+Place a new order for a customer. You can specify the shipping method by passing `shipping_method_id` (integer ID from shipping methods), `shipping_method` (string keyword to dynamically match by name, e.g., "inside" or "outside"), or direct custom `shipping_cost` (numeric).
 
 **Recommended Request Body (Multiple Products):**
 
@@ -115,7 +173,8 @@ Place a new order for a customer. You can place an order for a single product or
     "phone": "017XXXXXXXX",
     "address": "House 12, Road 5",
     "city": "Dhaka"
-  }
+  },
+  "shipping_method": "inside dhaka"
 }
 ```
 
@@ -143,6 +202,63 @@ Place a new order for a customer. You can place an order for a single product or
   "message": "Order placed successfully.",
   "order_id": 1054,
   "total_amount": 2100.0
+}
+```
+
+### 6. Retrieve Orders
+
+`GET /orders`
+
+Retrieve the order history for the authenticated dropshipper.
+
+**Query Parameters:**
+* `page` (optional, integer): The page number of orders to retrieve (e.g. `?page=2`). Each page returns up to 15 orders.
+
+**Response Example:**
+
+```json
+{
+  "status": "success",
+  "data": {
+    "current_page": 1,
+    "data": [
+      {
+        "id": 18,
+        "user_id": 4,
+        "name": "John Doe",
+        "order_number": "ORD-699D64BCA354D",
+        "subtotal": "956.00",
+        "shipping_cost": "60.00",
+        "discount": "0.00",
+        "total_price": "1016.00",
+        "currency": "BDT",
+        "status": "pending",
+        "payment_status": "unpaid",
+        "created_at": "2026-06-25T16:30:00.000000Z",
+        "items": [
+          {
+            "id": 22,
+            "order_id": 18,
+            "product_id": 5,
+            "quantity": 2,
+            "unit_price": "478.00",
+            "total_price": "956.00",
+            "product_name": "Luxury Watch"
+          }
+        ]
+      }
+    ],
+    "first_page_url": "https://backend.valokichu.com/api/dropshipping/orders?page=1",
+    "from": 1,
+    "last_page": 1,
+    "last_page_url": "https://backend.valokichu.com/api/dropshipping/orders?page=1",
+    "next_page_url": null,
+    "path": "https://backend.valokichu.com/api/dropshipping/orders",
+    "per_page": 15,
+    "prev_page_url": null,
+    "to": 1,
+    "total": 1
+  }
 }
 ```
 
