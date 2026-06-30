@@ -17,7 +17,7 @@ const ApiDocsPage = () => {
     {
       method: "GET",
       url: "/api/dropshipping",
-      desc: "Base inventory feed. Returns all active products with your personalized dropshipper pricing.",
+      desc: "Base inventory feed. Returns all active products with your personalized dropshipper pricing. Supports pagination (?page=2, returns 200 products per page) and searching (?q=keyword).",
       response: `{
     "status": "success",
     "data": {
@@ -25,12 +25,23 @@ const ApiDocsPage = () => {
       "data": [
         {
           "id": 5,
+          "category_id": 3,
           "name": "Luxury Watch",
           "base_price": "2500.00",
           "your_price": "2100.00",
           "stock": 45
         }
-      ]
+      ],
+      "first_page_url": "https://backend.valokichu.com/api/dropshipping/products?page=1",
+      "from": 1,
+      "last_page": 7,
+      "last_page_url": "https://backend.valokichu.com/api/dropshipping/products?page=7",
+      "next_page_url": "https://backend.valokichu.com/api/dropshipping/products?page=2",
+      "path": "https://backend.valokichu.com/api/dropshipping/products",
+      "per_page": 200,
+      "prev_page_url": null,
+      "to": 200,
+      "total": 1250
     }
   }`,
     },
@@ -44,6 +55,41 @@ const ApiDocsPage = () => {
       "balance": 15400.50,
       "currency": "BDT"
     }
+  }`,
+    },
+    {
+      method: "GET",
+      url: "/api/dropshipping/categories",
+      desc: "Retrieve active product categories and their subcategories. Use ?parent_only=1 to fetch only top-level categories.",
+      response: `{
+    "status": "success",
+    "data": [
+      {
+        "id": 1,
+        "name": "Electronics",
+        "slug": "electronics",
+        "parent_id": null,
+        "image": "categories/electronics.png",
+        "is_active": true,
+        "priority": 1,
+        "image_url": "https://backend.valokichu.com/storage/products/categories/electronics.png",
+        "custom_icon_url": null,
+        "children": [
+          {
+            "id": 2,
+            "name": "Mobile Phones",
+            "slug": "mobile-phones",
+            "parent_id": 1,
+            "image": null,
+            "is_active": true,
+            "priority": 1,
+            "image_url": null,
+            "custom_icon_url": null,
+            "children": []
+          }
+        ]
+      }
+    ]
   }`,
     },
     {
@@ -76,7 +122,7 @@ const ApiDocsPage = () => {
     {
       method: "POST",
       url: "/api/dropshipping/orders",
-      desc: "Place an order for your customer. Supports single product or multiple products in one request.",
+      desc: "Place an order for your customer. Supports single product or multiple products. Specify shipping method by passing shipping_method_id, shipping_method keyword (e.g., 'inside' or 'outside' to match by name), or custom shipping_cost.",
       body: `{
     "products": [
       { "product_id": 5, "quantity": 2, "variation_id": 12, "order_price": 508.00 },
@@ -87,13 +133,62 @@ const ApiDocsPage = () => {
       "phone": "017XXXXXXXX",
       "address": "House 1, Road 2",
       "city": "Dhaka"
-    }
+    },
+    "shipping_method": "inside dhaka"
   }`,
       response: `{
     "status": "success",
     "message": "Order placed successfully.",
     "order_id": 18,
     "total_amount": 1016
+  }`,
+    },
+    {
+      method: "GET",
+      url: "/api/dropshipping/orders",
+      desc: "Retrieve order history for the authenticated dropshipper. Supports pagination (?page=2).",
+      response: `{
+    "status": "success",
+    "data": {
+      "current_page": 1,
+      "data": [
+        {
+          "id": 18,
+          "user_id": 4,
+          "name": "John Doe",
+          "order_number": "ORD-699D64BCA354D",
+          "subtotal": "956.00",
+          "shipping_cost": "60.00",
+          "discount": "0.00",
+          "total_price": "1016.00",
+          "currency": "BDT",
+          "status": "pending",
+          "payment_status": "unpaid",
+          "created_at": "2026-06-25T16:30:00.000000Z",
+          "items": [
+            {
+              "id": 22,
+              "order_id": 18,
+              "product_id": 5,
+              "quantity": 2,
+              "unit_price": "478.00",
+              "total_price": "956.00",
+              "product_name": "Luxury Watch"
+            }
+          ]
+        }
+      ],
+      "first_page_url": "https://backend.valokichu.com/api/dropshipping/orders?page=1",
+      "from": 1,
+      "last_page": 1,
+      "last_page_url": "https://backend.valokichu.com/api/dropshipping/orders?page=1",
+      "next_page_url": null,
+      "path": "https://backend.valokichu.com/api/dropshipping/orders",
+      "per_page": 15,
+      "prev_page_url": null,
+      "to": 1,
+      "total": 1
+    }
   }`,
     },
   
@@ -203,6 +298,34 @@ const ApiDocsPage = () => {
             </section>
 
             <section className="mb-12">
+              <div className="bg-slate-900 rounded-[3rem] p-10 text-white relative overflow-hidden">
+                <Zap className="absolute -right-4 -bottom-4 text-white/5 w-48 h-48 rotate-12" />
+                <h2 className="text-2xl font-black mb-4 relative z-10">
+                  HMAC Signature Logic
+                </h2>
+                <p className="text-slate-400 font-medium mb-6 relative z-10 leading-relaxed">
+                  To sign a request, concatenate your{" "}
+                  <span className="text-white font-bold italic">
+                    Access Key
+                  </span>{" "}
+                  +{" "}
+                  <span className="text-white font-bold italic">
+                    Current Timestamp
+                  </span>
+                  , then hash it with your{" "}
+                  <span className="text-white font-bold italic">
+                    Secret Key
+                  </span>{" "}
+                  using SHA256.
+                </p>
+                <div className="bg-white/10 p-6 rounded-2xl font-mono text-xs border border-white/5 relative z-10">
+                  signature = hash_hmac('sha256', timestamp + access_key,
+                  secret_key)
+                </div>
+              </div>
+            </section>
+
+            <section className="mb-12">
               <h2 className="text-2xl font-black text-gray-900 flex items-center gap-3 mb-8">
                 <Terminal className="text-blue-500" size={24} /> Endpoints
               </h2>
@@ -249,34 +372,6 @@ const ApiDocsPage = () => {
                     </div>
                   </div>
                 ))}
-              </div>
-            </section>
-
-            <section>
-              <div className="bg-slate-900 rounded-[3rem] p-10 text-white relative overflow-hidden">
-                <Zap className="absolute -right-4 -bottom-4 text-white/5 w-48 h-48 rotate-12" />
-                <h2 className="text-2xl font-black mb-4 relative z-10">
-                  HMAC Signature Logic
-                </h2>
-                <p className="text-slate-400 font-medium mb-6 relative z-10 leading-relaxed">
-                  To sign a request, concatenate your{" "}
-                  <span className="text-white font-bold italic">
-                    Access Key
-                  </span>{" "}
-                  +{" "}
-                  <span className="text-white font-bold italic">
-                    Current Timestamp
-                  </span>
-                  , then hash it with your{" "}
-                  <span className="text-white font-bold italic">
-                    Secret Key
-                  </span>{" "}
-                  using SHA256.
-                </p>
-                <div className="bg-white/10 p-6 rounded-2xl font-mono text-xs border border-white/5 relative z-10">
-                  signature = hash_hmac('sha256', timestamp + access_key,
-                  secret_key)
-                </div>
               </div>
             </section>
           </div>
