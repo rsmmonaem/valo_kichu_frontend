@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import * as fpixel from '@/lib/fpixel';
 
 export interface CartItem {
     id: number;
@@ -70,6 +71,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
         });
         setIsCartOpen(true);
+
+        // Meta Pixel: Track AddToCart
+        fpixel.event('AddToCart', {
+            content_ids: [newItem.id.toString()],
+            content_name: newItem.name,
+            content_type: 'product',
+            contents: [{ id: newItem.id.toString(), quantity: newItem.quantity }],
+            value: (newItem.price || 0) * newItem.quantity,
+            currency: 'BDT'
+        });
     };
 
     const removeFromCart = (id: number, variantId?: number) => {

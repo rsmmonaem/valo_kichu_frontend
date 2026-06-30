@@ -21,6 +21,7 @@ import Image from "next/image";
 import AddtocartToster from "./AddtocartToster";
 import { formatProductDescriptionUniversal } from "@/lib/utils/formatProductDescription";
 import { formatAmount } from "@/lib/utils/formatAmount";
+import * as fpixel from "@/lib/fpixel";
 
 interface ProductDetailsProps {
   product: Product;
@@ -259,6 +260,19 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
   const variationPrice = getVariationPrice();
   // Use variation price if found, else fall back to discount/base price
   const displayPrice = variationPrice !== null ? variationPrice : (hasDiscount ? salePrice! : basePrice);
+
+  useEffect(() => {
+    if (product && product.id) {
+      fpixel.event('ViewContent', {
+        content_ids: [product.id.toString()],
+        content_name: product.name,
+        content_category: product.category?.name || 'Store Item',
+        content_type: 'product',
+        value: displayPrice,
+        currency: 'BDT'
+      });
+    }
+  }, [product.id, product.name, product.category?.name, displayPrice]);
 
 
   const handleAddToCart = (redirect = false) => {

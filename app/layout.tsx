@@ -54,6 +54,7 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
 import { SettingsProvider } from '@/context/SettingsContext';
 import { UIProvider } from '@/context/UIContext';
+import FacebookPixel from '@/components/FacebookPixel';
 
 export default function RootLayout({
   children,
@@ -64,6 +65,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
 
       <body className={`${inter.variable} min-h-screen bg-gray-50 flex flex-col font-sans text-gray-800 antialiased`} suppressHydrationWarning>
+        <FacebookPixel />
         <SettingsProvider>
           <AuthProvider>
             <CartProvider>

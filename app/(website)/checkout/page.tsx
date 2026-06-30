@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { authFetch } from "@/lib/api"; // Using authFetch for potential authenticated calls
+import * as fpixel from "@/lib/fpixel";
 import {
   MapPin,
   Phone,
@@ -35,6 +36,23 @@ const CheckoutPage = () => {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+
+  // Meta Pixel: Track InitiateCheckout
+  useEffect(() => {
+    if (cart && cart.length > 0) {
+      fpixel.event('InitiateCheckout', {
+        content_ids: cart.map((item) => item.id.toString()),
+        content_type: 'product',
+        contents: cart.map((item) => ({
+          id: item.id.toString(),
+          quantity: item.quantity,
+        })),
+        value: cartTotal,
+        currency: 'BDT',
+        num_items: cart.reduce((acc, item) => acc + item.quantity, 0)
+      });
+    }
+  }, []);
 
   // Initial state setup needs to leverage user data if available
   const [checkoutData, setCheckoutData] = useState({
@@ -182,6 +200,19 @@ const CheckoutPage = () => {
       const data = await res.json();
 
       if (res.ok) {
+        // Meta Pixel: Track Purchase
+        fpixel.event('Purchase', {
+          content_ids: cart.map((item) => item.id.toString()),
+          content_type: 'product',
+          contents: cart.map((item) => ({
+            id: item.id.toString(),
+            quantity: item.quantity,
+          })),
+          value: Number(cartTotal) + Number(shippingCost),
+          currency: 'BDT',
+          order_id: data.order ? data.order.id : data.id || data.order_id
+        });
+
         // Hande success
         clearCart();
         router.push(

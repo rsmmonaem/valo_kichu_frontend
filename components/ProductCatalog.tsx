@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { getProducts, Product } from '@/lib/api';
 import ProductCard from '@/components/ProductCard';
 import InfiniteScrollTrigger from '@/components/InfiniteScrollTrigger';
+import * as fpixel from '@/lib/fpixel';
 
 interface ProductCatalogProps {
     initialProducts: Product[];
@@ -13,6 +14,17 @@ interface ProductCatalogProps {
 
 const ProductCatalog: React.FC<ProductCatalogProps> = ({ initialProducts, initialMeta }) => {
     const searchParams = useSearchParams();
+
+    // Meta Pixel: Track Search
+    useEffect(() => {
+        const search = searchParams?.get('search');
+        if (search) {
+            fpixel.event('Search', {
+                search_string: search
+            });
+        }
+    }, [searchParams]);
+
     const [products, setProducts] = useState<Product[]>(initialProducts);
     const [page, setPage] = useState(initialMeta?.current_page || 1);
     const [hasMore, setHasMore] = useState(initialMeta ? initialMeta.current_page < initialMeta.last_page : false);
