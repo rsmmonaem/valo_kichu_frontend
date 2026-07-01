@@ -71,13 +71,11 @@ export default async function ProductsPage({ searchParams }: Props) {
     }
 
     return (
-        <div className="container mx-auto px-4 py-6 md:py-8">
-            <div className="flex flex-col lg:flex-row gap-8">
+        <div className="container mx-auto px-4 pt-4 pb-8 md:py-8">
+            <div className="flex flex-col lg:flex-row gap-0 lg:gap-8">
 
-                {/* Sidebar (Desktop) & Mobile Drawer Control */}
-                <div className="flex-shrink-0">
-                    <ClientSidebarWrapper categories={categories} />
-                </div>
+                {/* Sidebar — takes no layout space on mobile (display:contents), full column on desktop */}
+                <ClientSidebarWrapper categories={categories} />
 
                 {/* Main Content */}
                 <div className="flex-1 min-w-0">

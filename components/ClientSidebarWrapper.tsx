@@ -17,7 +17,9 @@ const ClientSidebarWrapper: React.FC<Props> = ({ categories }) => {
     }, []);
 
     return (
-        <div className="lg:w-[280px] flex-shrink-0">
+        // `contents` on mobile = zero layout footprint (no gap in flex column)
+        // `block` on desktop = normal sidebar column
+        <div className="contents lg:block lg:w-[280px] lg:flex-shrink-0">
             <ProductFilterSidebar
                 categories={categories}
                 showMobile={showMobile}

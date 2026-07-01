@@ -141,7 +141,8 @@ const CartPage = () => {
                                     ৳{formatAmount(item.price * item.quantity)}
                                 </div>
                                 <div className="col-span-12 flex justify-between items-center md:hidden border-t pt-3 mt-2">
-                                    <span className="font-bold text-gray-900">Total: ৳{formatAmount(item.price * item.quantity)}</span>
+                                    <span className="font-bold text-gray-900">Total:</span>
+                                    <span className="font-bold text-gray-900">৳{formatAmount(item.price * item.quantity)}</span>
                                 </div>
                             </div>
                         ))}
