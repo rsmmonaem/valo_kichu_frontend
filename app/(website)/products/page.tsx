@@ -5,6 +5,7 @@ import ProductCatalog from '@/components/ProductCatalog';
 import { Metadata } from 'next';
 import { Filter } from 'lucide-react';
 import ClientSidebarWrapper from '@/components/ClientSidebarWrapper';
+import ClientFilterButton from '@/components/ClientFilterButton';
 
 type Props = {
     searchParams: Promise<{ [key: string]: string | string[] | undefined }>
@@ -70,7 +71,7 @@ export default async function ProductsPage({ searchParams }: Props) {
     }
 
     return (
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-6 md:py-8">
             <div className="flex flex-col lg:flex-row gap-8">
 
                 {/* Sidebar (Desktop) & Mobile Drawer Control */}
@@ -79,9 +80,18 @@ export default async function ProductsPage({ searchParams }: Props) {
                 </div>
 
                 {/* Main Content */}
-                <div className="flex-1">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
-                        <h1 className="text-2xl font-bold text-gray-900">{pageTitle}</h1>
+                <div className="flex-1 min-w-0">
+                    {/* Row 1 (mobile): Category Title | Filter Button */}
+                    <div className="flex items-center justify-between mb-2">
+                        <h1 className="text-xl md:text-2xl font-bold text-gray-900 leading-tight">{pageTitle}</h1>
+                        {/* Mobile-only filter trigger — rendered here so it sits beside the title */}
+                        <div className="lg:hidden">
+                            <ClientFilterButton categories={categories} />
+                        </div>
+                    </div>
+
+                    {/* Row 2: Sort Dropdown */}
+                    <div className="mb-5">
                         <ProductSort />
                     </div>
 
