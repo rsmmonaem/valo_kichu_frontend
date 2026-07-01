@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import {
   ShoppingCart,
   User,
@@ -38,10 +38,8 @@ const Header: React.FC<HeaderProps> = ({ categories }) => {
   const { settings } = useSettings();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const pathname = usePathname();
   const [search, setSearch] = useState(searchParams.get("search") || "");
   const { isSidebarOpen, closeSidebar, openSidebar } = useUI();
-  const isCheckout = pathname === "/checkout";
 
   const { user } = useAuth();
   const [referralCode, setReferralCode] = useState<string | null>(null);
@@ -92,44 +90,6 @@ const Header: React.FC<HeaderProps> = ({ categories }) => {
     } else {
       router.push("/dropshipperform");
     }
-  }
-
-  if (isCheckout) {
-    return (
-      <header className="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm py-3 md:py-4">
-        <div className="container mx-auto px-4 md:px-6 flex items-center justify-between">
-          <Link href="/" className="flex items-center shrink-0">
-            {settings.site_logo ? (
-              <img
-                src={(() => {
-                  const logo = settings.site_logo;
-                  if (!logo) return '';
-                  if (logo.startsWith('http')) {
-                    return logo.replace(/(\/api)(\/storage\/)/, '$2');
-                  }
-                  const cleanPath = logo.replace(/^\/?storage\//, '');
-                  if (cleanPath.startsWith('settings/')) {
-                    return `https://backend.valokichu.com/storage/${cleanPath}`;
-                  }
-                  const base = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
-                  return `${base}/storage/${cleanPath}`;
-                })()}
-                alt={settings.site_name || "Logo"}
-                className="h-10 md:h-14 w-auto object-contain transition hover:opacity-90"
-              />
-            ) : (
-              <span className="text-xl md:text-2xl font-black text-blue-600 tracking-tight">
-                {settings.site_name || "VALOKICHU"}
-              </span>
-            )}
-          </Link>
-          <div className="flex items-center gap-2 text-gray-500 font-bold text-[10px] md:text-xs bg-gray-50 border border-gray-200 rounded-full px-3 py-1.5 shadow-sm">
-            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-            <span className="uppercase tracking-wider">Secure Checkout</span>
-          </div>
-        </div>
-      </header>
-    );
   }
 
   return (
