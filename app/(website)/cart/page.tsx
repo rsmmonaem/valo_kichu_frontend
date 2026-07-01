@@ -48,8 +48,8 @@ const CartPage = () => {
 
                     <div className="divide-y divide-gray-100">
                         {cart.map((item) => (
-                            <div key={`${item.id}-${item.variant?.id || 'base'}`} className="grid grid-cols-1 md:grid-cols-12 gap-4 p-4 items-center">
-                                <div className="col-span-6 flex gap-4">
+                            <div key={`${item.id}-${item.variant?.id || 'base'}`} className="grid grid-cols-12 gap-4 p-4 items-center">
+                                <div className="col-span-12 md:col-span-6 flex gap-4">
                                     <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden shrink-0">
                                         <img
                                             src={(() => {
@@ -114,7 +114,7 @@ const CartPage = () => {
                                         </button>
                                     </div>
                                 </div> */}
-                                <div className="col-span-2 flex items-center justify-start md:justify-center">
+                                <div className="col-span-12 md:col-span-2 flex items-center justify-start md:justify-center">
                                     <div className="flex items-center gap-1 bg-gray-50 rounded-lg p-1 w-fit">
                                         <span className="text-sm font-medium text-gray-500 md:hidden px-2">Qty:</span>
                                         <div className="flex items-center gap-2">
