@@ -25,6 +25,17 @@ const AdminOrdersPage = () => {
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [activeStatus, setActiveStatus] = useState("all");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [selectedCategoryId, setSelectedCategoryId] = useState("");
+  const [categories, setCategories] = useState<any[]>([]);
+  const [summary, setSummary] = useState<any>({
+    total_orders: 0,
+    total_sales: 0,
+    total_items_qty: 0,
+    category_sales: 0,
+    category_items_qty: 0,
+  });
   const [stats, setStats] = useState<any>({
     all: 0,
     pending: 0,
@@ -51,19 +62,36 @@ const AdminOrdersPage = () => {
     { key: "refunded", label: "Refunded", color: "pink" },
   ];
 
+  const fetchCategories = async () => {
+    try {
+      const res = await authFetch("/v1/category-list");
+      if (res.ok) {
+        const data = await res.json();
+        setCategories(Array.isArray(data) ? data : (data.data || []));
+      }
+    } catch (error) {
+      console.error("Failed to fetch categories", error);
+    }
+  };
+
   const fetchOrders = async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
       if (activeStatus !== "all") params.append("status", activeStatus);
       if (typeFilter) params.append("order_type", typeFilter);
+      if (startDate) params.append("start_date", startDate);
+      if (endDate) params.append("end_date", endDate);
+      if (selectedCategoryId) params.append("category_id", selectedCategoryId);
 
       const res = await authFetch(`/admin/v1/orders?${params.toString()}`);
       if (res.ok) {
         const data = await res.json();
         setOrders(data.data || []);
+        if (data.summary) {
+          setSummary(data.summary);
+        }
         console.log("Fetched orders:", data);
-
       }
     } catch (error) {
       console.error(error);
@@ -77,6 +105,9 @@ const AdminOrdersPage = () => {
       const params = new URLSearchParams();
       params.append("per_page", "1000");
       if (typeFilter) params.append("order_type", typeFilter);
+      if (startDate) params.append("start_date", startDate);
+      if (endDate) params.append("end_date", endDate);
+      if (selectedCategoryId) params.append("category_id", selectedCategoryId);
 
       const res = await authFetch(`/admin/v1/orders?${params.toString()}`);
       if (res.ok) {
@@ -110,14 +141,18 @@ const AdminOrdersPage = () => {
   };
 
   useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  useEffect(() => {
     fetchOrders();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeStatus, typeFilter]);
+  }, [activeStatus, typeFilter, startDate, endDate, selectedCategoryId]);
 
   useEffect(() => {
     fetchStats();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [typeFilter]);
+  }, [typeFilter, startDate, endDate, selectedCategoryId]);
 
   const updateStatus = async (orderId: number, newStatus: string) => {
     if (
@@ -239,6 +274,81 @@ const AdminOrdersPage = () => {
       <h1 className="text-2xl font-bold text-gray-800 mb-6">
         {typeFilter === "dropshipper" ? "Dropshipper Orders" : "Customer Orders"} Management
       </h1>
+
+      {/* Date & Category Filter Box */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
+        <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wider mb-4">Filter By Date &amp; Category</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase">Start Date</label>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase">End Date</label>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase">Category</label>
+            <select
+              value={selectedCategoryId}
+              onChange={(e) => setSelectedCategoryId(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 cursor-pointer"
+            >
+              <option value="">All Categories</option>
+              {categories.map((cat: any) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <button
+              onClick={() => {
+                setStartDate("");
+                setEndDate("");
+                setSelectedCategoryId("");
+              }}
+              className="w-full py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg text-sm transition"
+            >
+              Reset Filters
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Stats / Sales Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
+        <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 p-5 rounded-xl border border-blue-100/85 shadow-sm">
+          <p className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">Total Orders</p>
+          <p className="text-3xl font-black text-blue-950">{summary.total_orders}</p>
+        </div>
+        <div className="bg-gradient-to-br from-green-50 to-green-100/50 p-5 rounded-xl border border-green-100/85 shadow-sm">
+          <p className="text-xs font-bold text-green-600 uppercase tracking-wider mb-1">Total Sales</p>
+          <p className="text-3xl font-black text-green-950">৳{summary.total_sales}</p>
+        </div>
+        <div className="bg-gradient-to-br from-amber-50 to-amber-100/50 p-5 rounded-xl border border-amber-100/85 shadow-sm">
+          <p className="text-xs font-bold text-amber-600 uppercase tracking-wider mb-1">Items Qty Sold</p>
+          <p className="text-3xl font-black text-amber-950">{summary.total_items_qty} <span className="text-sm font-semibold text-amber-700">pcs</span></p>
+        </div>
+        {selectedCategoryId && (
+          <div className="bg-gradient-to-br from-purple-50 to-purple-100/50 p-5 rounded-xl border border-purple-100/85 shadow-sm md:col-span-3 lg:col-span-1">
+            <p className="text-xs font-bold text-purple-600 uppercase tracking-wider mb-1">Category Specific Sales</p>
+            <p className="text-2xl font-black text-purple-950">৳{summary.category_sales}</p>
+            <p className="text-xs text-purple-700 mt-1 font-semibold">Qty Sold: {summary.category_items_qty} pcs</p>
+          </div>
+        )}
+      </div>
 
       {/* Status Tabs */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-6 overflow-x-auto">
