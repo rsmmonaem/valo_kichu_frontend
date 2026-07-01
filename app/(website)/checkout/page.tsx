@@ -37,9 +37,11 @@ const CheckoutPage = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
+  const [hasInitiatedCheckout, setHasInitiatedCheckout] = useState(false);
+
   // Meta Pixel: Track InitiateCheckout
   useEffect(() => {
-    if (cart && cart.length > 0) {
+    if (cart && cart.length > 0 && !hasInitiatedCheckout) {
       fpixel.event('InitiateCheckout', {
         content_ids: cart.map((item) => item.id.toString()),
         content_type: 'product',
@@ -51,8 +53,9 @@ const CheckoutPage = () => {
         currency: 'BDT',
         num_items: cart.reduce((acc, item) => acc + item.quantity, 0)
       });
+      setHasInitiatedCheckout(true);
     }
-  }, []);
+  }, [cart, cartTotal, hasInitiatedCheckout]);
 
   // Initial state setup needs to leverage user data if available
   const [checkoutData, setCheckoutData] = useState({
@@ -150,6 +153,19 @@ const CheckoutPage = () => {
     // const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
     try {
+      // Meta Pixel: Track AddPaymentInfo
+      fpixel.event('AddPaymentInfo', {
+        content_ids: cart.map((item) => item.id.toString()),
+        content_type: 'product',
+        contents: cart.map((item) => ({
+          id: item.id.toString(),
+          quantity: item.quantity,
+        })),
+        value: Number(cartTotal) + Number(shippingCost),
+        currency: 'BDT',
+        payment_category: checkoutData.payment_method === 'cod' ? 'Cash on Delivery' : 'Online Payment'
+      });
+
       // 1. Prepare Payload
       const orderPayload = {
         name: checkoutData.name,
@@ -699,6 +715,7 @@ const CheckoutPage = () => {
                     href="https://wa.me/8801314861089"
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={() => fpixel.event('Contact', { method: 'WhatsApp Checkout' })}
                     className="flex items-center justify-center gap-2 flex-1 bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366]/20 py-3 rounded-lg font-bold transition"
                   >
                     <svg
@@ -713,6 +730,7 @@ const CheckoutPage = () => {
                   </a>
                   <a
                     href="tel:+8801314861089"
+                    onClick={() => fpixel.event('Contact', { method: 'Phone Checkout' })}
                     className="flex items-center justify-center gap-2 flex-1 bg-blue-50 text-blue-600 hover:bg-blue-100 py-3 rounded-lg font-bold transition"
                   >
                     <Phone size={18} />

@@ -16,14 +16,14 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({ initialProducts, initia
     const searchParams = useSearchParams();
 
     // Meta Pixel: Track Search
+    const searchVal = searchParams?.get('search');
     useEffect(() => {
-        const search = searchParams?.get('search');
-        if (search) {
+        if (searchVal) {
             fpixel.event('Search', {
-                search_string: search
+                search_string: searchVal
             });
         }
-    }, [searchParams]);
+    }, [searchVal]);
 
     const [products, setProducts] = useState<Product[]>(initialProducts);
     const [page, setPage] = useState(initialMeta?.current_page || 1);

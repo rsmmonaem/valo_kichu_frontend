@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Lock, Mail, User, Phone, Ticket, TrendingUp } from 'lucide-react';
 import { authFetch } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
+import * as fpixel from '@/lib/fpixel';
 
 const DropshipperSignupPage = () => {
     const { login } = useAuth();
@@ -74,6 +75,18 @@ const DropshipperSignupPage = () => {
                 }
 
                 login(data.access_token, userData);
+
+                // Meta Pixel: Track CompleteRegistration & Lead
+                fpixel.event('CompleteRegistration', {
+                    status: true,
+                    role: 'dropshipper'
+                });
+                fpixel.event('Lead', {
+                    content_category: 'Dropshipper Signup',
+                    content_name: `${formData.first_name} ${formData.last_name}`,
+                    status: 'Success'
+                });
+
                 router.push('/dropshipper/dashboard');
             } else {
                 setError(data.message || data.error || 'Registration failed');

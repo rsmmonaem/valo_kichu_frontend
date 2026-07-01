@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Phone, Facebook, Youtube, Instagram, Twitter } from "lucide-react";
 import { useSettings } from "@/context/SettingsContext";
+import * as fpixel from "@/lib/fpixel";
 
 export default function Footer() {
   const { settings } = useSettings();
@@ -63,7 +64,13 @@ export default function Footer() {
               {settings.footer_phone && (
                 <div className="flex items-center gap-3 text-sm text-gray-600">
                   <Phone size={16} className="text-blue-600" />
-                  <span>{settings.footer_phone}</span>
+                  <a
+                    href={`tel:${settings.footer_phone}`}
+                    onClick={() => fpixel.event('Contact', { method: 'Phone Footer' })}
+                    className="hover:text-blue-600 transition-colors"
+                  >
+                    {settings.footer_phone}
+                  </a>
                 </div>
               )}
               {settings.footer_email && (
@@ -71,7 +78,13 @@ export default function Footer() {
                   <span className="w-4 flex justify-center text-blue-600 font-bold">
                     @
                   </span>
-                  <span>{settings.footer_email}</span>
+                  <a
+                    href={`mailto:${settings.footer_email}`}
+                    onClick={() => fpixel.event('Contact', { method: 'Email Footer' })}
+                    className="hover:text-blue-600 transition-colors"
+                  >
+                    {settings.footer_email}
+                  </a>
                 </div>
               )}
             </div>

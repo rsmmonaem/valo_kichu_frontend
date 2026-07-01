@@ -2,6 +2,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { PhoneCall } from 'lucide-react';
+import * as fpixel from '@/lib/fpixel';
 
 export default function FloatingContact() {
     return (
@@ -11,6 +12,7 @@ export default function FloatingContact() {
                 href="https://wa.me/8801314861089"
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => fpixel.event('Contact', { method: 'WhatsApp Floating' })}
                 className="w-12 h-12 md:w-14 md:h-14 bg-[#25D366] text-white rounded-full shadow-xl shadow-[#25D366]/40 hover:scale-110 transition-transform flex items-center justify-center cursor-pointer"
                 aria-label="Chat on WhatsApp"
             >

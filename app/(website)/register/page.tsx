@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Lock, Mail, User,Phone } from 'lucide-react';
 import { authFetch } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
+import * as fpixel from '@/lib/fpixel';
 
 const RegisterPage = () => {
     const { login } = useAuth();
@@ -54,6 +55,12 @@ const RegisterPage = () => {
                 }
 
                 login(data.access_token, userData);
+
+                // Meta Pixel: Track CompleteRegistration
+                fpixel.event('CompleteRegistration', {
+                    status: true,
+                    role: 'customer'
+                });
 
                 // Redirect based on role
                 if (userData.role === 'admin' || userData.role === 'super_admin') {
