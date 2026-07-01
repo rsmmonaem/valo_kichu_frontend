@@ -274,7 +274,7 @@ const CheckoutPage = () => {
         {/* Compact header row */}
         <div className="flex items-center justify-between mb-6 max-w-5xl mx-auto">
           <div className="flex items-center gap-2 text-sm font-semibold text-gray-500">
-            <ShieldCheck size={16} className="text-green-500 shrink-0" />
+            <ShieldCheck size={24} className="text-green-500 shrink-0" />
             <span>100% Secure &amp; Encrypted</span>
           </div>
 

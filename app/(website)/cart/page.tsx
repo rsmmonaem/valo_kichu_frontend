@@ -82,9 +82,35 @@ const CartPage = () => {
                                                 {item.variant.color && <span>Color: {item.variant.color}</span>}
                                             </p>
                                         )}
+                                        {/* Mobile: Remove + Qty controls in one row */}
+                                        <div className="flex items-center justify-between mt-2 md:hidden">
+                                            <button
+                                                onClick={() => removeFromCart(item.id, item.variant?.id)}
+                                                className="text-red-500 text-sm flex items-center gap-1 hover:text-red-700"
+                                            >
+                                                <Trash2 size={14} /> Remove
+                                            </button>
+                                            <div className="flex items-center gap-1 border border-gray-200 rounded-lg overflow-hidden">
+                                                <button
+                                                    onClick={() => updateQuantity(item.id, item.quantity - 1, item.variant?.id)}
+                                                    className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 disabled:opacity-40 bg-transparent cursor-pointer"
+                                                    disabled={item.quantity <= 1}
+                                                >
+                                                    <Minus size={14} />
+                                                </button>
+                                                <span className="font-semibold w-6 text-center text-sm">{item.quantity}</span>
+                                                <button
+                                                    onClick={() => updateQuantity(item.id, item.quantity + 1, item.variant?.id)}
+                                                    className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 bg-transparent cursor-pointer"
+                                                >
+                                                    <Plus size={14} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                        {/* Desktop: Remove button only */}
                                         <button
                                             onClick={() => removeFromCart(item.id, item.variant?.id)}
-                                            className="text-red-500 text-sm flex items-center gap-1 mt-2 hover:text-red-700"
+                                            className="text-red-500 text-sm hidden md:flex items-center gap-1 mt-2 hover:text-red-700"
                                         >
                                             <Trash2 size={14} /> Remove
                                         </button>
@@ -114,25 +140,23 @@ const CartPage = () => {
                                         </button>
                                     </div>
                                 </div> */}
-                                <div className="col-span-12 md:col-span-2 flex items-center justify-start md:justify-center">
-                                    <div className="flex items-center gap-1 bg-gray-50 rounded-lg p-1 w-fit">
-                                        <span className="text-sm font-medium text-gray-500 md:hidden px-2">Qty:</span>
-                                        <div className="flex items-center gap-2">
-                                            <button
-                                                onClick={() => updateQuantity(item.id, item.quantity - 1, item.variant?.id)}
-                                                className="p-1 hover:bg-white rounded shadow-sm disabled:opacity-50 bg-transparent cursor-pointer"
-                                                disabled={item.quantity <= 1}
-                                            >
-                                                <Minus size={14} />
-                                            </button>
-                                            <span className="font-medium w-6 text-center text-sm">{item.quantity}</span>
-                                            <button
-                                                onClick={() => updateQuantity(item.id, item.quantity + 1, item.variant?.id)}
-                                                className="p-1 hover:bg-white rounded shadow-sm bg-transparent cursor-pointer"
-                                            >
-                                                <Plus size={14} />
-                                            </button>
-                                        </div>
+                                {/* Desktop qty controls only */}
+                                <div className="col-span-2 hidden md:flex items-center justify-center">
+                                    <div className="flex items-center gap-1 border border-gray-200 rounded-lg overflow-hidden">
+                                        <button
+                                            onClick={() => updateQuantity(item.id, item.quantity - 1, item.variant?.id)}
+                                            className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 disabled:opacity-40 bg-transparent cursor-pointer"
+                                            disabled={item.quantity <= 1}
+                                        >
+                                            <Minus size={14} />
+                                        </button>
+                                        <span className="font-semibold w-6 text-center text-sm">{item.quantity}</span>
+                                        <button
+                                            onClick={() => updateQuantity(item.id, item.quantity + 1, item.variant?.id)}
+                                            className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 bg-transparent cursor-pointer"
+                                        >
+                                            <Plus size={14} />
+                                        </button>
                                     </div>
                                 </div>
 
