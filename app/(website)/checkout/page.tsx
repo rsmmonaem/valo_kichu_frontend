@@ -267,27 +267,24 @@ const CheckoutPage = () => {
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen py-10">
+    <div className="bg-gray-50 min-h-screen py-6 md:py-10">
       <Toaster position="top-right" reverseOrder={false} />
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between mb-8 max-w-5xl mx-auto">
-          <div className="flex gap-2 items-center">
-            <ShieldCheck size={28} className="text-green-600" />
-            <h1 className="text-2xl font-bold text-gray-800">
-              Secure Checkout – Your information is protected
-            </h1>
+
+        {/* Compact header row */}
+        <div className="flex items-center justify-between mb-6 max-w-5xl mx-auto">
+          <div className="flex items-center gap-2 text-sm font-semibold text-gray-500">
+            <ShieldCheck size={16} className="text-green-500 shrink-0" />
+            <span>100% Secure &amp; Encrypted</span>
           </div>
 
           {!user && (
-            <div className="text-sm">
-              Already have an account?{" "}
-              <Link
-                href="/login?redirect=/checkout"
-                className="text-blue-600 font-bold hover:underline"
-              >
-                Login here
-              </Link>
-            </div>
+            <Link
+              href="/login?redirect=/checkout"
+              className="flex items-center gap-1.5 text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-3 py-1.5 rounded-full transition-colors"
+            >
+              <span>🔑</span> Login for faster checkout
+            </Link>
           )}
         </div>
 
