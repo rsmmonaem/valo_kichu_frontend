@@ -13,24 +13,29 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Upload files via rsync over SSH
-        uses: burnett01/rsync-deployments@7.0.1
+      - name: Upload files via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          switches: -avzr --delete --exclude='node_modules' --exclude='.git' --exclude='.next' --exclude='.github'
-          path: ./
-          remote_path: /home/valokichu.com/public_html/frontend/
-          remote_host: ${{ secrets.VPS_HOST }}
-          remote_user: root
-          remote_key: ${{ secrets.VPS_SSH_KEY }}
+          server: valokichu.com
+          username: admin_valokichu
+          password: admin_valokichu
+          local-dir: ./
+          server-dir: /public_html/frontend/
+          exclude: |
+            **/.git*
+            **/.github*
+            **/node_modules/**
+            **/.next/**
+            **/Dockerfile
+            **/docker-compose.yml
 
       - name: Rebuild & Restart Docker on Server
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.VPS_HOST }}
+          host: rsmmonaem.me
           username: root
-          key: ${{ secrets.VPS_SSH_KEY }}
+          password: RsmMonaem66@@##
           script: |
             cd /home/valokichu.com/public_html/frontend
-            docker compose down
-            docker compose up -d --build
-            echo "✅ Deploy complete!"
+            docker-compose down
+            docker-compose up -d --build
