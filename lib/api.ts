@@ -127,7 +127,7 @@ export const getCategoryList = async (): Promise<SingleResponse<Category[]>> => 
   // Try the nested list endpoint first (v1)
   try {
     const res = await fetch(`${API_URL}/v1/category-list`, {
-      cache: 'no-store',
+      next: { revalidate: 60 },
     });
     if (res.ok) {
       const data = await res.json();
@@ -141,7 +141,7 @@ export const getCategoryList = async (): Promise<SingleResponse<Category[]>> => 
   // Fallback to simple categories
   try {
     const res = await fetch(`${API_URL}/categories`, {
-      cache: 'no-store',
+      next: { revalidate: 60 },
     });
     if (!res.ok) return { status: false, data: [] };
     const data = await res.json();
@@ -202,7 +202,7 @@ export const getProduct = async (slug: string): Promise<SingleResponse<Product>>
 export const getCategory = async (slug: string): Promise<SingleResponse<Category & { meta_title?: string; meta_description?: string; meta_keywords?: string }>> => {
   try {
     const res = await fetch(`${API_URL}/categories/${slug}`, {
-      cache: 'no-store',
+      next: { revalidate: 60 },
     });
     if (!res.ok) return { status: false, data: {} as any, message: 'Category not found' };
     const data = await res.json();
@@ -228,7 +228,7 @@ export interface CategorySection {
 export const getBanners = async (): Promise<Banner[]> => {
   try {
     const res = await fetch(`${API_URL}/banners`, {
-      cache: 'no-store',
+      next: { revalidate: 60 },
     }); // exists at root /api/banners
     if (!res.ok) return [];
     const data = await res.json();
@@ -241,7 +241,7 @@ export const getBanners = async (): Promise<Banner[]> => {
 export const getCategorySections = async (): Promise<CategorySection[]> => {
   try {
     const res = await fetch(`${API_URL}/v1/categories-with-products`, {
-      cache: 'no-store',
+      next: { revalidate: 60 },
     });
     if (!res.ok) return [];
     const data = await res.json();
@@ -254,7 +254,7 @@ export const getCategorySections = async (): Promise<CategorySection[]> => {
 export const getNewArrivals = async (): Promise<Product[]> => {
   try {
     const res = await fetch(`${API_URL}/v1/items-sections?type=newarrival&limit=12`, {
-      cache: 'no-store',
+      next: { revalidate: 60 },
     });
     if (!res.ok) return [];
     const data = await res.json();
@@ -268,7 +268,7 @@ export const getNewArrivals = async (): Promise<Product[]> => {
 export const getRecommendedProducts = async (): Promise<Product[]> => {
   try {
     const res = await fetch(`${API_URL}/v1/recommended-products`, {
-      cache: 'no-store',
+      next: { revalidate: 60 },
     });
     if (!res.ok) return [];
     const data = await res.json();
@@ -279,7 +279,7 @@ export const getRecommendedProducts = async (): Promise<Product[]> => {
 };
 
 
-export const getSettings = async (options: RequestInit = { cache: 'no-store' }): Promise<Record<string, string>> => {
+export const getSettings = async (options: RequestInit = { next: { revalidate: 60 } }): Promise<Record<string, string>> => {
   try {
     const res = await fetch(`${API_URL}/settings`, options);
 
@@ -299,7 +299,7 @@ export const getCategoryBar = async (): Promise<SingleResponse<Category[]>> => {
   try {
 
     const res = await fetch(`${API_URL}/v1/category-bars`, {
-      cache: 'no-store',
+      next: { revalidate: 60 },
     });
     if (!res.ok) return { status: false, data: [] };
     const data = await res.json();
