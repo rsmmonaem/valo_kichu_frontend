@@ -90,6 +90,7 @@ const CategoryCarousel: React.FC<CategoryCarouselProps> = ({ categories }) => {
                     <Link
                         key={cat.id}
                         href={`/products?category=${cat.slug || cat.id}`}
+                        prefetch={false}
                         className="snap-start flex-shrink-0 w-48 md:w-60 bg-white rounded-2xl 
                shadow-sm hover:shadow-xl transition-all duration-300 
                overflow-hidden border border-gray-100 hover:border-blue-200 group/item"

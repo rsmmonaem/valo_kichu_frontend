@@ -21,7 +21,7 @@ const CategorySection: React.FC<CategorySectionProps> = ({ title, categorySlug, 
                         <span className="bg-blue-600/10 text-blue-600 p-1.5 rounded-lg"><Star size={20} className="fill-blue-600" /></span>
                         {title}
                     </h3>
-                    <Link href={`/products?category=${categorySlug}`} className="text-sm font-semibold text-gray-500 hover:text-blue-600 flex items-center gap-1 transition">
+                    <Link href={`/products?category=${categorySlug}`} className="text-sm font-semibold text-gray-500 hover:text-blue-600 flex items-center gap-1 transition" prefetch={false}>
                         View All <ChevronRight size={16} />
                     </Link>
                 </div>

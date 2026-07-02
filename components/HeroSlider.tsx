@@ -41,11 +41,12 @@ const HeroSlider: React.FC<HeroSliderProps> = ({ banners }) => {
                     )}
                 >
                     {banner.link ? (
-                        <Link href={banner.link} className="absolute inset-0 z-0">
+                        <Link href={banner.link} className="absolute inset-0 z-0" prefetch={false}>
                             <img
                                 src={banner.image_url || ((banner.image && banner.image.startsWith('http')) ? banner.image : `${process.env.NEXT_PUBLIC_API_URL}/storage/${banner.image}`)}
                                 alt={banner.title || 'Banner'}
                                 className="w-full h-full object-cover"
+                                fetchPriority={index === 0 ? "high" : "auto"}
                                 onError={(e) => (e.currentTarget.style.display = 'none')}
                             />
                         </Link>
@@ -54,6 +55,7 @@ const HeroSlider: React.FC<HeroSliderProps> = ({ banners }) => {
                             src={banner.image_url || ((banner.image && banner.image.startsWith('http')) ? banner.image : `${process.env.NEXT_PUBLIC_API_URL}/storage/${banner.image}`)}
                             alt={banner.title || 'Banner'}
                             className="w-full h-full object-cover"
+                            fetchPriority={index === 0 ? "high" : "auto"}
                             onError={(e) => (e.currentTarget.style.display = 'none')}
                         />
                     )}
@@ -64,7 +66,7 @@ const HeroSlider: React.FC<HeroSliderProps> = ({ banners }) => {
                             </h2>
                         )}
                         {banner.link && (
-                            <Link href={banner.link} className="mt-6 bg-blue-600 text-white px-6 py-2 rounded-full font-bold text-sm w-fit hover:bg-blue-600/90 transition shadow-lg">
+                            <Link href={banner.link} className="mt-6 bg-blue-600 text-white px-6 py-2 rounded-full font-bold text-sm w-fit hover:bg-blue-600/90 transition shadow-lg" prefetch={false}>
                                 Shop Now
                             </Link>
                         )}

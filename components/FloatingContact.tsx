@@ -13,6 +13,7 @@ export default function FloatingContact() {
                 className="group relative w-12 h-12 md:w-14 md:h-14 bg-white text-gray-800 rounded-full shadow-lg hover:shadow-xl hover:scale-110 transition-all flex items-center justify-center cursor-pointer border border-gray-100"
                 aria-label="Track Your Order"
                 title="Track your order"
+                prefetch={false}
             >
                 <img 
                     src="/tracking.png" 

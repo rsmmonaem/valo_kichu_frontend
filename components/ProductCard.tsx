@@ -93,7 +93,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         <>
             <div className="group bg-white rounded-xl border border-gray-100 hover:border-blue-600/30 hover:shadow-lg transition duration-300 overflow-hidden flex flex-col h-full relative cursor-pointer block">
                 {/* Overlay Link for full-card clickability */}
-                <Link href={`/products/${product.slug}`} className="absolute inset-0 z-0" aria-label={product.name} />
+                <Link href={`/products/${product.slug}`} className="absolute inset-0 z-0" aria-label={product.name} prefetch={false} />
 
                 <div className="aspect-square bg-gray-100 relative overflow-hidden">
                     <div className="relative overflow-hidden group w-full h-full" onClick={handleEyeClick}>

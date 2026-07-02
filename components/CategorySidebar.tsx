@@ -17,7 +17,7 @@ const CategorySidebar: React.FC<CategorySidebarProps> = ({ categories }) => {
             <ul>
                 {categories.slice(0, 12).map(cat => (
                     <li key={cat.id}>
-                        <Link href={`/products?category=${cat.slug || cat.id}`} className="block px-4 py-2 text-sm text-gray-600 hover:bg-blue-50 hover:text-blue-600 border-b border-gray-50 flex items-center justify-between group">
+                        <Link href={`/products?category=${cat.slug || cat.id}`} className="block px-4 py-2 text-sm text-gray-600 hover:bg-blue-50 hover:text-blue-600 border-b border-gray-50 flex items-center justify-between group" prefetch={false}>
                             {cat.name}
                             <ChevronRight size={14} className="opacity-0 group-hover:opacity-100 transition-opacity" />
                         </Link>

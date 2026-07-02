@@ -94,6 +94,7 @@ const MobileCategorySidebar: React.FC<MobileCategorySidebarProps> = ({ isOpen, o
                                 href="/products?category=all"
                                 className="block py-3 px-4 font-bold text-gray-800 bg-gray-50 rounded-lg hover:bg-gray-100"
                                 onClick={onClose}
+                                prefetch={false}
                             >
                                 All Products
                             </Link>
@@ -105,6 +106,7 @@ const MobileCategorySidebar: React.FC<MobileCategorySidebarProps> = ({ isOpen, o
                                         href={`/products?category=${cat.slug || cat.id}`}
                                         className="flex-1 py-3 px-4 text-sm font-bold text-gray-800 hover:text-blue-600 active:text-blue-600 flex items-center gap-4 transition-colors"
                                         onClick={onClose}
+                                        prefetch={false}
                                     >
                                         <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-sm font-bold text-gray-500 overflow-hidden border border-gray-200">
                                             {cat.image_url ? (
@@ -147,6 +149,7 @@ const MobileCategorySidebar: React.FC<MobileCategorySidebarProps> = ({ isOpen, o
                                                             href={`/products?category=${sub.slug || sub.id}`}
                                                             className="flex-1 block py-2 px-4 pl-12 text-sm text-gray-600 hover:text-blue-600"
                                                             onClick={onClose}
+                                                            prefetch={false}
                                                         >
                                                             {sub.name}
                                                         </Link>
@@ -175,6 +178,7 @@ const MobileCategorySidebar: React.FC<MobileCategorySidebarProps> = ({ isOpen, o
                                                                     href={`/products?category=${grandSub.slug || grandSub.id}`}
                                                                     className="block py-2 px-4 pl-8 text-xs text-gray-500 hover:text-blue-600"
                                                                     onClick={onClose}
+                                                                    prefetch={false}
                                                                 >
                                                                     - {grandSub.name}
                                                                 </Link>

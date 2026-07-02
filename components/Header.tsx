@@ -105,7 +105,7 @@ const Header: React.FC<HeaderProps> = ({ categories }) => {
               >
                 <Menu size={24} />
               </button>
-              <Link href="/" className="flex items-center gap-2 shrink-0 group">
+              <Link href="/" className="flex items-center gap-2 shrink-0 group" prefetch={false}>
                 {settings.site_logo ? (
                   <img
                     src={(() => {
@@ -185,6 +185,7 @@ const Header: React.FC<HeaderProps> = ({ categories }) => {
               <Link
                 href="/wishlist"
                 className="relative text-gray-600 hover:text-blue-600 transition-colors flex flex-col items-center gap-0.5 group"
+                prefetch={false}
               >
                 <div className="relative">
                   <Heart
@@ -201,6 +202,7 @@ const Header: React.FC<HeaderProps> = ({ categories }) => {
               <Link
                 href="/cart"
                 className="relative text-gray-600 hover:text-blue-600 transition-colors flex flex-col items-center gap-0.5 group"
+                prefetch={false}
               >
                 <div className="relative">
                   <ShoppingCart

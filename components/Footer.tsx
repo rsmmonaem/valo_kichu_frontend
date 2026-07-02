@@ -30,7 +30,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
           {/* Company Info */}
           <div className="space-y-4">
-            <Link href="/" className="flex items-center gap-2">
+            <Link href="/" className="flex items-center gap-2" prefetch={false}>
               {/* <div className="bg-blue-600 text-white p-1.5 rounded font-bold text-lg">V</div> */}
               <span className="text-xl font-bold text-gray-800">
                 {/* {settings.footer_about_title || 'Valokichu'} */}
@@ -100,6 +100,7 @@ export default function Footer() {
                     <Link
                       href={link.url}
                       className="hover:text-blue-600 transition-colors"
+                      prefetch={false}
                     >
                       {link.label}
                     </Link>
@@ -111,6 +112,7 @@ export default function Footer() {
                     <Link
                       href="/help"
                       className="hover:text-blue-600 transition-colors"
+                      prefetch={false}
                     >
                       Help Center
                     </Link>
@@ -119,6 +121,7 @@ export default function Footer() {
                     <Link
                       href="/track-order"
                       className="hover:text-blue-600 transition-colors"
+                      prefetch={false}
                     >
                       Track Order
                     </Link>
@@ -127,6 +130,7 @@ export default function Footer() {
                     <Link
                       href="/returns"
                       className="hover:text-blue-600 transition-colors"
+                      prefetch={false}
                     >
                       Returns & Refunds
                     </Link>
@@ -135,6 +139,7 @@ export default function Footer() {
                     <Link
                       href="/shipping"
                       className="hover:text-blue-600 transition-colors"
+                      prefetch={false}
                     >
                       Shipping Info
                     </Link>
@@ -143,6 +148,7 @@ export default function Footer() {
                     <Link
                       href="/contact"
                       className="hover:text-blue-600 transition-colors"
+                      prefetch={false}
                     >
                       Contact Us
                     </Link>
@@ -162,6 +168,7 @@ export default function Footer() {
                     <Link
                       href={link.url}
                       className="hover:text-blue-600 transition-colors"
+                      prefetch={false}
                     >
                       {link.label}
                     </Link>
@@ -173,6 +180,7 @@ export default function Footer() {
                     <Link
                       href="/about"
                       className="hover:text-blue-600 transition-colors"
+                      prefetch={false}
                     >
                       About Us
                     </Link>
@@ -181,6 +189,7 @@ export default function Footer() {
                     <Link
                       href="/careers"
                       className="hover:text-blue-600 transition-colors"
+                      prefetch={false}
                     >
                       Careers
                     </Link>
@@ -189,6 +198,7 @@ export default function Footer() {
                     <Link
                       href="/privacy"
                       className="hover:text-blue-600 transition-colors"
+                      prefetch={false}
                     >
                       Privacy Policy
                     </Link>
@@ -197,6 +207,7 @@ export default function Footer() {
                     <Link
                       href="/terms"
                       className="hover:text-blue-600 transition-colors"
+                      prefetch={false}
                     >
                       Terms & Conditions
                     </Link>
@@ -205,6 +216,7 @@ export default function Footer() {
                     <Link
                       href="/sitemap"
                       className="hover:text-blue-600 transition-colors"
+                      prefetch={false}
                     >
                       Sitemap
                     </Link>

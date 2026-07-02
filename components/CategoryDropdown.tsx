@@ -18,6 +18,7 @@ const CategoryDropdown: React.FC<CategoryDropdownProps> = ({ categories }) => {
                         <Link
                             href={`/products?category=${cat.slug || cat.id}`}
                             className="flex items-center justify-between px-6 py-2.5 hover:bg-gray-50 hover:text-primary text-sm font-medium text-gray-700 transition"
+                            prefetch={false}
                         >
                             <span className="flex items-center gap-2">
                                 {cat.name}
@@ -36,6 +37,7 @@ const CategoryDropdown: React.FC<CategoryDropdownProps> = ({ categories }) => {
                                             <Link
                                                 href={`/products?category=${sub.slug || sub.id}`}
                                                 className="flex items-center justify-between px-6 py-2.5 hover:bg-gray-50 hover:text-primary text-sm text-gray-600 transition"
+                                                prefetch={false}
                                             >
                                                 <span>{sub.name}</span>
                                                 {sub.subcategories && sub.subcategories.length > 0 && (
@@ -52,6 +54,7 @@ const CategoryDropdown: React.FC<CategoryDropdownProps> = ({ categories }) => {
                                                                 <Link
                                                                     href={`/products?category=${grandSub.slug || grandSub.id}`}
                                                                     className="block px-6 py-2.5 hover:bg-gray-50 hover:text-primary text-sm text-gray-500 transition"
+                                                                    prefetch={false}
                                                                 >
                                                                     {grandSub.name}
                                                                 </Link>

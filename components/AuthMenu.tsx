@@ -23,10 +23,10 @@ const AuthMenu = () => {
 
                 <div className={`absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-100 py-2 transition-all duration-200 transform origin-top-right ${isOpen ? 'opacity-100 scale-100 visible' : 'opacity-0 scale-95 invisible group-hover:opacity-100 group-hover:scale-100 group-hover:visible'}`}>
                     <div className="py-1">
-                        <Link href="/login" className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                        <Link href="/login" className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" prefetch={false}>
                             Customer Login
                         </Link>
-                        <Link href="/dropshipper/login" className="flex items-center gap-2 px-4 py-2 text-sm text-emerald-600 hover:bg-emerald-50 font-bold">
+                        <Link href="/dropshipper/login" className="flex items-center gap-2 px-4 py-2 text-sm text-emerald-600 hover:bg-emerald-50 font-bold" prefetch={false}>
                             Dropshipper Login
                         </Link>
                     </div>
