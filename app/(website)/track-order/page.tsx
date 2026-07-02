@@ -50,12 +50,24 @@ export default function TrackOrderPage() {
 
   const getStatusStep = (status: string) => {
     const s = status?.toLowerCase();
-    if (s === 'pending') return 1;
-    if (s === 'processing') return 2;
-    if (s === 'shipped' || s === 'preparing to ship') return 3;
-    if (s === 'out for delivery') return 4;
-    if (s === 'delivered' || s === 'complete') return 5;
-    return 1;
+    switch (s) {
+      case 'pending':
+        return 1;
+      case 'confirmed':
+      case 'purchased_by_admin':
+        return 2;
+      case 'ready_to_ship_bd':
+        return 3;
+      case 'shipping':
+        return 4;
+      case 'delivered':
+        return 5;
+      case 'cancelled':
+      case 'refunded':
+        return 0;
+      default:
+        return 1;
+    }
   };
 
   const currentStep = orderData ? getStatusStep(orderData.status) : 0;
@@ -164,33 +176,33 @@ export default function TrackOrderPage() {
                   </div>
                 </div>
 
-                {/* Step 2: Order Processing */}
+                {/* Step 2: Order Confirmed */}
                 <div className="flex flex-row md:flex-col items-center text-center w-full md:w-1/5 gap-4 md:gap-2">
                   <div className={`w-12 h-12 rounded-lg flex items-center justify-center shrink-0 ${currentStep >= 2 ? 'bg-blue-50 text-blue-600' : 'bg-gray-50 text-gray-400'}`}>
                     <Clock className="w-6 h-6" />
                   </div>
                   <div className="text-left md:text-center">
-                    <h3 className={`font-medium text-sm ${currentStep >= 2 ? 'text-gray-800' : 'text-gray-400'}`}>Order Processing</h3>
+                    <h3 className={`font-medium text-sm ${currentStep >= 2 ? 'text-gray-800' : 'text-gray-400'}`}>Order Confirmed</h3>
                   </div>
                 </div>
 
-                {/* Step 3: Preparing to ship */}
+                {/* Step 3: Ready to Ship */}
                 <div className="flex flex-row md:flex-col items-center text-center w-full md:w-1/5 gap-4 md:gap-2">
                   <div className={`w-12 h-12 rounded-lg flex items-center justify-center shrink-0 ${currentStep >= 3 ? 'bg-blue-50 text-blue-600' : 'bg-gray-50 text-gray-400'}`}>
                     <Package className="w-6 h-6" />
                   </div>
                   <div className="text-left md:text-center">
-                    <h3 className={`font-medium text-sm ${currentStep >= 3 ? 'text-gray-800' : 'text-gray-400'}`}>Preparing to ship</h3>
+                    <h3 className={`font-medium text-sm ${currentStep >= 3 ? 'text-gray-800' : 'text-gray-400'}`}>Ready to Ship</h3>
                   </div>
                 </div>
 
-                {/* Step 4: Out For Delivery */}
+                {/* Step 4: Shipping */}
                 <div className="flex flex-row md:flex-col items-center text-center w-full md:w-1/5 gap-4 md:gap-2">
                   <div className={`w-12 h-12 rounded-lg flex items-center justify-center shrink-0 ${currentStep >= 4 ? 'bg-blue-50 text-blue-600' : 'bg-gray-50 text-gray-400'}`}>
                     <Navigation className="w-6 h-6" />
                   </div>
                   <div className="text-left md:text-center">
-                    <h3 className={`font-medium text-sm ${currentStep >= 4 ? 'text-gray-800' : 'text-gray-400'}`}>Out For Delivery</h3>
+                    <h3 className={`font-medium text-sm ${currentStep >= 4 ? 'text-gray-800' : 'text-gray-400'}`}>Shipping</h3>
                   </div>
                 </div>
 
@@ -207,10 +219,12 @@ export default function TrackOrderPage() {
               </div>
             </div>
 
-            {/* Cancelled State */}
-            {orderData.status?.toLowerCase() === 'cancelled' && (
-              <div className="mt-10 p-4 bg-red-50 text-red-600 text-center rounded-lg max-w-lg mx-auto">
-                This order has been cancelled.
+            {/* Cancelled/Refunded State */}
+            {(orderData.status?.toLowerCase() === 'cancelled' || orderData.status?.toLowerCase() === 'refunded') && (
+              <div className="mt-10 p-4 bg-red-50 text-red-600 text-center rounded-lg max-w-lg mx-auto border border-red-100 font-medium">
+                {orderData.status?.toLowerCase() === 'refunded'
+                  ? 'This order has been refunded.'
+                  : 'This order has been cancelled.'}
               </div>
             )}
           </div>
