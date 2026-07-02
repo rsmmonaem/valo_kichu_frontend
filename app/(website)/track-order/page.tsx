@@ -70,7 +70,7 @@ export default function TrackOrderPage() {
     }
   };
 
-  const currentStep = orderData ? getStatusStep(orderData.status) : 0;
+  const currentStep = orderData ? getStatusStep(orderData.db_status || orderData.status) : 0;
 
   const formatDate = (dateString: string) => {
     if (!dateString) return '';
@@ -183,6 +183,9 @@ export default function TrackOrderPage() {
                   </div>
                   <div className="text-left md:text-center">
                     <h3 className={`font-medium text-sm ${currentStep >= 2 ? 'text-gray-800' : 'text-gray-400'}`}>Order Confirmed</h3>
+                    {currentStep === 2 && orderData.updated_at && (
+                      <p className="text-xs text-gray-500 mt-1">{formatDate(orderData.updated_at)}</p>
+                    )}
                   </div>
                 </div>
 
@@ -193,6 +196,9 @@ export default function TrackOrderPage() {
                   </div>
                   <div className="text-left md:text-center">
                     <h3 className={`font-medium text-sm ${currentStep >= 3 ? 'text-gray-800' : 'text-gray-400'}`}>Ready to Ship</h3>
+                    {currentStep === 3 && orderData.updated_at && (
+                      <p className="text-xs text-gray-500 mt-1">{formatDate(orderData.updated_at)}</p>
+                    )}
                   </div>
                 </div>
 
@@ -203,6 +209,9 @@ export default function TrackOrderPage() {
                   </div>
                   <div className="text-left md:text-center">
                     <h3 className={`font-medium text-sm ${currentStep >= 4 ? 'text-gray-800' : 'text-gray-400'}`}>Shipping</h3>
+                    {currentStep === 4 && orderData.updated_at && (
+                      <p className="text-xs text-gray-500 mt-1">{formatDate(orderData.updated_at)}</p>
+                    )}
                   </div>
                 </div>
 
@@ -213,6 +222,9 @@ export default function TrackOrderPage() {
                   </div>
                   <div className="text-left md:text-center">
                     <h3 className={`font-medium text-sm ${currentStep >= 5 ? 'text-gray-800' : 'text-gray-400'}`}>Order Delivered</h3>
+                    {currentStep === 5 && orderData.updated_at && (
+                      <p className="text-xs text-gray-500 mt-1">{formatDate(orderData.updated_at)}</p>
+                    )}
                   </div>
                 </div>
 
