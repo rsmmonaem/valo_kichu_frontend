@@ -2,9 +2,8 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import axios from 'axios';
 import { Truck, Package, Clock, CheckCircle, Navigation } from 'lucide-react';
-import api from '@/lib/api';
+import { authFetch } from '@/lib/api';
 
 export default function TrackOrderPage() {
   const [orderId, setOrderId] = useState('');
@@ -26,19 +25,24 @@ export default function TrackOrderPage() {
 
     try {
       // POST to our newly created backend endpoint
-      const response = await api.post('/v1/order/track', {
-        order_id: orderId,
-        phone_number: phoneNumber,
+      const response = await authFetch('/v1/order/track', {
+        method: 'POST',
+        body: JSON.stringify({
+          order_id: orderId,
+          phone_number: phoneNumber,
+        }),
       });
 
-      if (response.data) {
-        setOrderData(response.data);
+      const data = await response.json().catch(() => ({}));
+
+      if (response.ok) {
+        setOrderData(data);
       } else {
-        setError('Order not found. Please check your details and try again.');
+        setError(data.error || 'Order not found. Please check your details and try again.');
       }
     } catch (err: any) {
       console.error(err);
-      setError(err.response?.data?.error || 'Order not found or something went wrong.');
+      setError(err.message || 'Order not found or something went wrong.');
     } finally {
       setLoading(false);
     }
@@ -140,7 +144,7 @@ export default function TrackOrderPage() {
               <div className="hidden md:block absolute top-6 left-10 right-10 h-1 bg-gray-100 rounded-full -z-10">
                 <div 
                   className="h-full bg-blue-500 rounded-full transition-all duration-500"
-                  style={{ width: \`\${Math.max(0, (currentStep - 1) * 25)}%\` }}
+                  style={{ width: `${Math.max(0, (currentStep - 1) * 25)}%` }}
                 ></div>
               </div>
 
@@ -149,11 +153,11 @@ export default function TrackOrderPage() {
                 
                 {/* Step 1: Order Placed */}
                 <div className="flex flex-row md:flex-col items-center text-center w-full md:w-1/5 gap-4 md:gap-2">
-                  <div className={\`w-12 h-12 rounded-lg flex items-center justify-center shrink-0 \${currentStep >= 1 ? 'bg-blue-50 text-blue-600' : 'bg-gray-50 text-gray-400'}\`}>
+                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center shrink-0 ${currentStep >= 1 ? 'bg-blue-50 text-blue-600' : 'bg-gray-50 text-gray-400'}`}>
                     <Package className="w-6 h-6" />
                   </div>
                   <div className="text-left md:text-center">
-                    <h3 className={\`font-medium text-sm \${currentStep >= 1 ? 'text-gray-800' : 'text-gray-400'}\`}>Order Placed</h3>
+                    <h3 className={`font-medium text-sm ${currentStep >= 1 ? 'text-gray-800' : 'text-gray-400'}`}>Order Placed</h3>
                     {currentStep >= 1 && (
                       <p className="text-xs text-gray-500 mt-1">{formatDate(orderData.created_at)}</p>
                     )}
@@ -162,41 +166,41 @@ export default function TrackOrderPage() {
 
                 {/* Step 2: Order Processing */}
                 <div className="flex flex-row md:flex-col items-center text-center w-full md:w-1/5 gap-4 md:gap-2">
-                  <div className={\`w-12 h-12 rounded-lg flex items-center justify-center shrink-0 \${currentStep >= 2 ? 'bg-blue-50 text-blue-600' : 'bg-gray-50 text-gray-400'}\`}>
+                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center shrink-0 ${currentStep >= 2 ? 'bg-blue-50 text-blue-600' : 'bg-gray-50 text-gray-400'}`}>
                     <Clock className="w-6 h-6" />
                   </div>
                   <div className="text-left md:text-center">
-                    <h3 className={\`font-medium text-sm \${currentStep >= 2 ? 'text-gray-800' : 'text-gray-400'}\`}>Order Processing</h3>
+                    <h3 className={`font-medium text-sm ${currentStep >= 2 ? 'text-gray-800' : 'text-gray-400'}`}>Order Processing</h3>
                   </div>
                 </div>
 
                 {/* Step 3: Preparing to ship */}
                 <div className="flex flex-row md:flex-col items-center text-center w-full md:w-1/5 gap-4 md:gap-2">
-                  <div className={\`w-12 h-12 rounded-lg flex items-center justify-center shrink-0 \${currentStep >= 3 ? 'bg-blue-50 text-blue-600' : 'bg-gray-50 text-gray-400'}\`}>
+                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center shrink-0 ${currentStep >= 3 ? 'bg-blue-50 text-blue-600' : 'bg-gray-50 text-gray-400'}`}>
                     <Package className="w-6 h-6" />
                   </div>
                   <div className="text-left md:text-center">
-                    <h3 className={\`font-medium text-sm \${currentStep >= 3 ? 'text-gray-800' : 'text-gray-400'}\`}>Preparing to ship</h3>
+                    <h3 className={`font-medium text-sm ${currentStep >= 3 ? 'text-gray-800' : 'text-gray-400'}`}>Preparing to ship</h3>
                   </div>
                 </div>
 
                 {/* Step 4: Out For Delivery */}
                 <div className="flex flex-row md:flex-col items-center text-center w-full md:w-1/5 gap-4 md:gap-2">
-                  <div className={\`w-12 h-12 rounded-lg flex items-center justify-center shrink-0 \${currentStep >= 4 ? 'bg-blue-50 text-blue-600' : 'bg-gray-50 text-gray-400'}\`}>
+                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center shrink-0 ${currentStep >= 4 ? 'bg-blue-50 text-blue-600' : 'bg-gray-50 text-gray-400'}`}>
                     <Navigation className="w-6 h-6" />
                   </div>
                   <div className="text-left md:text-center">
-                    <h3 className={\`font-medium text-sm \${currentStep >= 4 ? 'text-gray-800' : 'text-gray-400'}\`}>Out For Delivery</h3>
+                    <h3 className={`font-medium text-sm ${currentStep >= 4 ? 'text-gray-800' : 'text-gray-400'}`}>Out For Delivery</h3>
                   </div>
                 </div>
 
                 {/* Step 5: Order Delivered */}
                 <div className="flex flex-row md:flex-col items-center text-center w-full md:w-1/5 gap-4 md:gap-2">
-                  <div className={\`w-12 h-12 rounded-lg flex items-center justify-center shrink-0 \${currentStep >= 5 ? 'bg-green-50 text-green-500' : 'bg-gray-50 text-gray-400'}\`}>
+                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center shrink-0 ${currentStep >= 5 ? 'bg-green-50 text-green-500' : 'bg-gray-50 text-gray-400'}`}>
                     <CheckCircle className="w-6 h-6" />
                   </div>
                   <div className="text-left md:text-center">
-                    <h3 className={\`font-medium text-sm \${currentStep >= 5 ? 'text-gray-800' : 'text-gray-400'}\`}>Order Delivered</h3>
+                    <h3 className={`font-medium text-sm ${currentStep >= 5 ? 'text-gray-800' : 'text-gray-400'}`}>Order Delivered</h3>
                   </div>
                 </div>
 
