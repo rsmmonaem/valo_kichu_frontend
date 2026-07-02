@@ -78,7 +78,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
             content_name: newItem.name,
             content_type: 'product',
             contents: [{ id: newItem.id.toString(), quantity: newItem.quantity }],
-            value: (newItem.price || 0) * newItem.quantity,
+            value: Number(newItem.price || 0) * newItem.quantity,
             currency: 'BDT'
         });
     };

@@ -268,7 +268,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
         content_name: product.name,
         content_category: product.category?.name || 'Store Item',
         content_type: 'product',
-        value: displayPrice,
+        value: Number(displayPrice || 0),
         currency: 'BDT'
       });
     }

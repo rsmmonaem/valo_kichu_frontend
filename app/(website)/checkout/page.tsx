@@ -49,7 +49,7 @@ const CheckoutPage = () => {
           id: item.id.toString(),
           quantity: item.quantity,
         })),
-        value: cartTotal,
+        value: Number(cartTotal || 0),
         currency: 'BDT',
         num_items: cart.reduce((acc, item) => acc + item.quantity, 0)
       });
