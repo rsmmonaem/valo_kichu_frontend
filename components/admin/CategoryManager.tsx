@@ -36,6 +36,11 @@ const getCategoryImageUrl = (cat: Category) => {
         cleanUrl = `${baseUrl}/storage/${cleanUrl.replace(/^\/?storage\/?/, '')}`;
     }
 
+    cleanUrl = cleanUrl.replace('/storage/products/', '/storage/categories/');
+    if (cleanUrl.includes('/storage/') && !cleanUrl.includes('/storage/categories/')) {
+        cleanUrl = cleanUrl.replace('/storage/', '/storage/categories/');
+    }
+
     return cleanUrl;
 };
 
