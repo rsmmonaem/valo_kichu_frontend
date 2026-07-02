@@ -36,14 +36,6 @@ const getCategoryImageUrl = (cat: Category) => {
         cleanUrl = `${baseUrl}/storage/${cleanUrl.replace(/^\/?storage\/?/, '')}`;
     }
 
-    // Filename এর আগে ss add করো
-    const parts = cleanUrl.split('/');
-    const filename = parts.pop() || '';
-
-    if (filename && !filename.startsWith('ss')) {
-        return [...parts, 'ss' + filename].join('/');
-    }
-
     return cleanUrl;
 };
 
@@ -249,7 +241,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ title, level }) => {
         if (e.target.files && e.target.files[0]) {
             const formData = new FormData();
             formData.append('image', e.target.files[0]);
-            formData.append('folder', 'products');
+            formData.append('folder', 'categories');
 
             try {
                 const res = await authFetch('/admin/v1/upload', {
@@ -506,7 +498,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ title, level }) => {
                                                     const baseUrl = getBaseUrl();
                                                     let cleanUrl = imgUrl;
                                                     if (!imgUrl.startsWith('http')) {
-                                                        cleanUrl = `${baseUrl}/storage/products/${imgUrl.replace(/^\/?(storage\/products|products)\/?/, '')}`;
+                                                        cleanUrl = `${baseUrl}/storage/categories/${imgUrl.replace(/^\/?(storage\/categories|categories)\/?/, '')}`;
                                                     }
                                                     if (cleanUrl.includes('localhost:8000') || cleanUrl.includes('127.0.0.1')) {
                                                         const filename = cleanUrl.split('/').pop() || '';
@@ -571,7 +563,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ title, level }) => {
                                                                 const baseUrl = getBaseUrl();
                                                                 let cleanUrl = imgUrl;
                                                                 if (!imgUrl.startsWith('http')) {
-                                                                    cleanUrl = `${baseUrl}/storage/${imgUrl.replace(/^\/?storage\/?/, '')}`;
+                                                                    cleanUrl = `${baseUrl}/storage/categories/${imgUrl.replace(/^\/?(storage\/categories|categories)\/?/, '')}`;
                                                                 }
                                                                 if (cleanUrl.includes('localhost:8000') || cleanUrl.includes('127.0.0.1')) {
                                                                     const filename = cleanUrl.split('/').pop() || '';

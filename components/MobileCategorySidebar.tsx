@@ -31,12 +31,6 @@ const MobileCategorySidebar: React.FC<MobileCategorySidebarProps> = ({ isOpen, o
         if (!url.startsWith('http')) {
             cleanUrl = `${baseUrl}/storage/${url.replace(/^\/?storage\/?/, '')}`;
         }
-        // Always add ss prefix to filename (server stores thumbnails with ss prefix)
-        const parts = cleanUrl.split('/');
-        const filename = parts.pop() || '';
-        if (filename && !filename.startsWith('ss')) {
-            return [...parts, 'ss' + filename].join('/');
-        }
         return cleanUrl;
     };
     return (
