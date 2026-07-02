@@ -54,6 +54,9 @@ const AdminOrdersPage = () => {
   });
   const [statusUpdating, setStatusUpdating] = useState(false);
   const [paymentStatusUpdating, setPaymentStatusUpdating] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [lastPage, setLastPage] = useState(1);
+  const [totalOrders, setTotalOrders] = useState(0);
   const [showDownloadMenu, setShowDownloadMenu] = useState(false);
   const downloadMenuRef = useRef<HTMLDivElement>(null);
 
@@ -132,7 +135,7 @@ const AdminOrdersPage = () => {
     }
   };
 
-  const fetchOrders = async () => {
+  const fetchOrders = async (page = currentPage) => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -141,15 +144,18 @@ const AdminOrdersPage = () => {
       if (startDate) params.append("start_date", startDate);
       if (endDate) params.append("end_date", endDate);
       if (selectedCategoryId) params.append("category_id", selectedCategoryId);
+      params.append("page", String(page));
 
       const res = await authFetch(`/admin/v1/orders?${params.toString()}`);
       if (res.ok) {
         const data = await res.json();
         setOrders(data.data || []);
+        setCurrentPage(data.current_page || 1);
+        setLastPage(data.last_page || 1);
+        setTotalOrders(data.total || 0);
         if (data.summary) {
           setSummary(data.summary);
         }
-        console.log("Fetched orders:", data);
       }
     } catch (error) {
       console.error(error);
@@ -203,9 +209,17 @@ const AdminOrdersPage = () => {
   }, []);
 
   useEffect(() => {
-    fetchOrders();
+    // Reset to page 1 when filters change
+    setCurrentPage(1);
+    fetchOrders(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeStatus, typeFilter, startDate, endDate, selectedCategoryId]);
+
+  const goToPage = (page: number) => {
+    if (page < 1 || page > lastPage) return;
+    setCurrentPage(page);
+    fetchOrders(page);
+  };
 
   useEffect(() => {
     fetchStats();
@@ -599,6 +613,58 @@ const AdminOrdersPage = () => {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination Bar */}
+        {lastPage > 1 && (
+          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+            <p className="text-sm text-gray-500">
+              Showing page <span className="font-semibold text-gray-700">{currentPage}</span> of{" "}
+              <span className="font-semibold text-gray-700">{lastPage}</span> &mdash;{" "}
+              <span className="font-semibold text-gray-700">{totalOrders}</span> total orders
+            </p>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => goToPage(currentPage - 1)}
+                disabled={currentPage <= 1}
+                className="px-3 py-1.5 text-sm rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition font-medium"
+              >
+                ← Prev
+              </button>
+              {Array.from({ length: lastPage }, (_, i) => i + 1)
+                .filter(p => p === 1 || p === lastPage || Math.abs(p - currentPage) <= 2)
+                .reduce<(number | string)[]>((acc, p, idx, arr) => {
+                  if (idx > 0 && (p as number) - (arr[idx - 1] as number) > 1) acc.push("…");
+                  acc.push(p);
+                  return acc;
+                }, [])
+                .map((p, i) =>
+                  p === "…" ? (
+                    <span key={`ellipsis-${i}`} className="px-2 py-1 text-gray-400 text-sm">…</span>
+                  ) : (
+                    <button
+                      key={p}
+                      onClick={() => goToPage(p as number)}
+                      className={clsx(
+                        "w-8 h-8 text-sm rounded-lg border font-medium transition",
+                        currentPage === p
+                          ? "bg-blue-600 text-white border-blue-600"
+                          : "border-gray-200 text-gray-600 hover:bg-gray-50"
+                      )}
+                    >
+                      {p}
+                    </button>
+                  )
+                )}
+              <button
+                onClick={() => goToPage(currentPage + 1)}
+                disabled={currentPage >= lastPage}
+                className="px-3 py-1.5 text-sm rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition font-medium"
+              >
+                Next →
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Order Details Modal */}

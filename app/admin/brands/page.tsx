@@ -10,7 +10,7 @@ const BrandsPage = () => {
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingId, setEditingId] = useState<number | null>(null);
-    const [formData, setFormData] = useState({ name: "", image: "" });
+    const [formData, setFormData] = useState({ name: "", logo: "" });
 
     const fetchBrands = async () => {
         setLoading(true);
@@ -18,7 +18,9 @@ const BrandsPage = () => {
             const res = await authFetch('/admin/v1/brands');
             if (res.ok) {
                 const data = await res.json();
-                setBrands(data || []);
+                setBrands(Array.isArray(data) ? data : (data.data || []));
+            } else {
+                toast.error("Failed to load brands");
             }
         } catch (error) {
             console.error(error);
@@ -40,17 +42,18 @@ const BrandsPage = () => {
         try {
             const res = await authFetch(url, {
                 method,
-                body: JSON.stringify(formData)
+                body: JSON.stringify({ name: formData.name, logo: formData.logo || undefined })
             });
 
             if (res.ok) {
                 toast.success(editingId ? "Brand updated" : "Brand created");
                 setIsModalOpen(false);
-                setFormData({ name: "", image: "" });
+                setFormData({ name: "", logo: "" });
                 setEditingId(null);
                 fetchBrands();
             } else {
-                toast.error("Operation failed");
+                const err = await res.json().catch(() => ({}));
+                toast.error(err?.message || "Operation failed");
             }
         } catch (error) {
             toast.error("Error occurred");
@@ -59,15 +62,15 @@ const BrandsPage = () => {
 
     const handleEdit = (brand: any) => {
         setEditingId(brand.id);
-        setFormData({ name: brand.name, image: brand.image || "" });
+        setFormData({ name: brand.name, logo: brand.logo || "" });
         setIsModalOpen(true);
     };
 
     const handleDelete = async (id: number) => {
         if (!window.confirm("Delete this brand?")) return;
         try {
-            const res = await authFetch(`/v1/admin/brands/${id}`, { method: 'DELETE' });
-            if (res.ok) {
+            const res = await authFetch(`/admin/v1/brands/${id}`, { method: 'DELETE' });
+            if (res.ok || res.status === 204) {
                 toast.success("Brand deleted");
                 fetchBrands();
             } else {
@@ -83,7 +86,7 @@ const BrandsPage = () => {
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold text-gray-800">Brands</h1>
                 <button
-                    onClick={() => { setIsModalOpen(true); setEditingId(null); setFormData({ name: "", image: "" }); }}
+                    onClick={() => { setIsModalOpen(true); setEditingId(null); setFormData({ name: "", logo: "" }); }}
                     className="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-blue-700 transition flex items-center gap-2"
                 >
                     <Plus size={20} /> Add Brand
@@ -97,9 +100,9 @@ const BrandsPage = () => {
                     brands.map(brand => (
                         <div key={brand.id} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between group">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden">
-                                    {brand.image ? (
-                                        <img src={brand.image} alt={brand.name} className="w-full h-full object-cover" />
+                                <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden shrink-0">
+                                    {brand.logo ? (
+                                        <img src={brand.logo} alt={brand.name} className="w-full h-full object-cover" />
                                     ) : (
                                         <Tag size={18} className="text-gray-400" />
                                     )}
@@ -113,7 +116,7 @@ const BrandsPage = () => {
                         </div>
                     ))
                 ) : (
-                    <div className="col-span-full text-center text-gray-500 py-8">No brands found.</div>
+                    <div className="col-span-full text-center text-gray-500 py-8">No brands found. Click "Add Brand" to create one.</div>
                 )}
             </div>
 
@@ -127,18 +130,33 @@ const BrandsPage = () => {
                         </div>
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Brand Name</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Brand Name <span className="text-red-500">*</span></label>
                                 <input
-                                    className="w-full p-2 border rounded-lg"
+                                    className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="e.g. Nike, Samsung..."
                                     value={formData.name}
                                     onChange={e => setFormData({ ...formData, name: e.target.value })}
                                     required
                                 />
                             </div>
-                            {/* Image upload could be added here similar to ProductForm */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Logo URL <span className="text-gray-400 font-normal">(optional)</span></label>
+                                <input
+                                    className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="https://example.com/logo.png"
+                                    value={formData.logo}
+                                    onChange={e => setFormData({ ...formData, logo: e.target.value })}
+                                />
+                                {formData.logo && (
+                                    <div className="mt-2 flex items-center gap-2">
+                                        <img src={formData.logo} alt="preview" className="w-10 h-10 rounded object-cover border" onError={e => (e.currentTarget.style.display = 'none')} />
+                                        <span className="text-xs text-gray-400">Preview</span>
+                                    </div>
+                                )}
+                            </div>
                             <div className="pt-2 flex justify-end gap-3">
-                                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 border rounded-lg">Cancel</button>
-                                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium">{editingId ? "Update" : "Create"}</button>
+                                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 border rounded-lg text-gray-600 hover:bg-gray-50">Cancel</button>
+                                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700">{editingId ? "Update" : "Create"}</button>
                             </div>
                         </form>
                     </div>
