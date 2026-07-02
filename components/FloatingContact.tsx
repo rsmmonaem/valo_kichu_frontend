@@ -7,6 +7,26 @@ import * as fpixel from '@/lib/fpixel';
 export default function FloatingContact() {
     return (
         <div className="fixed bottom-24 md:bottom-8 right-4 md:right-8 z-50 flex flex-col gap-4">
+            {/* Track Order Floating Icon */}
+            <Link
+                href="/track-order"
+                className="group relative w-12 h-12 md:w-14 md:h-14 bg-white text-gray-800 rounded-full shadow-lg hover:shadow-xl hover:scale-110 transition-all flex items-center justify-center cursor-pointer border border-gray-100"
+                aria-label="Track Your Order"
+                title="Track your order"
+            >
+                <img 
+                    src="/tracking.png" 
+                    alt="Track Your Order" 
+                    className="w-8 h-8 md:w-10 md:h-10 object-contain"
+                />
+                {/* Tooltip bubble */}
+                <span className="absolute right-full mr-3 top-1/2 -translate-y-1/2 bg-gray-900 text-white text-xs font-medium py-1.5 px-3 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap shadow-md">
+                    Track your order
+                    {/* Tooltip arrow */}
+                    <span className="absolute top-1/2 -translate-y-1/2 left-full border-4 border-transparent border-l-gray-900"></span>
+                </span>
+            </Link>
+
             {/* WhatsApp Floating Icon */}
             <Link
                 href="https://wa.me/8801314861089"

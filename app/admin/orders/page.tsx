@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   Eye,
@@ -11,11 +11,16 @@ import {
   Package,
   XCircle,
   RefreshCcw,
+  ChevronDown,
+  Download,
 } from "lucide-react";
 import { authFetch } from "@/lib/api";
 import clsx from "clsx";
 import toast from "react-hot-toast";
 import Link from "next/link";
+import * as XLSX from "xlsx";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const AdminOrdersPage = () => {
   const searchParams = useSearchParams();
@@ -49,6 +54,8 @@ const AdminOrdersPage = () => {
   });
   const [statusUpdating, setStatusUpdating] = useState(false);
   const [paymentStatusUpdating, setPaymentStatusUpdating] = useState(false);
+  const [showDownloadMenu, setShowDownloadMenu] = useState(false);
+  const downloadMenuRef = useRef<HTMLDivElement>(null);
 
   const statusTabs = [
     { key: "all", label: "All Orders", color: "gray" },
@@ -61,6 +68,57 @@ const AdminOrdersPage = () => {
     { key: "cancelled", label: "Cancelled", color: "red" },
     { key: "refunded", label: "Refunded", color: "pink" },
   ];
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (downloadMenuRef.current && !downloadMenuRef.current.contains(e.target as Node)) {
+        setShowDownloadMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const getOrderRows = () =>
+    orders.map((order) => ([
+      order.order_number || order.id,
+      order.name || order.user?.name || "Guest",
+      order.phone || order.contact_number || "",
+      new Date(order.created_at).toLocaleDateString(),
+      `${order.total_amount || order.total_price}`,
+      order.status || "",
+      order.payment_status || "unpaid",
+    ]));
+
+  const downloadPDF = () => {
+    const doc = new jsPDF({ orientation: "landscape" });
+    const title = typeFilter === "dropshipper" ? "Dropshipper Orders Report" : "Customer Orders Report";
+    doc.setFontSize(14);
+    doc.text(title, 14, 15);
+    doc.setFontSize(9);
+    doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 22);
+    autoTable(doc, {
+      startY: 28,
+      head: [["Order ID", "Name", "Phone", "Date", "Total (৳)", "Status", "Payment"]],
+      body: getOrderRows(),
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [59, 130, 246] },
+    });
+    doc.save(`orders-report-${Date.now()}.pdf`);
+    setShowDownloadMenu(false);
+  };
+
+  const downloadExcel = () => {
+    const headers = ["Order ID", "Name", "Phone", "Date", "Total (BDT)", "Status", "Payment"];
+    const rows = getOrderRows();
+    const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+    worksheet["!cols"] = headers.map(() => ({ wch: 20 }));
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Orders");
+    XLSX.writeFile(workbook, `orders-report-${Date.now()}.xlsx`);
+    setShowDownloadMenu(false);
+  };
 
   const fetchCategories = async () => {
     try {
@@ -271,9 +329,41 @@ const AdminOrdersPage = () => {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">
-        {typeFilter === "dropshipper" ? "Dropshipper Orders" : "Customer Orders"} Management
-      </h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold text-gray-800">
+          {typeFilter === "dropshipper" ? "Dropshipper Orders" : "Customer Orders"} Management
+        </h1>
+
+        {/* Download Report Dropdown */}
+        <div className="relative" ref={downloadMenuRef}>
+          <button
+            onClick={() => setShowDownloadMenu((v) => !v)}
+            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg shadow-sm hover:bg-gray-50 font-medium text-sm transition"
+          >
+            <Download size={15} />
+            Download Report
+            <ChevronDown size={14} className={clsx("transition-transform", showDownloadMenu && "rotate-180")} />
+          </button>
+          {showDownloadMenu && (
+            <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-100 rounded-xl shadow-lg z-50 overflow-hidden">
+              <button
+                onClick={downloadPDF}
+                className="flex items-center gap-2 w-full px-4 py-3 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition"
+              >
+                <FileText size={15} className="text-red-500" />
+                PDF
+              </button>
+              <button
+                onClick={downloadExcel}
+                className="flex items-center gap-2 w-full px-4 py-3 text-sm text-gray-700 hover:bg-green-50 hover:text-green-600 transition border-t border-gray-100"
+              >
+                <FileText size={15} className="text-green-600" />
+                Excel
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Date & Category Filter Box */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
@@ -408,7 +498,12 @@ const AdminOrdersPage = () => {
                 orders.map((order) => (
                   <tr key={order.id} className="hover:bg-gray-50 transition">
                     <td className="p-4 font-medium">
-                      #{order.order_number || order.id}
+                      <Link
+                        href={`/admin/orders/${order.id}`}
+                        className="text-blue-600 hover:text-blue-800 hover:underline font-mono text-xs"
+                      >
+                        #{order.order_number || order.id}
+                      </Link>
                     </td>
                     {/* Dropshipper column */}
                     <td className="p-4">
