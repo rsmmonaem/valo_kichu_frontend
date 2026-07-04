@@ -632,22 +632,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
             <div className="mb-8">
               <h2 className="text-2xl font-medium mb-3">Specification</h2>
               <div
-                className="
-                  text-gray-600 leading-relaxed text-sm md:text-base
-                  [&_h2]:text-xl [&_h2]:font-bold [&_h2]:mt-4 [&_h2]:mb-2 [&_h2]:text-gray-900
-                  [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:mt-3 [&_h3]:mb-1 [&_h3]:text-gray-800
-                  [&_h4]:text-base [&_h4]:font-semibold [&_h4]:mt-2 [&_h4]:mb-1
-                  [&_p]:mb-2
-                  [&_ul]:list-disc [&_ul]:ml-5 [&_ul]:mb-2
-                  [&_ol]:list-decimal [&_ol]:ml-5 [&_ol]:mb-2
-                  [&_li]:mb-1
-                  [&_strong]:font-bold [&_strong]:text-gray-900
-                  [&_b]:font-bold [&_b]:text-gray-900
-                  [&_a]:text-blue-600 [&_a]:underline
-                  [&_table]:w-full [&_table]:border-collapse [&_table]:mb-4 [&_table]:rounded-lg [&_table]:overflow-hidden [&_table]:shadow-sm
-                  [&_th]:border [&_th]:border-gray-200 [&_th]:p-3 [&_th]:bg-gray-50 [&_th]:text-left [&_th]:font-semibold [&_th]:text-gray-700
-                  [&_td]:border [&_td]:border-gray-200 [&_td]:p-3 [&_td]:text-gray-600
-                "
+                className="rich-content-lg"
                 dangerouslySetInnerHTML={{ __html: specsHtml }}
               />
             </div>

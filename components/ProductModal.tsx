@@ -716,20 +716,7 @@ export default function ProductModal({ product: initialProduct, onClose }: Produ
                     <div className="mt-6 bg-gray-50 rounded-2xl p-6 shadow-inner">
                       <h3 className="text-lg font-bold mb-3">Specifications</h3>
                       <div
-                        className="
-                          text-gray-600 text-sm leading-relaxed
-                          [&_h2]:text-base [&_h2]:font-bold [&_h2]:mt-3 [&_h2]:mb-1 [&_h2]:text-gray-900
-                          [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:mt-2 [&_h3]:mb-1
-                          [&_p]:mb-2
-                          [&_ul]:list-disc [&_ul]:ml-4 [&_ul]:mb-2
-                          [&_ol]:list-decimal [&_ol]:ml-4 [&_ol]:mb-2
-                          [&_li]:mb-0.5
-                          [&_strong]:font-bold [&_strong]:text-gray-900
-                          [&_b]:font-bold
-                          [&_table]:w-full [&_table]:border-collapse [&_table]:text-xs [&_table]:mb-3
-                          [&_th]:border [&_th]:border-gray-200 [&_th]:p-2 [&_th]:bg-white [&_th]:text-left [&_th]:font-semibold
-                          [&_td]:border [&_td]:border-gray-200 [&_td]:p-2
-                        "
+                        className="rich-content"
                         dangerouslySetInnerHTML={{ __html: specsHtml }}
                       />
                     </div>

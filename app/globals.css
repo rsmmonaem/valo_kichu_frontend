@@ -96,3 +96,40 @@ img {
 .product-image-protected img {
   pointer-events: none;
 }
+/* Rich content HTML renderer (used in specifications sections) */
+.rich-content {
+  color: #4b5563;
+  font-size: 0.875rem;
+  line-height: 1.625;
+}
+.rich-content h2 { font-size: 1rem; font-weight: 700; margin-top: 0.75rem; margin-bottom: 0.25rem; color: #111827; }
+.rich-content h3 { font-size: 0.875rem; font-weight: 600; margin-top: 0.5rem; margin-bottom: 0.25rem; color: #1f2937; }
+.rich-content h4 { font-size: 0.875rem; font-weight: 600; margin-top: 0.5rem; margin-bottom: 0.25rem; }
+.rich-content p { margin-bottom: 0.5rem; }
+.rich-content ul { list-style-type: disc; margin-left: 1rem; margin-bottom: 0.5rem; }
+.rich-content ol { list-style-type: decimal; margin-left: 1rem; margin-bottom: 0.5rem; }
+.rich-content li { margin-bottom: 0.125rem; }
+.rich-content strong, .rich-content b { font-weight: 700; color: #111827; }
+.rich-content a { color: #2563eb; text-decoration: underline; }
+.rich-content table { width: 100%; border-collapse: collapse; margin-bottom: 0.75rem; font-size: 0.75rem; }
+.rich-content th { border: 1px solid #e5e7eb; padding: 0.5rem; background: #f9fafb; text-align: left; font-weight: 600; color: #374151; }
+.rich-content td { border: 1px solid #e5e7eb; padding: 0.5rem; color: #4b5563; }
+
+/* Larger variant for product detail page */
+.rich-content-lg {
+  color: #4b5563;
+  font-size: 0.9375rem;
+  line-height: 1.75;
+}
+.rich-content-lg h2 { font-size: 1.25rem; font-weight: 700; margin-top: 1rem; margin-bottom: 0.5rem; color: #111827; }
+.rich-content-lg h3 { font-size: 1.125rem; font-weight: 600; margin-top: 0.75rem; margin-bottom: 0.25rem; color: #1f2937; }
+.rich-content-lg h4 { font-size: 1rem; font-weight: 600; margin-top: 0.5rem; margin-bottom: 0.25rem; }
+.rich-content-lg p { margin-bottom: 0.5rem; }
+.rich-content-lg ul { list-style-type: disc; margin-left: 1.25rem; margin-bottom: 0.5rem; }
+.rich-content-lg ol { list-style-type: decimal; margin-left: 1.25rem; margin-bottom: 0.5rem; }
+.rich-content-lg li { margin-bottom: 0.25rem; }
+.rich-content-lg strong, .rich-content-lg b { font-weight: 700; color: #111827; }
+.rich-content-lg a { color: #2563eb; text-decoration: underline; }
+.rich-content-lg table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; border-radius: 0.5rem; overflow: hidden; }
+.rich-content-lg th { border: 1px solid #e5e7eb; padding: 0.75rem; background: #f9fafb; text-align: left; font-weight: 600; color: #374151; }
+.rich-content-lg td { border: 1px solid #e5e7eb; padding: 0.75rem; color: #4b5563; }
