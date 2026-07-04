@@ -197,9 +197,14 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
         if (data.specifications) {
             if (typeof data.specifications === 'string') {
                 setSpecifications(data.specifications);
-            } else if (Array.isArray(data.specifications)) {
-                // Legacy: join array items into HTML list
-                setSpecifications('<ul>' + data.specifications.map((s: string) => `<li>${s}</li>`).join('') + '</ul>');
+            } else if (Array.isArray(data.specifications) && data.specifications.length > 0) {
+                const first = String(data.specifications[0] || "");
+                if (first.includes("<") && (first.includes(">") || first.includes("</"))) {
+                    setSpecifications(data.specifications.join(""));
+                } else {
+                    // Legacy: join array items into HTML list
+                    setSpecifications('<ul>' + data.specifications.map((s: string) => `<li>${s}</li>`).join('') + '</ul>');
+                }
             }
         }
         if (data.colors) {
@@ -661,7 +666,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
             brand: formData.brand,
 
             // Specifications & Tags
-            specifications: specifications,
+            specifications: specifications ? [specifications] : [],
             tags: tags,
 
             // Product Details

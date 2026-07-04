@@ -623,7 +623,12 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
               specsHtml = product.specifications;
             }
           } else if (Array.isArray(product.specifications) && product.specifications.length > 0) {
-            specsHtml = "<ul>" + product.specifications.map((s: any) => `<li>${String(s)}</li>`).join("") + "</ul>";
+            const first = String(product.specifications[0] || "");
+            if (first.includes("<") && (first.includes(">") || first.includes("</"))) {
+              specsHtml = product.specifications.join("");
+            } else {
+              specsHtml = "<ul>" + product.specifications.map((s: any) => `<li>${String(s)}</li>`).join("") + "</ul>";
+            }
           }
 
           if (!specsHtml) return null;
