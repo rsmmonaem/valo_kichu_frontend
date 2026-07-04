@@ -79,15 +79,72 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
     const [attributes, setAttributes] = useState<any[]>([]);
     const [variations, setVariations] = useState<any[]>([]);
 
-    // Available Options
-    const availableColors = [
+    // Available Options State
+    const [availableColors, setAvailableColors] = useState<any[]>([
         { id: 1, name: "Yellow", color: "bg-yellow-500" },
         { id: 2, name: "WhiteSmoke", color: "bg-gray-300" },
         { id: 3, name: "Red", color: "bg-red-500" },
         { id: 4, name: "Blue", color: "bg-blue-500" },
         { id: 5, name: "Green", color: "bg-green-500" },
         { id: 6, name: "Black", color: "bg-black" },
-    ];
+    ]);
+
+    const [showColorCreator, setShowColorCreator] = useState(false);
+    const [newColorName, setNewColorName] = useState("");
+    const [newColorHex, setNewColorHex] = useState("#000000");
+
+    // Load custom colors from localStorage on mount
+    useEffect(() => {
+        const savedColors = localStorage.getItem('custom_colors');
+        if (savedColors) {
+            try {
+                const parsed = JSON.parse(savedColors);
+                setAvailableColors(prev => {
+                    const combined = [...prev];
+                    parsed.forEach((c: any) => {
+                        if (c.name && !combined.some(item => item.name.toLowerCase() === c.name.toLowerCase())) {
+                            combined.push(c);
+                        }
+                    });
+                    return combined;
+                });
+            } catch (e) {
+                console.error("Failed to parse custom colors", e);
+            }
+        }
+    }, []);
+
+    const handleCreateCustomColor = (name: string, hex: string) => {
+        const cleanedName = name.trim();
+        const cleanedHex = hex.trim();
+        if (!cleanedName || !cleanedHex) return;
+
+        const lowerName = cleanedName.toLowerCase();
+        if (availableColors.some(c => c.name.toLowerCase() === lowerName)) {
+            toast.error("Color name already exists");
+            return;
+        }
+
+        const newId = availableColors.length > 0 ? Math.max(...availableColors.map(c => c.id)) + 1 : 1;
+        const newColor = {
+            id: newId,
+            name: cleanedName,
+            color: cleanedHex
+        };
+
+        const updatedAvailable = [...availableColors, newColor];
+        setAvailableColors(updatedAvailable);
+        setSelectedColors(prev => {
+            if (prev.some(c => c.name.toLowerCase() === lowerName)) return prev;
+            return [...prev, newColor];
+        });
+
+        // Save only custom ones to local storage (id > 6)
+        const customOnly = updatedAvailable.filter(c => c.id > 6);
+        localStorage.setItem('custom_colors', JSON.stringify(customOnly));
+
+        toast.success(`Color "${cleanedName}" added and selected`);
+    };
 
     const availAttributes = [
         { id: 1, name: "Weight" },
@@ -138,7 +195,30 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
 
         if (data.tags) setTags(Array.isArray(data.tags) ? data.tags : []);
         if (data.specifications) setSpecifications(Array.isArray(data.specifications) ? data.specifications : []);
-        if (data.colors) setSelectedColors(Array.isArray(data.colors) ? data.colors : []);
+        if (data.colors) {
+            const mappedColors = (Array.isArray(data.colors) ? data.colors : []).map((c: any) => ({
+                id: c.id,
+                name: c.name,
+                color: c.color_class || c.color || "",
+                image: c.image || null
+            }));
+            setSelectedColors(mappedColors);
+            
+            // Add custom loaded colors to availableColors list if they aren't already there
+            setAvailableColors(prev => {
+                const combined = [...prev];
+                mappedColors.forEach((mc: any) => {
+                    if (mc.name && !combined.some(ac => ac.name.toLowerCase() === mc.name.toLowerCase())) {
+                        combined.push({
+                            id: mc.id || (combined.length > 0 ? Math.max(...combined.map(item => item.id)) + 1 : 1),
+                            name: mc.name,
+                            color: mc.color
+                        });
+                    }
+                });
+                return combined;
+            });
+        }
         if (data.variations) setVariations(Array.isArray(data.variations) ? data.variations : []);
         if (data.attributes) setAttributes(Array.isArray(data.attributes) ? data.attributes : []);
     };
@@ -1271,24 +1351,105 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 {/* Colors Selection */}
                                 <div className="space-y-4">
-                                    <label className="block text-sm font-medium text-gray-600">
-                                        Select Colors:
-                                    </label>
-                                    <div className="relative">
-                                        <select
-                                            className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                            onChange={handleColorSelect}
-                                            defaultValue=""
+                                    <div className="flex justify-between items-center">
+                                        <label className="block text-sm font-medium text-gray-600">
+                                            Select Colors:
+                                        </label>
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowColorCreator(!showColorCreator)}
+                                            className="text-xs text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1 focus:outline-none"
                                         >
-                                            <option value="">Select Color</option>
-                                            {(availableColors || []).map((color) => (
-                                                <option key={`avail-color-${color.id}`} value={color.id}>
-                                                    {color.name}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        <ChevronDown className="absolute right-3 top-3.5 h-5 w-5 text-gray-400 pointer-events-none" />
+                                            <Plus size={14} /> Create Custom Color
+                                        </button>
                                     </div>
+
+                                    {!showColorCreator ? (
+                                        <div className="relative">
+                                            <select
+                                                className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                onChange={handleColorSelect}
+                                                defaultValue=""
+                                            >
+                                                <option value="">Select Color</option>
+                                                {(availableColors || []).map((color) => (
+                                                    <option key={`avail-color-${color.id}`} value={color.id}>
+                                                        {color.name}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <ChevronDown className="absolute right-3 top-3.5 h-5 w-5 text-gray-400 pointer-events-none" />
+                                        </div>
+                                    ) : (
+                                        <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
+                                            <h4 className="text-sm font-bold text-gray-700">Create Custom Color</h4>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                <div className="space-y-1">
+                                                    <label className="block text-xs text-gray-500 font-medium">Color Name</label>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="e.g., Lavender"
+                                                        value={newColorName}
+                                                        onChange={(e) => setNewColorName(e.target.value)}
+                                                        className="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                                    />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="block text-xs text-gray-500 font-medium">Color Code</label>
+                                                    <div className="flex gap-2">
+                                                        <div className="relative flex-1">
+                                                            <input
+                                                                type="text"
+                                                                placeholder="#000000"
+                                                                value={newColorHex}
+                                                                onChange={(e) => setNewColorHex(e.target.value)}
+                                                                className="w-full pl-8 pr-3 py-2 text-sm bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 font-mono"
+                                                            />
+                                                            <div 
+                                                                className="absolute left-2.5 top-2.5 w-4 h-4 rounded-full border border-gray-300 shadow-sm"
+                                                                style={{ backgroundColor: newColorHex }}
+                                                            />
+                                                        </div>
+                                                        <input
+                                                            type="color"
+                                                            value={newColorHex}
+                                                            onChange={(e) => setNewColorHex(e.target.value)}
+                                                            className="w-10 h-9 p-0 border border-gray-300 rounded-lg cursor-pointer bg-white"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="flex justify-end gap-2 pt-1">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setShowColorCreator(false);
+                                                        setNewColorName("");
+                                                        setNewColorHex("#000000");
+                                                    }}
+                                                    className="px-3 py-1.5 text-xs text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors"
+                                                >
+                                                    Cancel
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        if (!newColorName.trim()) {
+                                                            toast.error("Please enter a color name");
+                                                            return;
+                                                        }
+                                                        handleCreateCustomColor(newColorName, newColorHex);
+                                                        setShowColorCreator(false);
+                                                        setNewColorName("");
+                                                        setNewColorHex("#000000");
+                                                    }}
+                                                    className="px-3 py-1.5 text-xs text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors font-medium"
+                                                >
+                                                    Save & Select
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
 
                                     {/* Selected Colors Display */}
                                     <div className="flex flex-wrap gap-3 mt-4">
@@ -1297,7 +1458,15 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
                                                 key={`selected-color-${color.id || index}`}
                                                 className="flex items-center gap-2 px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg"
                                             >
-                                                <div className={`w-4 h-4 ${color.color} rounded-full`}></div>
+                                                <div 
+                                                    className={clsx(
+                                                        "w-4 h-4 rounded-full border border-gray-300",
+                                                        color.color?.startsWith('bg-') && color.color
+                                                    )}
+                                                    style={{
+                                                        backgroundColor: color.color?.startsWith('bg-') ? undefined : color.color
+                                                    }}
+                                                />
                                                 <span className="font-medium text-gray-800">
                                                     {color.name}
                                                 </span>
@@ -1458,7 +1627,15 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
                                                 </div>
                                                 <div className="col-span-4">
                                                     <div className="flex items-center gap-3">
-                                                        <div className={`w-6 h-6 ${variation.colorClass} rounded-full border border-gray-300`}></div>
+                                                        <div 
+                                                            className={clsx(
+                                                                "w-6 h-6 rounded-full border border-gray-300",
+                                                                variation.colorClass?.startsWith('bg-') && variation.colorClass
+                                                            )}
+                                                            style={{
+                                                                backgroundColor: variation.colorClass?.startsWith('bg-') ? undefined : variation.colorClass
+                                                            }}
+                                                        />
                                                         <div>
                                                             <span className="font-medium text-gray-800 block">
                                                                 {variation.color}
