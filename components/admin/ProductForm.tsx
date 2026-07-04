@@ -6,6 +6,7 @@ import { Plus, X, Upload, Trash2, Save, Image as ImageIcon, ChevronDown, Check, 
 import { authFetch } from '@/lib/api';
 import toast from 'react-hot-toast';
 import clsx from 'clsx';
+import RichTextEditor from './RichTextEditor';
 
 interface ProductFormProps {
     initialData?: any;
@@ -71,8 +72,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
     // Tags and Specifications
     const [tags, setTags] = useState<string[]>([]);
     const [tagInput, setTagInput] = useState("");
-    const [specifications, setSpecifications] = useState<string[]>([]);
-    const [specInput, setSpecInput] = useState("");
+    const [specifications, setSpecifications] = useState<string>("");
 
     // Variations and Attributes
     const [selectedColors, setSelectedColors] = useState<any[]>([]);
@@ -194,7 +194,14 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
         }));
 
         if (data.tags) setTags(Array.isArray(data.tags) ? data.tags : []);
-        if (data.specifications) setSpecifications(Array.isArray(data.specifications) ? data.specifications : []);
+        if (data.specifications) {
+            if (typeof data.specifications === 'string') {
+                setSpecifications(data.specifications);
+            } else if (Array.isArray(data.specifications)) {
+                // Legacy: join array items into HTML list
+                setSpecifications('<ul>' + data.specifications.map((s: string) => `<li>${s}</li>`).join('') + '</ul>');
+            }
+        }
         if (data.colors) {
             const mappedColors = (Array.isArray(data.colors) ? data.colors : []).map((c: any) => ({
                 id: c.id,
@@ -301,7 +308,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
         }));
     };
 
-    // ========== TAG & SPECIFICATION HANDLERS ==========
+    // ========== TAG HANDLERS ==========
     const handleAddTag = () => {
         if (tagInput.trim() && !tags.includes(tagInput.trim())) {
             setTags([...tags, tagInput.trim()]);
@@ -320,16 +327,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
         }
     };
 
-    const handleAddSpecification = () => {
-        if (specInput.trim() && !specifications.includes(specInput.trim())) {
-            setSpecifications([...specifications, specInput.trim()]);
-            setSpecInput("");
-        }
-    };
 
-    const handleRemoveSpecification = (specToRemove: string) => {
-        setSpecifications(specifications.filter(spec => spec !== specToRemove));
-    };
 
     // ========== COLOR HANDLERS ==========
     const handleColorSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -798,7 +796,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
             meta_keywords: ""
         });
         setTags([]);
-        setSpecifications([]);
+        setSpecifications("");
         setSelectedColors([]);
         setAttributes([]);
         setVariations([]);
@@ -882,52 +880,16 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
 
                     {/* Specifications */}
                     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                        <h2 className="text-lg font-semibold text-gray-700 mb-6">
+                        <h2 className="text-lg font-semibold text-gray-700 mb-4">
                             Specifications
                         </h2>
-                        <div className="space-y-4">
-                            {/* Display Added Specifications */}
-                            <div className="flex flex-wrap gap-2 mb-3">
-                                {(Array.isArray(specifications) ? specifications : []).map((spec, index) => (
-                                    <span
-                                        key={`spec-${index}`}
-                                        className="inline-flex items-center gap-2 px-3 py-2 bg-green-50 text-green-700 rounded-lg text-sm"
-                                    >
-                                        {spec}
-                                        <button
-                                            type="button"
-                                            onClick={() => handleRemoveSpecification(spec)}
-                                            className="text-green-700 hover:text-green-900 text-lg leading-none"
-                                        >
-                                            ×
-                                        </button>
-                                    </span>
-                                ))}
-                                {specifications.length === 0 && (
-                                    <span className="text-gray-500 text-sm">
-                                        No specifications added yet
-                                    </span>
-                                )}
-                            </div>
-
-                            {/* Input Field to Add Specifications */}
-                            <div className="flex flex-col sm:flex-row gap-3">
-                                <input
-                                    type="text"
-                                    className="flex-1 px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    placeholder="Enter specification and press +"
-                                    value={specInput}
-                                    onChange={(e) => setSpecInput(e.target.value)}
-                                />
-                                <button
-                                    type="button"
-                                    onClick={handleAddSpecification}
-                                    className="px-6 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors whitespace-nowrap"
-                                >
-                                    + Add Specification
-                                </button>
-                            </div>
-                        </div>
+                        <p className="text-xs text-gray-400 mb-3">Write product specifications using the rich text editor below. Supports bold, lists, headings, and more.</p>
+                        <RichTextEditor
+                            value={specifications}
+                            onChange={(val) => setSpecifications(val)}
+                            placeholder="e.g., Material: 100% Cotton, Weight: 250g, Size: S-XXL..."
+                            minHeight="200px"
+                        />
                     </div>
 
                     {/* Category Section */}

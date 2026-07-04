@@ -605,30 +605,54 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
         </div>
       </div>
       <div className="p-6 md:p-8 bg-white mt-8 rounded-lg border border-gray-100">
-        <div className={`${product.specifications && product.specifications.length > 0 ? "" : "hidden"}`}>
-          <h1 className={`text-2xl font-medium`}>Specification</h1>
-          <ul className="list-disc list-inside ml-2 mt-2 text-gray-600">
-            {(() => {
-              let specs = [];
-              if (typeof product.specifications === 'string') {
-                try {
-                  specs = JSON.parse(product.specifications);
-                } catch {
-                  specs = [];
+        {(() => {
+          // Resolve specs content: handle HTML string, legacy array, or JSON array
+          let specsHtml = "";
+          if (typeof product.specifications === "string" && product.specifications.trim()) {
+            // Check if it's a JSON array (legacy)
+            if (product.specifications.trim().startsWith("[")) {
+              try {
+                const arr = JSON.parse(product.specifications);
+                if (Array.isArray(arr) && arr.length > 0) {
+                  specsHtml = "<ul>" + arr.map((s: any) => `<li>${String(s)}</li>`).join("") + "</ul>";
                 }
-              } else if (Array.isArray(product.specifications)) {
-                specs = product.specifications;
-              } else if (product.specifications && typeof product.specifications === 'object') {
-                specs = Object.values(product.specifications);
+              } catch {
+                specsHtml = product.specifications;
               }
+            } else {
+              specsHtml = product.specifications;
+            }
+          } else if (Array.isArray(product.specifications) && product.specifications.length > 0) {
+            specsHtml = "<ul>" + product.specifications.map((s: any) => `<li>${String(s)}</li>`).join("") + "</ul>";
+          }
 
-              if (specs && specs.length > 0) {
-                return specs.map((spec: any, idx: number) => <li key={idx}>{String(spec)}</li>);
-              }
-              return "No specifications available.";
-            })()}
-          </ul>
-        </div>
+          if (!specsHtml) return null;
+
+          return (
+            <div className="mb-8">
+              <h2 className="text-2xl font-medium mb-3">Specification</h2>
+              <div
+                className="
+                  text-gray-600 leading-relaxed text-sm md:text-base
+                  [&_h2]:text-xl [&_h2]:font-bold [&_h2]:mt-4 [&_h2]:mb-2 [&_h2]:text-gray-900
+                  [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:mt-3 [&_h3]:mb-1 [&_h3]:text-gray-800
+                  [&_h4]:text-base [&_h4]:font-semibold [&_h4]:mt-2 [&_h4]:mb-1
+                  [&_p]:mb-2
+                  [&_ul]:list-disc [&_ul]:ml-5 [&_ul]:mb-2
+                  [&_ol]:list-decimal [&_ol]:ml-5 [&_ol]:mb-2
+                  [&_li]:mb-1
+                  [&_strong]:font-bold [&_strong]:text-gray-900
+                  [&_b]:font-bold [&_b]:text-gray-900
+                  [&_a]:text-blue-600 [&_a]:underline
+                  [&_table]:w-full [&_table]:border-collapse [&_table]:mb-4 [&_table]:rounded-lg [&_table]:overflow-hidden [&_table]:shadow-sm
+                  [&_th]:border [&_th]:border-gray-200 [&_th]:p-3 [&_th]:bg-gray-50 [&_th]:text-left [&_th]:font-semibold [&_th]:text-gray-700
+                  [&_td]:border [&_td]:border-gray-200 [&_td]:p-3 [&_td]:text-gray-600
+                "
+                dangerouslySetInnerHTML={{ __html: specsHtml }}
+              />
+            </div>
+          );
+        })()}
         <div>
           <h1 className="text-2xl font-medium">Product Details</h1>
           <div>
