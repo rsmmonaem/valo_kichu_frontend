@@ -27,7 +27,7 @@ const CategoryGrid: React.FC<CategoryGridProps> = ({ categories }) => {
   };
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 p-4">
+    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 p-2 md:p-4">
       {categories.map((cat) => (
         <Link
           key={cat.id}
@@ -35,7 +35,7 @@ const CategoryGrid: React.FC<CategoryGridProps> = ({ categories }) => {
           className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:border-blue-200 overflow-hidden transition-all duration-300 group"
         >
           {/* Image Section */}
-          <div className="w-full h-40 md:h-52 bg-gray-50 overflow-hidden">
+          <div className="w-full aspect-[16/10] sm:aspect-auto sm:h-40 md:h-52 bg-gray-50 overflow-hidden">
             {(cat.image_url || cat.image) ? (
               <img
                 src={getImageUrl(cat.image_url || cat.image)}
@@ -45,15 +45,15 @@ const CategoryGrid: React.FC<CategoryGridProps> = ({ categories }) => {
                 onError={(e) => (e.currentTarget.style.display = "none")}
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-4xl font-bold text-blue-600 bg-blue-50">
+              <div className="w-full h-full flex items-center justify-center text-3xl md:text-4xl font-bold text-blue-600 bg-blue-50">
                 {cat.name.charAt(0)}
               </div>
             )}
           </div>
 
           {/* Content Section */}
-          <div className="p-4">
-            <h3 className="text-base md:text-lg font-semibold text-gray-800 group-hover:text-blue-600 transition-colors">
+          <div className="p-3 md:p-4">
+            <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-800 group-hover:text-blue-600 transition-colors">
               {cat.name}
             </h3>
           </div>
