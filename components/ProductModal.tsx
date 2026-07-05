@@ -658,9 +658,9 @@ export default function ProductModal({ product: initialProduct, onClose }: Produ
                     )}
                 </div>
 
-                {/* Gallery Thumbnails */}
+                {/* Gallery Thumbnails — hidden on mobile (color buttons handle image switch) */}
                 {galleryImages.length > 0 && (
-                  <div className="grid grid-cols-3 gap-4 md:flex md:flex-wrap md:gap-5 mt-4 pb-2">
+                  <div className="hidden md:flex md:flex-wrap md:gap-5 mt-4 pb-2">
                     {galleryImages.map((g: any) => (
                       <button
                         key={g.id}
@@ -689,6 +689,36 @@ export default function ProductModal({ product: initialProduct, onClose }: Produ
                         </div>
                       </button>
                     ))}
+                  </div>
+                )}
+
+                {/* Mobile-only Color Selector — shown under the main image */}
+                {colorData.length > 0 && (
+                  <div className="block md:hidden mt-4 pt-4 border-t border-gray-100">
+                    <span className="font-bold text-gray-800 text-xs block mb-2">
+                      Color: {color?.name}
+                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      {colorData.map((c: any) => (
+                        <button
+                          key={c.id}
+                          onClick={() => {
+                            setColor(c);
+                            if (c.img) {
+                              setPreview(c.img);
+                              setHasImageError(false);
+                            }
+                          }}
+                          className={`px-2.5 py-1 text-xs font-semibold rounded-lg border transition ${
+                            c.id === color?.id
+                              ? "bg-[#FFAC1C] text-white border-[#FFAC1C] shadow-sm"
+                              : "bg-gray-50 text-gray-600 border-gray-200 hover:border-gray-300"
+                          }`}
+                        >
+                          {c.name}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 )}
 
@@ -835,9 +865,9 @@ export default function ProductModal({ product: initialProduct, onClose }: Produ
                   </div>
                 </div>
 
-                {/* Color Selection */}
+                {/* Color Selection — hidden on mobile (shown under image instead) */}
                 {colorData.length > 0 && (
-                  <div className="mb-6">
+                  <div className="hidden md:block mb-6">
                     <h3 className="font-semibold mb-3">Color: {color?.name}</h3>
                     <div className="grid grid-cols-3 gap-4">
                       {colorData.map((c: any) => (

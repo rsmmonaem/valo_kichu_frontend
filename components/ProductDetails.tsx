@@ -335,7 +335,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
               </div>
             )}
           </div>
-          <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+          <div className="hidden md:flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
             {allImages.map((img, idx) => (
               <button
                 key={idx}
@@ -361,6 +361,36 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
               </button>
             ))}
           </div>
+
+          {/* Mobile-only Color Selector */}
+          {colorData.length > 0 && (
+            <div className="block md:hidden mt-4 pt-4 border-t border-gray-100">
+              <span className="font-bold text-gray-800 text-xs block mb-2">
+                Color: {selectedColor?.name}
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {colorData.map((c: any, idx: number) => (
+                  <button
+                    key={idx}
+                    onClick={() => {
+                      setSelectedColor(c);
+                      if (c.img) {
+                        setMainImageOverride(c.img);
+                      }
+                    }}
+                    className={clsx(
+                      "px-2.5 py-1 text-xs font-semibold rounded-lg border transition",
+                      selectedColor?.id === c.id
+                        ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                        : "bg-gray-50 text-gray-600 border-gray-200 hover:border-gray-300"
+                    )}
+                  >
+                    {c.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Product Info */}
@@ -424,9 +454,9 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
             />
 
             <div className="flex flex-col gap-4 mt-2">
-              {/* Color Selector */}
+              {/* Color Selector — hidden on mobile (shown under image instead) */}
               {colorData.length > 0 && (
-                <div className="mb-2">
+                <div className="hidden md:block mb-2">
                   <span className="font-bold text-gray-800 text-sm block mb-2">
                     Color: {selectedColor?.name}
                   </span>

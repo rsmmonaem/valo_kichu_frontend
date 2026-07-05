@@ -148,7 +148,6 @@ const CheckoutPage = () => {
     if (!checkoutData.area) {
       console.log("No delivery area selected");
       setShowAreaError(true);
-      toast.error("Please select a Delivery Area before placing the order.");
       setTimeout(() => {
         const el = document.getElementById("delivery-area-section");
         if (el) {
