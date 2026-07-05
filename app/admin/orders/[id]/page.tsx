@@ -144,7 +144,7 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
           notes: editedOrder.notes,
           items: editedOrder.items.map((item: any) => ({
             product_id: item.product_id,
-            product_variation_id: item.product_variation_id,
+            product_variation_id: (item.product_variation_id || item.variant_id) ? parseInt(item.product_variation_id || item.variant_id) || null : null,
             quantity: parseInt(item.quantity) || 1,
             unit_price: parseFloat(item.unit_price || item.price) || 0,
             order_price: parseFloat(item.order_price || item.unit_price || item.price) || 0,
