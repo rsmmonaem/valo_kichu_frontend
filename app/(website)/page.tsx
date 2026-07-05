@@ -25,7 +25,11 @@ export default async function Home() {
       getRecommendedProducts(),
     ]);
 
-  const categories = categoriesRes.data || [];
+  const categories = (categoriesRes.data || []).slice().sort((a: any, b: any) => {
+    const pa = a.priority ?? 9999;
+    const pb = b.priority ?? 9999;
+    return pa - pb;
+  });
 
   return (
     <div className="bg-gray-50 min-h-screen">

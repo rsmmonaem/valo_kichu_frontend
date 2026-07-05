@@ -76,6 +76,63 @@ const CheckoutPage = () => {
   const [showAreaError, setShowAreaError] = useState(false);
   const [shippingCost, setShippingCost] = useState(0);
   const [shippingMethods, setShippingMethods] = useState<ShippingMethod[]>([]);
+  const [sessionToken, setSessionToken] = useState<string | null>(null);
+
+  // Initialize session token for checkout lead capture
+  useEffect(() => {
+    let token = localStorage.getItem("checkout_lead_session_token");
+    if (!token) {
+      token = "lead_" + Math.random().toString(36).substring(2, 15) + "_" + Date.now();
+      localStorage.setItem("checkout_lead_session_token", token);
+    }
+    setSessionToken(token);
+  }, []);
+
+  // Debounced auto-save lead capture
+  useEffect(() => {
+    if (!sessionToken) return;
+
+    // Send only if at least one identification field has content
+    if (
+      !checkoutData.name.trim() &&
+      !checkoutData.phone.trim() &&
+      !checkoutData.email.trim() &&
+      !checkoutData.address_line1.trim()
+    ) {
+      return;
+    }
+
+    const delayDebounceFn = setTimeout(async () => {
+      try {
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+        const baseUrl = API_URL.endsWith("/api") ? API_URL : `${API_URL}/api`;
+
+        await fetch(`${baseUrl}/v1/order/checkout-lead`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(localStorage.getItem("token")
+              ? { Authorization: `Bearer ${localStorage.getItem("token")}` }
+              : {}),
+          },
+          body: JSON.stringify({
+            session_token: sessionToken,
+            name: checkoutData.name,
+            phone: checkoutData.phone,
+            email: checkoutData.email,
+            address: checkoutData.address_line1,
+            area: checkoutData.area,
+            payment_method: checkoutData.payment_method,
+            notes: checkoutData.notes,
+          }),
+        });
+      } catch (err) {
+        console.error("Error auto-saving lead:", err);
+      }
+    }, 1500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [checkoutData, sessionToken]);
 
   useEffect(() => {
     const fetchShippingMethods = async () => {
@@ -209,6 +266,7 @@ const CheckoutPage = () => {
             ? localStorage.getItem("referral_code")
             : null,
         referral_source: "store_link",
+        session_token: sessionToken,
       };
 
       // 2. Send Request
@@ -224,6 +282,9 @@ const CheckoutPage = () => {
       const data = await res.json();
 
       if (res.ok) {
+        // Clear checkout lead session token so next order starts fresh
+        localStorage.removeItem("checkout_lead_session_token");
+
         // Meta Pixel: Track Purchase
         fpixel.event('Purchase', {
           content_ids: cart.map((item) => item.id.toString()),

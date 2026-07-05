@@ -18,7 +18,8 @@ import {
     Image as ImageIcon,
     Truck,
     ChevronDown,
-    ChevronRight
+    ChevronRight,
+    ClipboardList
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import clsx from 'clsx';
@@ -69,6 +70,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, setIsOpen }) => {
         { path: '/admin/brands', label: 'Brands', icon: Tags },
         { path: '/admin/banners', label: 'Banners', icon: ImageIcon },
         { path: '/admin/customers', label: 'Customers', icon: Users },
+        { path: '/admin/checkout-leads', label: 'Checkout Leads', icon: ClipboardList },
         { path: '/admin/shipping', label: 'Shipping', icon: Truck },
         { path: '/admin/dropshippers', label: 'Dropshippers', icon: Users },
         { path: '/admin/settings', label: 'Settings', icon: Settings },
