@@ -15,6 +15,13 @@ import {
   XCircle,
   RefreshCcw,
   CreditCard,
+  Edit,
+  Trash2,
+  Save,
+  Plus,
+  Search,
+  Minus,
+  X,
 } from "lucide-react";
 import { authFetch } from "@/lib/api";
 import clsx from "clsx";
@@ -30,6 +37,22 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
   const [loading, setLoading] = useState(true);
   const [statusUpdating, setStatusUpdating] = useState(false);
   const [paymentStatusUpdating, setPaymentStatusUpdating] = useState(false);
+
+  // Order Edit States
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedOrder, setEditedOrder] = useState<any>(null);
+  const [productSearch, setProductSearch] = useState("");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchingProducts, setSearchingProducts] = useState(false);
+  const [savingOrder, setSavingOrder] = useState(false);
+  const [shippingAddressEdit, setShippingAddressEdit] = useState<any>({
+    name: "",
+    address: "",
+    city: "",
+    area: "",
+    phone: ""
+  });
+  const [isAddressJson, setIsAddressJson] = useState(false);
 
   const fetchOrderDetails = async () => {
     setLoading(true);
@@ -49,6 +72,191 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
       setLoading(false);
     }
   };
+
+  const handleStartEdit = () => {
+    setEditedOrder({
+      ...order,
+      items: order.items.map((item: any) => ({ ...item })),
+    });
+
+    try {
+      const parsed = JSON.parse(order.shipping_address);
+      if (parsed && typeof parsed === 'object') {
+        setShippingAddressEdit({
+          name: parsed.name || "",
+          address: parsed.address || "",
+          city: parsed.city || "",
+          area: parsed.area || "",
+          phone: parsed.phone || ""
+        });
+        setIsAddressJson(true);
+      } else {
+        setShippingAddressEdit({
+          name: "",
+          address: order.shipping_address || "",
+          city: "",
+          area: "",
+          phone: ""
+        });
+        setIsAddressJson(false);
+      }
+    } catch {
+      setShippingAddressEdit({
+        name: "",
+        address: order.shipping_address || "",
+        city: "",
+        area: "",
+        phone: ""
+      });
+      setIsAddressJson(false);
+    }
+
+    setIsEditing(true);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditedOrder(null);
+    setProductSearch("");
+    setSearchResults([]);
+  };
+
+  const handleSaveChanges = async () => {
+    if (!editedOrder.items || editedOrder.items.length === 0) {
+      toast.error("An order must have at least one product.");
+      return;
+    }
+
+    setSavingOrder(true);
+    try {
+      const res = await authFetch(`/admin/v1/orders/${orderId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: editedOrder.name,
+          email: editedOrder.email,
+          contact_number: editedOrder.contact_number,
+          shipping_address: editedOrder.shipping_address,
+          shipping_cost: parseFloat(editedOrder.shipping_cost) || 0,
+          discount: parseFloat(editedOrder.discount) || 0,
+          notes: editedOrder.notes,
+          items: editedOrder.items.map((item: any) => ({
+            product_id: item.product_id,
+            product_variation_id: item.product_variation_id,
+            quantity: parseInt(item.quantity) || 1,
+            unit_price: parseFloat(item.unit_price || item.price) || 0,
+            order_price: parseFloat(item.order_price || item.unit_price || item.price) || 0,
+            product_name: item.product_name,
+            variation_snapshot: item.variation_snapshot
+          }))
+        }),
+      });
+
+      if (res.ok) {
+        toast.success("Order updated successfully!");
+        setIsEditing(false);
+        setEditedOrder(null);
+        fetchOrderDetails();
+      } else {
+        const errData = await res.json();
+        toast.error(errData.message || "Failed to update order");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Something went wrong");
+    } finally {
+      setSavingOrder(false);
+    }
+  };
+
+  const handleAddProductToOrder = (product: any) => {
+    const selectEl = document.getElementById(`var-select-${product.id}`) as HTMLSelectElement | null;
+    let selectedVar: any = null;
+    if (selectEl && selectEl.value) {
+      try {
+        selectedVar = JSON.parse(selectEl.value);
+      } catch (err) {
+        console.error("Failed to parse variation", err);
+      }
+    }
+
+    const basePrice = parseFloat(product.sale_price || product.base_price || product.price || 0);
+    const price = selectedVar && selectedVar.price ? parseFloat(selectedVar.price) : basePrice;
+
+    const variations = (() => {
+      if (!product?.variations) return [];
+      if (typeof product.variations === 'string') {
+        try {
+          const parsed = JSON.parse(product.variations);
+          return Array.isArray(parsed) ? parsed : Object.values(parsed);
+        } catch { return []; }
+      }
+      return Array.isArray(product.variations) ? product.variations : Object.values(product.variations);
+    })();
+
+    if (variations.length > 0 && !selectedVar) {
+      toast.error("Please select a variation for this product");
+      return;
+    }
+
+    const snapshot = selectedVar ? [
+      selectedVar.size ? `Size: ${selectedVar.size}` : "",
+      selectedVar.color ? `Color: ${selectedVar.color}` : "",
+      selectedVar.weight ? `Weight: ${selectedVar.weight}` : "",
+    ].filter(Boolean).join(", ") : "";
+
+    const newItem = {
+      product_id: product.id,
+      product_variation_id: selectedVar ? selectedVar.id : null,
+      product_name: product.name,
+      unit_price: price,
+      price: price,
+      order_price: price,
+      quantity: 1,
+      variation_snapshot: snapshot,
+      product: {
+        id: product.id,
+        name: product.name,
+        image_url: product.image_url || product.image,
+        product_code: product.product_code,
+      }
+    };
+
+    setEditedOrder({
+      ...editedOrder,
+      items: [...(editedOrder.items || []), newItem]
+    });
+
+    setProductSearch("");
+    setSearchResults([]);
+    toast.success("Product added to order");
+  };
+
+  useEffect(() => {
+    if (!productSearch.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    const delayDebounce = setTimeout(async () => {
+      setSearchingProducts(true);
+      try {
+        const res = await authFetch(`/admin/v1/products?search=${encodeURIComponent(productSearch)}`);
+        if (res.ok) {
+          const data = await res.json();
+          setSearchResults(data.data || []);
+        }
+      } catch (err) {
+        console.error("Product search failed", err);
+      } finally {
+        setSearchingProducts(false);
+      }
+    }, 500);
+
+    return () => clearTimeout(delayDebounce);
+  }, [productSearch]);
 
   useEffect(() => {
     fetchOrderDetails();
@@ -223,13 +431,39 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => router.back()}
-            className="px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition flex items-center gap-2"
-          >
-            <ArrowLeft size={18} /> Back
-          </button>
-          {/* Print Button? */}
+          {isEditing ? (
+            <>
+              <button
+                disabled={savingOrder}
+                onClick={handleSaveChanges}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2 font-bold disabled:opacity-50"
+              >
+                <Save size={18} /> Save Changes
+              </button>
+              <button
+                disabled={savingOrder}
+                onClick={handleCancelEdit}
+                className="px-4 py-2 bg-gray-100 text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-200 transition flex items-center gap-2 font-bold disabled:opacity-50"
+              >
+                Cancel
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={handleStartEdit}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2 font-bold"
+              >
+                <Edit size={18} /> Edit Order
+              </button>
+              <button
+                onClick={() => router.back()}
+                className="px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition flex items-center gap-2"
+              >
+                <ArrowLeft size={18} /> Back
+              </button>
+            </>
+          )}
         </div>
       </div>
 
@@ -289,35 +523,67 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
                     Customer
                   </h2>
                 </div>
-                <div className="p-5 space-y-3 text-sm">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
-                      <User size={16} />
+                {isEditing ? (
+                  <div className="p-5 space-y-4 text-sm">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Name</label>
+                      <input
+                        type="text"
+                        value={editedOrder.name || ""}
+                        onChange={(e) => setEditedOrder({ ...editedOrder, name: e.target.value })}
+                        className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm"
+                      />
                     </div>
                     <div>
-                      <p className="text-[11px] text-gray-400 uppercase font-bold tracking-widest">Name</p>
-                      <p className="font-bold text-gray-900">{order.name || "Guest"}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-green-50 text-green-600 rounded-lg">
-                      <Phone size={16} />
-                    </div>
-                    <div>
-                      <p className="text-[11px] text-gray-400 uppercase font-bold tracking-widest">Phone</p>
-                      <p className="font-bold text-gray-900">{order.phone || order.contact_number || "N/A"}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-purple-50 text-purple-600 rounded-lg">
-                      <Mail size={16} />
+                      <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Phone</label>
+                      <input
+                        type="text"
+                        value={editedOrder.contact_number || ""}
+                        onChange={(e) => setEditedOrder({ ...editedOrder, contact_number: e.target.value })}
+                        className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm"
+                      />
                     </div>
                     <div>
-                      <p className="text-[11px] text-gray-400 uppercase font-bold tracking-widest">Email</p>
-                      <p className="font-bold text-gray-900">{order.email || "N/A"}</p>
+                      <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Email</label>
+                      <input
+                        type="email"
+                        value={editedOrder.email || ""}
+                        onChange={(e) => setEditedOrder({ ...editedOrder, email: e.target.value })}
+                        className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm"
+                      />
                     </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="p-5 space-y-3 text-sm">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                        <User size={16} />
+                      </div>
+                      <div>
+                        <p className="text-[11px] text-gray-400 uppercase font-bold tracking-widest">Name</p>
+                        <p className="font-bold text-gray-900">{order.name || "Guest"}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-green-50 text-green-600 rounded-lg">
+                        <Phone size={16} />
+                      </div>
+                      <div>
+                        <p className="text-[11px] text-gray-400 uppercase font-bold tracking-widest">Phone</p>
+                        <p className="font-bold text-gray-900">{order.phone || order.contact_number || "N/A"}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-purple-50 text-purple-600 rounded-lg">
+                        <Mail size={16} />
+                      </div>
+                      <div>
+                        <p className="text-[11px] text-gray-400 uppercase font-bold tracking-widest">Email</p>
+                        <p className="font-bold text-gray-900">{order.email || "N/A"}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -330,7 +596,7 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
                 Order Items
               </h2>
               <span className="text-sm bg-gray-100 px-3 py-1 rounded-full text-gray-600 font-medium">
-                {order.items?.length || 0} items
+                {isEditing ? editedOrder.items?.length || 0 : order.items?.length || 0} items
               </span>
             </div>
             <div className="overflow-x-auto">
@@ -343,122 +609,429 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
                     <th className="px-6 py-4 text-right">Total</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {order.items?.map((item: any, idx: number) => (
-                    <tr key={idx} className="hover:bg-gray-50/50 transition">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-4">
-                          <div className="w-16 h-16 bg-gray-50 rounded-xl overflow-hidden shadow-sm shrink-0 border border-gray-100">
-                            {item.product?.image_url ? (
-                              <img
-                                src={item.product.image_url}
-                                alt={item.product.name}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center text-gray-300">
-                                <Package size={24} />
-                              </div>
-                            )}
-                          </div>
-                          <div>
-                            <p className="font-bold text-gray-900 group-hover:text-blue-600 transition">
-                              {item.product_name || item.product?.name}
-                            </p>
+                {isEditing ? (
+                  <tbody className="divide-y divide-gray-100">
+                    {editedOrder.items?.map((item: any, idx: number) => (
+                      <tr key={idx} className="hover:bg-gray-50/50 transition">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-4">
+                            <div className="w-16 h-16 bg-gray-50 rounded-xl overflow-hidden shadow-sm shrink-0 border border-gray-100">
+                              {item.product?.image_url || item.product?.image ? (
+                                <img
+                                  src={item.product.image_url || item.product.image}
+                                  alt={item.product_name}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                  <Package size={24} />
+                                </div>
+                              )}
+                            </div>
                             <div>
-                              <p className="text-xs text-gray-500 mt-1">
-                                {item.variation_snapshot ||
-                                  item.variant_name ||
-                                  "No variation"}
+                              <p className="font-bold text-gray-900">
+                                {item.product_name}
                               </p>
-                              <p>
-                                {item.product.product_code ? (
+                              <p className="text-xs text-gray-500 mt-1">
+                                {item.variation_snapshot || "No variation"}
+                              </p>
+                              {item.product?.product_code && (
+                                <p className="mt-1">
                                   <span className="text-xs bg-gray-100 px-2 py-1 rounded-lg text-gray-600 font-mono">
                                     Code: {item.product.product_code}
                                   </span>
-                                ) : (
-                                  <span className="text-xs bg-gray-100 px-2 py-1 rounded-lg text-gray-600 font-mono">
-                                    SKU not available
-                                  </span>
-                                )}
-                              </p>
+                                </p>
+                              )}
                             </div>
                           </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-center font-medium">
-                        <div className="text-sm leading-tight">
-                          <div>MRP: ৳{item.price || item.unit_price}</div>
-                          <div className="font-semibold text-green-600 mt-1">
-                            DRP: ৳{item.order_price || 0}
+                        </td>
+                        <td className="px-6 py-4 text-center font-medium">
+                          <div className="text-sm space-y-2">
+                            <div className="flex items-center gap-1 justify-center">
+                              <span className="text-xs text-gray-400">MRP:</span>
+                              <input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={item.unit_price || item.price || 0}
+                                onChange={(e) => {
+                                  const newItems = [...editedOrder.items];
+                                  newItems[idx].unit_price = parseFloat(e.target.value) || 0;
+                                  newItems[idx].price = parseFloat(e.target.value) || 0;
+                                  setEditedOrder({ ...editedOrder, items: newItems });
+                                }}
+                                className="w-20 px-2 py-1 border rounded text-center text-xs"
+                              />
+                            </div>
+                            <div className="flex items-center gap-1 justify-center">
+                              <span className="text-xs text-green-600 font-bold">DRP:</span>
+                              <input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={item.order_price || 0}
+                                onChange={(e) => {
+                                  const newItems = [...editedOrder.items];
+                                  newItems[idx].order_price = parseFloat(e.target.value) || 0;
+                                  setEditedOrder({ ...editedOrder, items: newItems });
+                                }}
+                                className="w-20 px-2 py-1 border rounded text-center text-xs text-green-600 font-bold border-green-200"
+                              />
+                            </div>
                           </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <span className="bg-gray-100 px-3 py-1 rounded-lg text-sm font-bold">
-                          {item.quantity}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-right font-bold ">
-
-                        <div className="text-sm leading-tight">
-                          <div>৳{item.total || item.total_price}</div>
-                          <div className="font-semibold text-green-600 mt-1">
-                            ৳{(item.order_price * item.quantity || 0).toFixed(2)}
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <div className="flex items-center justify-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newItems = [...editedOrder.items];
+                                newItems[idx].quantity = Math.max(1, (newItems[idx].quantity || 1) - 1);
+                                setEditedOrder({ ...editedOrder, items: newItems });
+                              }}
+                              className="p-1 border rounded bg-gray-50 hover:bg-gray-100 text-gray-600"
+                            >
+                              <Minus size={12} />
+                            </button>
+                            <input
+                              type="number"
+                              min="1"
+                              value={item.quantity}
+                              onChange={(e) => {
+                                const newItems = [...editedOrder.items];
+                                newItems[idx].quantity = parseInt(e.target.value) || 1;
+                                setEditedOrder({ ...editedOrder, items: newItems });
+                              }}
+                              className="w-12 px-1 py-1 border rounded text-center font-bold text-xs"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newItems = [...editedOrder.items];
+                                newItems[idx].quantity = (newItems[idx].quantity || 1) + 1;
+                                setEditedOrder({ ...editedOrder, items: newItems });
+                              }}
+                              className="p-1 border rounded bg-gray-50 hover:bg-gray-100 text-gray-600"
+                            >
+                              <Plus size={12} />
+                            </button>
                           </div>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex items-center justify-end gap-4">
+                            <div className="text-sm text-right leading-tight">
+                              <div className="font-bold text-gray-900">
+                                ৳{((item.unit_price || item.price || 0) * item.quantity).toFixed(2)}
+                              </div>
+                              <div className="font-semibold text-green-600 mt-1">
+                                ৳{((item.order_price || 0) * item.quantity).toFixed(2)}
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newItems = editedOrder.items.filter((_: any, i: number) => i !== idx);
+                                setEditedOrder({ ...editedOrder, items: newItems });
+                              }}
+                              className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                ) : (
+                  <tbody className="divide-y divide-gray-100">
+                    {order.items?.map((item: any, idx: number) => (
+                      <tr key={idx} className="hover:bg-gray-50/50 transition">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-4">
+                            <div className="w-16 h-16 bg-gray-50 rounded-xl overflow-hidden shadow-sm shrink-0 border border-gray-100">
+                              {item.product?.image_url ? (
+                                <img
+                                  src={item.product.image_url}
+                                  alt={item.product.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                  <Package size={24} />
+                                </div>
+                              )}
+                            </div>
+                            <div>
+                              <p className="font-bold text-gray-900 group-hover:text-blue-600 transition">
+                                {item.product_name || item.product?.name}
+                              </p>
+                              <div>
+                                <p className="text-xs text-gray-500 mt-1">
+                                  {item.variation_snapshot ||
+                                    item.variant_name ||
+                                    "No variation"}
+                                </p>
+                                <p>
+                                  {item.product?.product_code ? (
+                                    <span className="text-xs bg-gray-100 px-2 py-1 rounded-lg text-gray-600 font-mono">
+                                      Code: {item.product.product_code}
+                                    </span>
+                                  ) : (
+                                    <span className="text-xs bg-gray-100 px-2 py-1 rounded-lg text-gray-600 font-mono">
+                                      SKU not available
+                                    </span>
+                                  )}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-center font-medium">
+                          <div className="text-sm leading-tight">
+                            <div>MRP: ৳{item.price || item.unit_price}</div>
+                            <div className="font-semibold text-green-600 mt-1">
+                              DRP: ৳{item.order_price || 0}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <span className="bg-gray-100 px-3 py-1 rounded-lg text-sm font-bold">
+                            {item.quantity}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-right font-bold ">
+                          <div className="text-sm leading-tight">
+                            <div>৳{item.total || item.total_price}</div>
+                            <div className="font-semibold text-green-600 mt-1">
+                              ৳{(item.order_price * item.quantity || 0).toFixed(2)}
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                )}
               </table>
             </div>
 
-            {/* Price Summary with Left (DRP) and Right (MRP) Columns */}
-            <div className="p-6 bg-gray-50/50 border-t border-gray-100">
-              <div className="max-w-xs ml-auto grid grid-cols-2 gap-6">
-                {/* Left Column - DRP Summary */}
-                <div className="space-y-3">
-                  <div className="text-xs text-gray-400 uppercase font-semibold tracking-wider mb-2 text-center">
-                    DRP Calculation
+            {/* Add Product Section for Edit Mode */}
+            {isEditing && (
+              <div className="p-6 border-t border-gray-100 bg-gray-50/30">
+                <h3 className="font-bold text-sm text-gray-700 mb-3 flex items-center gap-2">
+                  <Plus size={16} className="text-blue-600" /> Add Product to Order
+                </h3>
+                <div className="flex gap-2 relative">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                    <input
+                      type="text"
+                      placeholder="Search products by name or code..."
+                      value={productSearch}
+                      onChange={(e) => setProductSearch(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-white text-sm"
+                    />
                   </div>
-                  <div className="flex justify-between text-gray-600">
-                    <span>Subtotal</span>
-                    <span className="font-bold">৳{drpSubtotal.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between text-gray-600">
-                    <span>Shipping</span>
-                    <span className="font-bold">৳{parseFloat(order.shipping_cost || 0).toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between text-xl font-black text-gray-900 pt-3 border-t border-gray-200">
-                    <span>Total</span>
-                    <span className="text-green-600">
-                      ৳{drpTotal.toFixed(2)}
-                    </span>
-                  </div>
+                  {searchingProducts && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                    </div>
+                  )}
                 </div>
 
-                {/* Right Column - MRP Summary (Original Prices) */}
-                <div className="space-y-3">
-                  <div className="text-xs text-gray-400 uppercase font-semibold tracking-wider mb-2 text-center">
-                    MRP Calculation
+                {/* Search Results Dropdown */}
+                {searchResults.length > 0 && (
+                  <div className="mt-2 bg-white border border-gray-200 rounded-xl shadow-xl max-h-60 overflow-y-auto divide-y divide-gray-100 z-10 relative">
+                    {searchResults.map((product: any) => {
+                      const variations = (() => {
+                        if (!product?.variations) return [];
+                        if (typeof product.variations === 'string') {
+                          try {
+                            const parsed = JSON.parse(product.variations);
+                            return Array.isArray(parsed) ? parsed : Object.values(parsed);
+                          } catch { return []; }
+                        }
+                        return Array.isArray(product.variations) ? product.variations : Object.values(product.variations);
+                      })();
+
+                      return (
+                        <div key={product.id} className="p-3 hover:bg-gray-50 flex items-center justify-between gap-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-gray-100 rounded overflow-hidden shrink-0">
+                              {product.image_url || product.image ? (
+                                <img
+                                  src={product.image_url || product.image}
+                                  alt={product.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                  <Package size={16} />
+                                </div>
+                              )}
+                            </div>
+                            <div>
+                              <h4 className="font-semibold text-gray-900 text-sm">{product.name}</h4>
+                              <p className="text-xs text-gray-500">
+                                Code: {product.product_code || "N/A"} | Price: ৳{product.price}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            {variations.length > 0 && (
+                              <select
+                                id={`var-select-${product.id}`}
+                                className="text-xs border rounded p-1 bg-white"
+                              >
+                                <option value="">Select Variation</option>
+                                {variations.map((v: any, index: number) => {
+                                  const size = v.size || "";
+                                  const color = v.color || "";
+                                  const weight = v.weight || "";
+                                  const label = [
+                                    size ? `Size: ${size}` : "",
+                                    color ? `Color: ${color}` : "",
+                                    weight ? `Weight: ${weight}` : "",
+                                  ].filter(Boolean).join(", ");
+                                  return (
+                                    <option key={index} value={JSON.stringify(v)}>
+                                      {label || `Variation #${index + 1}`} (৳{v.price || product.price})
+                                    </option>
+                                  );
+                                })}
+                              </select>
+                            )}
+
+                            <button
+                              type="button"
+                              onClick={() => handleAddProductToOrder(product)}
+                              className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-bold transition flex items-center gap-1"
+                            >
+                              <Plus size={12} /> Add
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                  <div className="flex justify-between text-gray-600">
-                    <span>Subtotal</span>
-                    <span className="font-bold">৳{mrpSubtotal.toFixed(2)}</span>
+                )}
+              </div>
+            )}
+
+            {/* Price Summary */}
+            <div className="p-6 bg-gray-50/50 border-t border-gray-100">
+              {isEditing ? (
+                <div className="max-w-md ml-auto space-y-4 text-sm">
+                  <div className="flex justify-between items-center text-gray-600 gap-4">
+                    <span>Shipping Cost (৳)</span>
+                    <input
+                      type="number"
+                      min="0"
+                      value={editedOrder.shipping_cost || 0}
+                      onChange={(e) => setEditedOrder({ ...editedOrder, shipping_cost: parseFloat(e.target.value) || 0 })}
+                      className="w-32 px-2 py-1 border rounded text-right font-semibold text-sm"
+                    />
                   </div>
-                  <div className="flex justify-between text-gray-600">
-                    <span>Shipping</span>
-                    <span className="font-bold">৳{parseFloat(order.shipping_cost || 0).toFixed(2)}</span>
+                  <div className="flex justify-between items-center text-gray-600 gap-4">
+                    <span>Discount (৳)</span>
+                    <input
+                      type="number"
+                      min="0"
+                      value={editedOrder.discount || 0}
+                      onChange={(e) => setEditedOrder({ ...editedOrder, discount: parseFloat(e.target.value) || 0 })}
+                      className="w-32 px-2 py-1 border rounded text-right font-semibold text-sm"
+                    />
                   </div>
-                  <div className="flex justify-between text-xl font-black text-gray-900 pt-3 border-t border-gray-200">
-                    <span>Total</span>
-                    <span className="text-blue-600">
-                      ৳{mrpTotal.toFixed(2)}
-                    </span>
+
+                  <div className="grid grid-cols-2 gap-6 pt-4 border-t border-gray-200">
+                    {/* DRP Summary */}
+                    <div className="space-y-2">
+                      <div className="text-xs text-gray-400 uppercase font-semibold tracking-wider mb-1 text-center">
+                        DRP Calculation
+                      </div>
+                      <div className="flex justify-between text-gray-600">
+                        <span>Subtotal</span>
+                        <span className="font-bold">৳{
+                          editedOrder.items?.reduce((sum: number, item: any) => sum + (item.order_price || 0) * item.quantity, 0).toFixed(2)
+                        }</span>
+                      </div>
+                      <div className="flex justify-between text-lg font-black text-gray-900 pt-2 border-t border-dashed">
+                        <span>Total</span>
+                        <span className="text-green-600">
+                          ৳{
+                            (editedOrder.items?.reduce((sum: number, item: any) => sum + (item.order_price || 0) * item.quantity, 0) + parseFloat(editedOrder.shipping_cost || 0)).toFixed(2)
+                          }
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* MRP Summary */}
+                    <div className="space-y-2">
+                      <div className="text-xs text-gray-400 uppercase font-semibold tracking-wider mb-1 text-center">
+                        MRP Calculation
+                      </div>
+                      <div className="flex justify-between text-gray-600">
+                        <span>Subtotal</span>
+                        <span className="font-bold">৳{
+                          editedOrder.items?.reduce((sum: number, item: any) => sum + (item.unit_price || item.price || 0) * item.quantity, 0).toFixed(2)
+                        }</span>
+                      </div>
+                      <div className="flex justify-between text-lg font-black text-gray-900 pt-2 border-t border-dashed">
+                        <span>Total</span>
+                        <span className="text-blue-600">
+                          ৳{
+                            (editedOrder.items?.reduce((sum: number, item: any) => sum + (item.unit_price || item.price || 0) * item.quantity, 0) - parseFloat(editedOrder.discount || 0) + parseFloat(editedOrder.shipping_cost || 0)).toFixed(2)
+                          }
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
+              ) : (
+                <div className="max-w-xs ml-auto grid grid-cols-2 gap-6">
+                  {/* Left Column - DRP Summary */}
+                  <div className="space-y-3 text-sm">
+                    <div className="text-xs text-gray-400 uppercase font-semibold tracking-wider mb-2 text-center">
+                      DRP Calculation
+                    </div>
+                    <div className="flex justify-between text-gray-600">
+                      <span>Subtotal</span>
+                      <span className="font-bold">৳{drpSubtotal.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-gray-600">
+                      <span>Shipping</span>
+                      <span className="font-bold">৳{parseFloat(order.shipping_cost || 0).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-xl font-black text-gray-900 pt-3 border-t border-gray-200">
+                      <span>Total</span>
+                      <span className="text-green-600">
+                        ৳{drpTotal.toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Right Column - MRP Summary (Original Prices) */}
+                  <div className="space-y-3 text-sm">
+                    <div className="text-xs text-gray-400 uppercase font-semibold tracking-wider mb-2 text-center">
+                      MRP Calculation
+                    </div>
+                    <div className="flex justify-between text-gray-600">
+                      <span>Subtotal</span>
+                      <span className="font-bold">৳{mrpSubtotal.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-gray-600">
+                      <span>Shipping</span>
+                      <span className="font-bold">৳{parseFloat(order.shipping_cost || 0).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-xl font-black text-gray-900 pt-3 border-t border-gray-200">
+                      <span>Total</span>
+                      <span className="text-blue-600">
+                        ৳{mrpTotal.toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -589,47 +1162,79 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
                 Customer Information
               </h2>
             </div>
-            <div className="p-6 space-y-6">
-              <div className="flex items-start gap-4">
-                <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
-                  <User size={20} />
+            {isEditing ? (
+              <div className="p-6 space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Full Name</label>
+                  <input
+                    type="text"
+                    value={editedOrder.name || ""}
+                    onChange={(e) => setEditedOrder({ ...editedOrder, name: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm"
+                  />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 uppercase font-black tracking-widest mb-1">
-                    Full Name
-                  </p>
-                  <p className="font-bold text-gray-900">
-                    {order.name || order.user?.name || "Guest"}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start gap-4">
-                <div className="p-3 bg-green-50 text-green-600 rounded-xl">
-                  <Phone size={20} />
+                  <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Phone Number</label>
+                  <input
+                    type="text"
+                    value={editedOrder.contact_number || ""}
+                    onChange={(e) => setEditedOrder({ ...editedOrder, contact_number: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm"
+                  />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 uppercase font-black tracking-widest mb-1">
-                    Phone Number
-                  </p>
-                  <p className="font-bold text-gray-900">
-                    {order.phone || order.contact_number || "N/A"}
-                  </p>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Email Address</label>
+                  <input
+                    type="email"
+                    value={editedOrder.email || ""}
+                    onChange={(e) => setEditedOrder({ ...editedOrder, email: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm"
+                  />
                 </div>
               </div>
-              <div className="flex items-start gap-4">
-                <div className="p-3 bg-purple-50 text-purple-600 rounded-xl">
-                  <Mail size={20} />
+            ) : (
+              <div className="p-6 space-y-6">
+                <div className="flex items-start gap-4">
+                  <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
+                    <User size={20} />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 uppercase font-black tracking-widest mb-1">
+                      Full Name
+                    </p>
+                    <p className="font-bold text-gray-900">
+                      {order.name || order.user?.name || "Guest"}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs text-gray-500 uppercase font-black tracking-widest mb-1">
-                    Email Address
-                  </p>
-                  <p className="font-bold text-gray-900 truncate max-w-[180px]">
-                    {order.email || order.user?.email || "N/A"}
-                  </p>
+                <div className="flex items-start gap-4">
+                  <div className="p-3 bg-green-50 text-green-600 rounded-xl">
+                    <Phone size={20} />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 uppercase font-black tracking-widest mb-1">
+                      Phone Number
+                    </p>
+                    <p className="font-bold text-gray-900">
+                      {order.phone || order.contact_number || "N/A"}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4">
+                  <div className="p-3 bg-purple-50 text-purple-600 rounded-xl">
+                    <Mail size={20} />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 uppercase font-black tracking-widest mb-1">
+                      Email Address
+                    </p>
+                    <p className="font-bold text-gray-900 truncate max-w-[180px]">
+                      {order.email || order.user?.email || "N/A"}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Shipping Address */}
@@ -641,7 +1246,119 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
               </h2>
             </div>
             <div className="p-6">
-              {shippingAddress ? (
+              {isEditing ? (
+                <div className="space-y-4">
+                  {isAddressJson ? (
+                    <>
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Recipient Name</label>
+                        <input
+                          type="text"
+                          value={shippingAddressEdit.name}
+                          onChange={(e) => {
+                            const updated = { ...shippingAddressEdit, name: e.target.value };
+                            setShippingAddressEdit(updated);
+                            setEditedOrder({ ...editedOrder, shipping_address: JSON.stringify(updated) });
+                          }}
+                          className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Address</label>
+                        <textarea
+                          rows={2}
+                          value={shippingAddressEdit.address}
+                          onChange={(e) => {
+                            const updated = { ...shippingAddressEdit, address: e.target.value };
+                            setShippingAddressEdit(updated);
+                            setEditedOrder({ ...editedOrder, shipping_address: JSON.stringify(updated) });
+                          }}
+                          className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">City</label>
+                          <input
+                            type="text"
+                            value={shippingAddressEdit.city}
+                            onChange={(e) => {
+                              const updated = { ...shippingAddressEdit, city: e.target.value };
+                              setShippingAddressEdit(updated);
+                              setEditedOrder({ ...editedOrder, shipping_address: JSON.stringify(updated) });
+                            }}
+                            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Area</label>
+                          <input
+                            type="text"
+                            value={shippingAddressEdit.area}
+                            onChange={(e) => {
+                              const updated = { ...shippingAddressEdit, area: e.target.value };
+                              setShippingAddressEdit(updated);
+                              setEditedOrder({ ...editedOrder, shipping_address: JSON.stringify(updated) });
+                            }}
+                            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Phone</label>
+                        <input
+                          type="text"
+                          value={shippingAddressEdit.phone}
+                          onChange={(e) => {
+                            const updated = { ...shippingAddressEdit, phone: e.target.value };
+                            setShippingAddressEdit(updated);
+                            setEditedOrder({ ...editedOrder, shipping_address: JSON.stringify(updated) });
+                          }}
+                          className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm"
+                        />
+                      </div>
+                    </>
+                  ) : (
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Address Details</label>
+                      <textarea
+                        rows={4}
+                        value={editedOrder.shipping_address || ""}
+                        onChange={(e) => setEditedOrder({ ...editedOrder, shipping_address: e.target.value })}
+                        className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm"
+                      />
+                    </div>
+                  )}
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Order Notes</label>
+                    <textarea
+                      rows={2}
+                      value={editedOrder.notes || ""}
+                      onChange={(e) => setEditedOrder({ ...editedOrder, notes: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm"
+                    />
+                  </div>
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const nextIsJson = !isAddressJson;
+                        setIsAddressJson(nextIsJson);
+                        if (nextIsJson) {
+                          const updated = { name: editedOrder.name || "", address: editedOrder.shipping_address || "", city: "", area: "", phone: editedOrder.contact_number || "" };
+                          setShippingAddressEdit(updated);
+                          setEditedOrder({ ...editedOrder, shipping_address: JSON.stringify(updated) });
+                        } else {
+                          setEditedOrder({ ...editedOrder, shipping_address: shippingAddressEdit.address || "" });
+                        }
+                      }}
+                      className="text-xs text-blue-600 hover:underline font-semibold"
+                    >
+                      Switch to {isAddressJson ? "Raw Text" : "Structured Form"}
+                    </button>
+                  </div>
+                </div>
+              ) : shippingAddress ? (
                 <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100">
                   <p className="font-bold text-gray-900 mb-2">
                     {shippingAddress.name || order.name || order.user?.name}
@@ -657,12 +1374,24 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
                       order.phone ||
                       order.contact_number}
                   </p>
+                  {order.notes && (
+                    <div className="mt-3 pt-3 border-t border-gray-200">
+                      <p className="text-xs font-bold text-gray-500 uppercase">Order Notes</p>
+                      <p className="text-gray-600 text-xs italic mt-1">{order.notes}</p>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100">
                   <p className="text-gray-600 text-sm whitespace-pre-wrap">
                     {order.shipping_address || "No shipping address provided"}
                   </p>
+                  {order.notes && (
+                    <div className="mt-3 pt-3 border-t border-gray-200">
+                      <p className="text-xs font-bold text-gray-500 uppercase">Order Notes</p>
+                      <p className="text-gray-600 text-xs italic mt-1">{order.notes}</p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
