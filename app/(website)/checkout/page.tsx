@@ -73,6 +73,7 @@ const CheckoutPage = () => {
     area: "", // "Inside Dhaka" | "Outside Dhaka"
   });
 
+  const [showAreaError, setShowAreaError] = useState(false);
   const [shippingCost, setShippingCost] = useState(0);
   const [shippingMethods, setShippingMethods] = useState<ShippingMethod[]>([]);
 
@@ -134,6 +135,7 @@ const CheckoutPage = () => {
       const method = shippingMethods.find((m) => m.name === value);
       if (method) {
         setShippingCost(Number(method.cost));
+        setShowAreaError(false);
       } else {
         setShippingCost(0);
       }
@@ -145,7 +147,14 @@ const CheckoutPage = () => {
 
     if (!checkoutData.area) {
       console.log("No delivery area selected");
+      setShowAreaError(true);
       toast.error("Please select a Delivery Area before placing the order.");
+      setTimeout(() => {
+        const el = document.getElementById("delivery-area-section");
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 100);
       return;
     }
     setLoading(true);
@@ -393,9 +402,12 @@ const CheckoutPage = () => {
                                         />
                                     </div> */}
                 </div>
-                <div className="space-y-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Delivery Area
+                <div className="space-y-4" id="delivery-area-section">
+                  <label className={clsx(
+                    "block text-sm font-medium transition-colors",
+                    showAreaError ? "text-red-500 font-bold" : "text-gray-700"
+                  )}>
+                    Delivery Area {showAreaError && <span className="text-red-500 text-xs font-normal ml-2">(Please select a delivery area)</span>}
                   </label>
                   {/* <select
                                         name="area"
@@ -412,7 +424,10 @@ const CheckoutPage = () => {
                                         ))}
                                     </select> */}
 
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className={clsx(
+                    "grid grid-cols-2 gap-2 p-1.5 rounded-2xl transition-all duration-300",
+                    showAreaError && "border-2 border-red-500 bg-red-50/30 animate-pulse"
+                  )}>
                     {shippingMethods.map((method) => (
                       <button
                         type="button"
@@ -423,11 +438,16 @@ const CheckoutPage = () => {
                             area: method.name,
                           }));
                           setShippingCost(method.cost); // Update the shipping cost based on the selected method
+                          setShowAreaError(false);
                         }}
-                        className={`p-3 text-center rounded-xl cursor-pointer transition hover:scale-105 ${checkoutData.area === method.name
-                          ? "bg-[#FFAC1C] text-white shadow-lg"
-                          : "bg-gray-100"
-                          }`}
+                        className={clsx(
+                          "p-3 text-center rounded-xl cursor-pointer transition border-2 hover:scale-105",
+                          checkoutData.area === method.name
+                            ? "bg-[#FFAC1C] text-white shadow-lg border-[#FFAC1C]"
+                            : showAreaError
+                              ? "bg-white border-red-400 text-red-700 font-medium"
+                              : "bg-gray-100 border-transparent"
+                        )}
                       >
                         {method.name} (৳{formatAmount(Math.floor(method.cost))})
                       </button>
