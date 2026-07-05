@@ -758,33 +758,6 @@ export default function ProductModal({ product: initialProduct, onClose }: Produ
                   );
                 })()}
 
-                {/* Attributes Desktop */}
-                {!isMobile && productAttributes.length > 0 && (
-                  <div className="mt-6 bg-gray-50 rounded-2xl p-6 shadow-inner">
-                    <h3 className="text-lg font-bold mb-4">Specifications</h3>
-                    <div className="space-y-2">
-                      {productAttributes.map((attr: any, i: number) => (
-                        <div
-                          key={i}
-                          className="flex justify-between border-b border-gray-200 pb-2 last:border-0"
-                        >
-                          <span className="text-gray-600 font-medium">
-                            {attr.name}
-                          </span>
-                          <span className="text-gray-800 font-semibold text-right">
-                            {Array.isArray(attr.values)
-                              ? attr.values
-                                .map((v: any) =>
-                                  typeof v === "object" ? v.name : v
-                                )
-                                .join(", ")
-                              : attr.values}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
 
                 {/* Video */}
                 {!isMobile && product.video_link && (
@@ -803,7 +776,7 @@ export default function ProductModal({ product: initialProduct, onClose }: Produ
               {/* RIGHT COLUMN - Product Details */}
               <div>
                 {/* Product Name */}
-                <h2 className="text-2xl md:text-3xl font-extrabold mb-3 md:max-w-[calc(100%-3rem)] overflow-hidden">
+                <h2 className="text-xl md:text-3xl font-extrabold mb-3 md:max-w-[calc(100%-3rem)] overflow-hidden">
                   {product.name}
                 </h2>
 
@@ -848,21 +821,10 @@ export default function ProductModal({ product: initialProduct, onClose }: Produ
                 </div>
 
 
-                {/* Loyalty Points */}
-                <div className="flex items-center gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-2xl w-fit mb-6">
-                  <div className="relative w-6 h-6">
-                    {/* <img
-                      src={points.src || "/coin.png"}
-                      alt="Points"
-                      className="w-full h-full object-contain"
-                    /> */}
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Earn Loyalty Coins</p>
-                    <p className="font-bold text-yellow-600">
-                      {product.loyalty_points || 0} Coins
-                    </p>
-                  </div>
+                {/* Loyalty Points — single row */}
+                <div className="flex items-center gap-2 px-3 py-2 bg-yellow-50 border border-yellow-200 rounded-xl w-fit mb-4">
+                  <span className="text-xs text-gray-500 font-medium">Earn Loyalty Coins:</span>
+                  <span className="font-bold text-yellow-600 text-xs">{product.loyalty_points || 0} Coins</span>
                 </div>
 
                 {/* Color Selection — hidden on mobile (shown under image instead) */}

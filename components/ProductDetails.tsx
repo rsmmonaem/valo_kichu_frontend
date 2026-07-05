@@ -314,7 +314,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-8">
         {/* Image Gallery */}
-        <div className="p-6 md:p-8 bg-white">
+        <div className="p-2 md:p-8 bg-white">
           <div className="aspect-square rounded-xl overflow-hidden bg-gray-50 mb-4 border border-gray-100 relative">
             {allImages.length > 0 ? (
               <Image
@@ -405,7 +405,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
               </span>
             )}
           </div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 leading-tight">
+          <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-3 leading-tight">
             {product.name}
           </h1>
 

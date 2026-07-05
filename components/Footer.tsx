@@ -25,11 +25,11 @@ export default function Footer() {
   })();
 
   return (
-    <footer className="bg-white border-t border-gray-200 pt-16 pb-8 mb-16 md:mb-0">
+    <footer className="bg-white border-t border-gray-200 pt-6 md:pt-16 pb-8 mb-16 md:mb-0">
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 mb-8 md:mb-12">
           {/* Company Info */}
-          <div className="space-y-4">
+          <div className="col-span-2 md:col-span-1 space-y-4">
             <Link href="/" className="flex items-center gap-2" prefetch={false}>
               {/* <div className="bg-blue-600 text-white p-1.5 rounded font-bold text-lg">V</div> */}
               <span className="text-xl font-bold text-gray-800">
