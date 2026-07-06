@@ -725,7 +725,7 @@ const CheckoutPage = () => {
                     className={clsx(
                       "flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-colors",
                       checkoutData.payment_method === "cod"
-                        ? "bg-blue-50 border-blue-200"
+                        ? "bg-blue-600 border-blue-600 text-white"
                         : "hover:bg-gray-50"
                     )}
                   >
@@ -738,10 +738,10 @@ const CheckoutPage = () => {
                       className="text-blue-600"
                     />
                     <div>
-                      <span className="font-medium block text-gray-900">
+                      <span className={clsx("font-medium block", checkoutData.payment_method === "cod" ? "text-white" : "text-gray-900")}>
                         Cash on Delivery
                       </span>
-                      <span className="text-xs text-gray-500">
+                      <span className={clsx("text-xs", checkoutData.payment_method === "cod" ? "text-blue-100" : "text-gray-500")}>
                         Pay when you receive your order
                       </span>
                     </div>

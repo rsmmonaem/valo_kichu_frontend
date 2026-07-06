@@ -722,41 +722,7 @@ export default function ProductModal({ product: initialProduct, onClose }: Produ
                   </div>
                 )}
 
-                {/* Product Specifications (rich HTML from editor) */}
-                {!isMobile && (() => {
-                  let specsHtml = "";
-                  if (typeof product.specifications === "string" && product.specifications.trim()) {
-                    if (product.specifications.trim().startsWith("[")) {
-                      try {
-                        const arr = JSON.parse(product.specifications);
-                        if (Array.isArray(arr) && arr.length > 0) {
-                          specsHtml = "<ul>" + arr.map((s: any) => `<li>${String(s)}</li>`).join("") + "</ul>";
-                        }
-                      } catch {
-                        specsHtml = product.specifications;
-                      }
-                    } else {
-                      specsHtml = product.specifications;
-                    }
-                  } else if (Array.isArray(product.specifications) && (product.specifications as any[]).length > 0) {
-                    const first = String(product.specifications[0] || "");
-                    if (first.includes("<") && (first.includes(">") || first.includes("</"))) {
-                      specsHtml = (product.specifications as any[]).join("");
-                    } else {
-                      specsHtml = "<ul>" + (product.specifications as any[]).map((s: any) => `<li>${String(s)}</li>`).join("") + "</ul>";
-                    }
-                  }
-                  if (!specsHtml) return null;
-                  return (
-                    <div className="mt-6 bg-gray-50 rounded-2xl p-6 shadow-inner">
-                      <h3 className="text-lg font-bold mb-3">Specifications</h3>
-                      <div
-                        className="rich-content"
-                        dangerouslySetInnerHTML={{ __html: specsHtml }}
-                      />
-                    </div>
-                  );
-                })()}
+
 
 
                 {/* Video */}
