@@ -750,7 +750,7 @@ const CheckoutPage = () => {
                     className={clsx(
                       "flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-colors",
                       checkoutData.payment_method === "online"
-                        ? "bg-blue-50 border-blue-200"
+                        ? "bg-blue-600 border-blue-600 text-white"
                         : "hover:bg-gray-50"
                     )}
                   >
@@ -763,10 +763,10 @@ const CheckoutPage = () => {
                       className="text-blue-600"
                     />
                     <div>
-                      <span className="font-medium block text-gray-900">
+                      <span className={clsx("font-medium block", checkoutData.payment_method === "online" ? "text-white" : "text-gray-900")}>
                         Online Payment
                       </span>
-                      <span className="text-xs text-gray-500">
+                      <span className={clsx("text-xs", checkoutData.payment_method === "online" ? "text-blue-100" : "text-gray-500")}>
                         Pay securely via bKash/Nagad/Card
                       </span>
                     </div>
