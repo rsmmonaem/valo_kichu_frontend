@@ -7,6 +7,7 @@ import { Star } from 'lucide-react';
 import { Product } from '@/lib/api';
 import ProductModal from './ProductModal'; // Make sure this path is correct
 import { formatAmount } from '@/lib/utils/formatAmount';
+import { getDefaultColor } from '@/lib/utils/getDefaultColorImage';
 
 interface ProductCardProps {
     product: Product;
@@ -49,7 +50,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
         if (url.startsWith('http')) {
             // Strip any embedded /api/ segment that Laravel may add when APP_URL includes /api
-            cleanUrl = url.replace(/(\/api)(\/storage\/)/, '$2');
+            cleanUrl = url.replace(/(\api)(\/storage\/)/, '$2');
         } else {
             // Relative path — always lives under /storage/products/
             const filename = url
@@ -69,7 +70,22 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         return cleanUrl;
     };
 
-    const rawImage = product.image_url || displayImage;
+    // --- Priority color image logic ---
+    // Parse colors from product
+    let parsedColors: any[] = [];
+    if (product.colors) {
+        if (typeof product.colors === 'string') {
+            try { parsedColors = JSON.parse(product.colors); } catch { parsedColors = []; }
+        } else if (Array.isArray(product.colors)) {
+            parsedColors = product.colors;
+        }
+    }
+    const defaultColor = getDefaultColor(parsedColors);
+    const priorityColorImage = defaultColor
+        ? resolveImageUrl(defaultColor.image || defaultColor.color_image || '')
+        : null;
+
+    const rawImage = priorityColorImage || product.image_url || displayImage;
     const finalImage = rawImage
         ? (resolveImageUrl(rawImage) || 'https://placehold.co/400x400?text=No+Image')
         : 'https://placehold.co/400x400?text=No+Image';

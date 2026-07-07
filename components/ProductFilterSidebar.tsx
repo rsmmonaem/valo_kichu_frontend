@@ -46,7 +46,11 @@ const ProductFilterSidebar: React.FC<ProductFilterSidebarProps> = ({ categories,
     const clearFilters = () => {
         setMinPrice('');
         setMaxPrice('');
-        router.push('/products');
+        // Only clear price filters, keep category if active
+        const params = new URLSearchParams();
+        if (selectedCategory) params.set('category', selectedCategory);
+        const destination = params.toString() ? `/products?${params.toString()}` : '/products';
+        router.push(destination);
         if (window.innerWidth < 1024) onCloseMobile();
     };
 
@@ -82,7 +86,12 @@ const ProductFilterSidebar: React.FC<ProductFilterSidebarProps> = ({ categories,
                     <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4">Categories</h3>
                     <div className="space-y-2">
                         <Link
-                            href="/products"
+                            href={(() => {
+                                const p = new URLSearchParams();
+                                if (minPrice) p.set('min_price', minPrice);
+                                if (maxPrice) p.set('max_price', maxPrice);
+                                return p.toString() ? `/products?${p.toString()}` : '/products';
+                            })()}
                             className={`block px-3 py-2 rounded-lg text-sm font-medium transition ${!selectedCategory ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50'}`}
                         >
                             All Categories
@@ -90,7 +99,13 @@ const ProductFilterSidebar: React.FC<ProductFilterSidebarProps> = ({ categories,
                         {categories.map((cat) => (
                             <Link
                                 key={cat.id}
-                                href={`/products?category=${cat.slug || cat.id}`}
+                                href={(() => {
+                                    const p = new URLSearchParams();
+                                    p.set('category', cat.slug || cat.id.toString());
+                                    if (minPrice) p.set('min_price', minPrice);
+                                    if (maxPrice) p.set('max_price', maxPrice);
+                                    return `/products?${p.toString()}`;
+                                })()}
                                 className={`block px-3 py-2 rounded-lg text-sm font-medium transition flex items-center justify-between ${isCategoryActive(cat.slug) ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50'
                                     }`}
                             >

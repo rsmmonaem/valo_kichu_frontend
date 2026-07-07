@@ -14,6 +14,7 @@ import DOMPurify from "dompurify";
 import { formatProductDescriptionUniversal } from "@/lib/utils/formatProductDescription";
 import { formatAmount } from "@/lib/utils/formatAmount";
 import * as fpixel from "@/lib/fpixel";
+import { getDefaultColor } from '@/lib/utils/getDefaultColorImage';
 
 interface ProductModalProps {
   product: Product | null;
@@ -119,6 +120,7 @@ export default function ProductModal({ product: initialProduct, onClose }: Produ
         id: c.id || idx + 1,
         name: typeof c === "string" ? c : c.name || "",
         img: resolveImageUrl(c?.image || c?.color_image || ""),
+        priority: c.priority ?? null,
       }));
     }
     return productAttributes
@@ -127,6 +129,7 @@ export default function ProductModal({ product: initialProduct, onClose }: Produ
         id: idx + 1,
         name: typeof c === "string" ? c : c.name || "",
         img: resolveImageUrl(c?.image || ""),
+        priority: null,
       })) || [];
   })();
 
@@ -168,7 +171,18 @@ export default function ProductModal({ product: initialProduct, onClose }: Produ
 
   // Initialize states
   const [size, setSize] = useState(sizeData[0] || "");
-  const [color, setColor] = useState(colorData[0] || {});
+  // Use priority-1 color as default
+  const defaultColorForInit = getDefaultColor(parsedColors);
+  const [color, setColor] = useState(
+    defaultColorForInit
+      ? {
+          id: defaultColorForInit.id || 1,
+          name: typeof defaultColorForInit === 'string' ? defaultColorForInit : defaultColorForInit.name || '',
+          img: resolveImageUrl(defaultColorForInit?.image || defaultColorForInit?.color_image || ''),
+          priority: defaultColorForInit.priority ?? null,
+        }
+      : colorData[0] || {}
+  );
   const [weight, setWeight] = useState(weightData[0]);
 
   console.log("ProductModal Debug JSON:", JSON.stringify({
@@ -215,6 +229,7 @@ export default function ProductModal({ product: initialProduct, onClose }: Produ
           id: c.id || idx + 1,
           name: typeof c === "string" ? c : c.name || "",
           img: resolveImageUrl(c?.image || c?.color_image || ""),
+          priority: c.priority ?? null,
         }));
       }
       return parsedAttrs
@@ -223,6 +238,7 @@ export default function ProductModal({ product: initialProduct, onClose }: Produ
           id: idx + 1,
           name: typeof c === "string" ? c : c.name || "",
           img: resolveImageUrl(c?.image || ""),
+          priority: null,
         })) || [];
     })();
 
@@ -249,8 +265,26 @@ export default function ProductModal({ product: initialProduct, onClose }: Produ
       : variationWeightNamesLocal.map((w: any, idx: number) => ({ id: idx + 1, name: w, img: "" }));
 
     setSize(sizeDataLocal[0] || "");
-    setColor(colorDataLocal[0] || {});
     setWeight(weightDataLocal[0]);
+    // Use priority-1 color as default
+    const defaultColorLocal = getDefaultColor(parsedColorsLocal);
+    if (defaultColorLocal) {
+      const defaultColorObj = {
+        id: defaultColorLocal.id || 1,
+        name: typeof defaultColorLocal === 'string' ? defaultColorLocal : defaultColorLocal.name || '',
+        img: resolveImageUrl(defaultColorLocal?.image || defaultColorLocal?.color_image || ''),
+        priority: defaultColorLocal.priority ?? null,
+      };
+      setColor(defaultColorObj);
+      // Set preview to priority-1 color image if it exists
+      if (defaultColorObj.img) {
+        setPreview(defaultColorObj.img);
+        setHasImageError(false);
+        return; // Skip default preview logic below
+      }
+    } else {
+      setColor(colorDataLocal[0] || {});
+    }
 
     const mainImage = product.image_url || ((typeof product.images === 'string') ? product.images : '') || product.image || product.thumbnail || "";
 

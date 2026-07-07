@@ -212,7 +212,8 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
                 id: c.id,
                 name: c.name,
                 color: c.color_class || c.color || "",
-                image: c.image || null
+                image: c.image || null,
+                priority: c.priority ?? null,
             }));
             setSelectedColors(mappedColors);
 
@@ -728,6 +729,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
                 name: color.name,
                 color_class: color.color,
                 image: color.image || null,
+                priority: color.priority ?? null,
             })),
 
             // SEO Metadata
@@ -1419,16 +1421,15 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
                                         </div>
                                     )}
 
-                                    {/* Selected Colors Display */}
                                     <div className="flex flex-wrap gap-3 mt-4">
                                         {(Array.isArray(selectedColors) ? selectedColors : []).map((color, index) => (
                                             <div
                                                 key={`selected-color-${color.id || index}`}
-                                                className="flex items-center gap-2 px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg"
+                                                className="flex items-center gap-2 px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg"
                                             >
                                                 <div
                                                     className={clsx(
-                                                        "w-4 h-4 rounded-full border border-gray-300",
+                                                        "w-4 h-4 rounded-full border border-gray-300 flex-shrink-0",
                                                         color.color?.startsWith('bg-') && color.color
                                                     )}
                                                     style={{
@@ -1438,10 +1439,29 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
                                                 <span className="font-medium text-gray-800">
                                                     {color.name}
                                                 </span>
+                                                {/* Priority Input */}
+                                                <div className="flex items-center gap-1">
+                                                    <label className="text-xs text-gray-500 whitespace-nowrap">P:</label>
+                                                    <input
+                                                        type="number"
+                                                        min="1"
+                                                        max="9"
+                                                        placeholder="-"
+                                                        value={color.priority ?? ''}
+                                                        onChange={(e) => {
+                                                            const val = e.target.value === '' ? null : Math.min(9, Math.max(1, parseInt(e.target.value)));
+                                                            setSelectedColors(prev => prev.map(c =>
+                                                                c.id === color.id ? { ...c, priority: val } : c
+                                                            ));
+                                                        }}
+                                                        className="w-10 text-center text-xs border border-gray-300 rounded px-1 py-0.5 focus:outline-none focus:border-blue-500"
+                                                        title="Priority (1=highest, 9=lowest). Color with priority 1 shows as default image."
+                                                    />
+                                                </div>
                                                 <button
                                                     type="button"
                                                     onClick={() => handleRemoveColor(color.id)}
-                                                    className="ml-2 text-gray-600 hover:text-gray-800"
+                                                    className="ml-1 text-gray-600 hover:text-gray-800"
                                                 >
                                                     <X size={16} />
                                                 </button>

@@ -48,7 +48,7 @@ export interface Product {
   product_code?: string;
   image_url?: string;
   gallery_image_urls?: string[];
-  colors?: { id: number; name: string; image?: string | null; color_class?: string }[];
+  colors?: { id: number; name: string; image?: string | null; color_class?: string; priority?: number }[];
   variations?: {
     id: number;
     color?: string;

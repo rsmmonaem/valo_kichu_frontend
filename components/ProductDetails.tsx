@@ -22,6 +22,7 @@ import AddtocartToster from "./AddtocartToster";
 import { formatProductDescriptionUniversal } from "@/lib/utils/formatProductDescription";
 import { formatAmount } from "@/lib/utils/formatAmount";
 import * as fpixel from "@/lib/fpixel";
+import { getDefaultColor } from "@/lib/utils/getDefaultColorImage";
 
 interface ProductDetailsProps {
   product: Product;
@@ -123,6 +124,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
         id: c.id || idx,
         name: typeof c === "string" ? c : c.name || "",
         img: resolveImageUrl(c?.image || c?.color_image || ""),
+        priority: c.priority ?? null,
       }));
     }
     return attributes
@@ -131,6 +133,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
         id: i,
         name: typeof c === "string" ? c : c.name,
         img: resolveImageUrl(c.image || ""),
+        priority: null,
       })) || [];
   })();
 
@@ -169,18 +172,27 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
     const colorsFromAttrs =
       parsedAttrs.find((a) => a.name.toLowerCase() === "color")?.values || [];
     if (parsedColors.length > 0) {
-      const firstColor = parsedColors[0];
-      setSelectedColor({
+      // Find the color with lowest priority value (1 = default)
+      const defaultColorRaw = getDefaultColor(parsedColors);
+      const firstColor = defaultColorRaw || parsedColors[0];
+      const defaultColorObj = {
         id: firstColor.id || 0,
         name: typeof firstColor === "string" ? firstColor : firstColor.name,
         img: resolveImageUrl(firstColor.image || firstColor.color_image || ""),
-      });
+        priority: firstColor.priority ?? null,
+      };
+      setSelectedColor(defaultColorObj);
+      // If the default color has an image, show it as the main image
+      if (defaultColorObj.img) {
+        setMainImageOverride(defaultColorObj.img);
+      }
     } else if (colorsFromAttrs.length > 0) {
       const firstColor = colorsFromAttrs[0];
       setSelectedColor({
         id: 0,
         name: typeof firstColor === "string" ? firstColor : firstColor.name,
         img: resolveImageUrl(firstColor.image || ""),
+        priority: null,
       });
     } else {
       setSelectedColor(null);
