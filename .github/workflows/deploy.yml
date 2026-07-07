@@ -37,5 +37,5 @@ jobs:
           password: RsmMonaem66@@##
           script: |
             cd /home/valokichu.com/public_html/frontend
-            chmod +x deploy-vps.sh
-            ./deploy-vps.sh
+            docker-compose down
+            docker-compose up -d --build
