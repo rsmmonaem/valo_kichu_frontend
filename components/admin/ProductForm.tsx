@@ -215,7 +215,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
                 image: c.image || null
             }));
             setSelectedColors(mappedColors);
-            
+
             // Add custom loaded colors to availableColors list if they aren't already there
             setAvailableColors(prev => {
                 const combined = [...prev];
@@ -676,6 +676,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
 
             // Pricing Information
             price: finalPrice,
+            base_price: finalPrice,
             purchase_price: parseFloat(formData.purchase_price.toString()) || 0,
             unit_price: parseFloat(formData.unit_price.toString()) || 0,
 
@@ -1372,7 +1373,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
                                                                 onChange={(e) => setNewColorHex(e.target.value)}
                                                                 className="w-full pl-8 pr-3 py-2 text-sm bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 font-mono"
                                                             />
-                                                            <div 
+                                                            <div
                                                                 className="absolute left-2.5 top-2.5 w-4 h-4 rounded-full border border-gray-300 shadow-sm"
                                                                 style={{ backgroundColor: newColorHex }}
                                                             />
@@ -1425,7 +1426,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
                                                 key={`selected-color-${color.id || index}`}
                                                 className="flex items-center gap-2 px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg"
                                             >
-                                                <div 
+                                                <div
                                                     className={clsx(
                                                         "w-4 h-4 rounded-full border border-gray-300",
                                                         color.color?.startsWith('bg-') && color.color
@@ -1594,7 +1595,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
                                                 </div>
                                                 <div className="col-span-4">
                                                     <div className="flex items-center gap-3">
-                                                        <div 
+                                                        <div
                                                             className={clsx(
                                                                 "w-6 h-6 rounded-full border border-gray-300",
                                                                 variation.colorClass?.startsWith('bg-') && variation.colorClass

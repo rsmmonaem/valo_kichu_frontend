@@ -1,17 +1,49 @@
 services:
-  nextjs-app:
+  nextjs-app-blue:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: valokichu-frontend
+    container_name: valokichu-frontend-blue
     restart: always
-    ports:
-      - "127.0.0.1:3000:3000"
+    expose:
+      - "3000"
     env_file:
       - .env
     environment:
       - NODE_ENV=production
-      # Add other environment variables if needed
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  nextjs-app-green:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: valokichu-frontend-green
+    restart: always
+    expose:
+      - "3000"
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  nginx-proxy:
+    image: nginx:alpine
+    container_name: valokichu-nginx
+    restart: always
+    ports:
+      - "127.0.0.1:3000:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
     logging:
       driver: "json-file"
       options:
