@@ -119,22 +119,33 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
   // Derived Data
   // For colors: prefer product.colors field, then fall back to attributes
   const colorData = (() => {
+    let colors = [];
     if (parsedColors.length > 0) {
-      return parsedColors.map((c: any, idx: number) => ({
+      colors = parsedColors.map((c: any, idx: number) => ({
         id: c.id || idx,
         name: typeof c === "string" ? c : c.name || "",
         img: resolveImageUrl(c?.image || c?.color_image || ""),
         priority: c.priority ?? null,
       }));
+    } else {
+      colors = attributes
+        .find((a) => a.name.toLowerCase() === "color")
+        ?.values.map((c: any, i: number) => ({
+          id: i,
+          name: typeof c === "string" ? c : c.name,
+          img: resolveImageUrl(c.image || ""),
+          priority: null,
+        })) || [];
     }
-    return attributes
-      .find((a) => a.name.toLowerCase() === "color")
-      ?.values.map((c: any, i: number) => ({
-        id: i,
-        name: typeof c === "string" ? c : c.name,
-        img: resolveImageUrl(c.image || ""),
-        priority: null,
-      })) || [];
+
+    // Sort colors based on priority (lowest number first, e.g. 1, 2, 3...)
+    // Colors without priority come last
+    return [...colors].sort((a, b) => {
+      const aPriority = a.priority !== null && a.priority !== undefined && !isNaN(Number(a.priority)) ? Number(a.priority) : Infinity;
+      const bPriority = b.priority !== null && b.priority !== undefined && !isNaN(Number(b.priority)) ? Number(b.priority) : Infinity;
+      if (aPriority === bPriority) return 0;
+      return aPriority - bPriority;
+    });
   })();
 
   // For sizes: merge from attributes AND variations

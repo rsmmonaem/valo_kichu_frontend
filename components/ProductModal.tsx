@@ -115,22 +115,32 @@ export default function ProductModal({ product: initialProduct, onClose }: Produ
   // Extract size and color from attributes + product data
   // For colors: prefer product.colors field, then fall back to attributes
   const colorData = (() => {
+    let colors = [];
     if (parsedColors.length > 0) {
-      return parsedColors.map((c: any, idx: number) => ({
+      colors = parsedColors.map((c: any, idx: number) => ({
         id: c.id || idx + 1,
         name: typeof c === "string" ? c : c.name || "",
         img: resolveImageUrl(c?.image || c?.color_image || ""),
         priority: c.priority ?? null,
       }));
+    } else {
+      colors = productAttributes
+        .find((a) => a.name?.toLowerCase() === "color")
+        ?.values.map((c: any, idx: number) => ({
+          id: idx + 1,
+          name: typeof c === "string" ? c : c.name || "",
+          img: resolveImageUrl(c?.image || ""),
+          priority: null,
+        })) || [];
     }
-    return productAttributes
-      .find((a) => a.name?.toLowerCase() === "color")
-      ?.values.map((c: any, idx: number) => ({
-        id: idx + 1,
-        name: typeof c === "string" ? c : c.name || "",
-        img: resolveImageUrl(c?.image || ""),
-        priority: null,
-      })) || [];
+    // Sort colors based on priority (lowest number first, e.g. 1, 2, 3...)
+    // Colors without priority come last
+    return [...colors].sort((a, b) => {
+      const aPriority = a.priority !== null && a.priority !== undefined && !isNaN(Number(a.priority)) ? Number(a.priority) : Infinity;
+      const bPriority = b.priority !== null && b.priority !== undefined && !isNaN(Number(b.priority)) ? Number(b.priority) : Infinity;
+      if (aPriority === bPriority) return 0;
+      return aPriority - bPriority;
+    });
   })();
 
   // For sizes: merge from attributes AND variations
@@ -224,22 +234,30 @@ export default function ProductModal({ product: initialProduct, onClose }: Produ
     })();
 
     const colorDataLocal = (() => {
+      let colors = [];
       if (parsedColorsLocal.length > 0) {
-        return parsedColorsLocal.map((c: any, idx: number) => ({
+        colors = parsedColorsLocal.map((c: any, idx: number) => ({
           id: c.id || idx + 1,
           name: typeof c === "string" ? c : c.name || "",
           img: resolveImageUrl(c?.image || c?.color_image || ""),
           priority: c.priority ?? null,
         }));
+      } else {
+        colors = parsedAttrs
+          .find((a) => a.name?.toLowerCase() === "color")
+          ?.values.map((c: any, idx: number) => ({
+            id: idx + 1,
+            name: typeof c === "string" ? c : c.name || "",
+            img: resolveImageUrl(c?.image || ""),
+            priority: null,
+          })) || [];
       }
-      return parsedAttrs
-        .find((a) => a.name?.toLowerCase() === "color")
-        ?.values.map((c: any, idx: number) => ({
-          id: idx + 1,
-          name: typeof c === "string" ? c : c.name || "",
-          img: resolveImageUrl(c?.image || ""),
-          priority: null,
-        })) || [];
+      return [...colors].sort((a, b) => {
+        const aPriority = a.priority !== null && a.priority !== undefined && !isNaN(Number(a.priority)) ? Number(a.priority) : Infinity;
+        const bPriority = b.priority !== null && b.priority !== undefined && !isNaN(Number(b.priority)) ? Number(b.priority) : Infinity;
+        if (aPriority === bPriority) return 0;
+        return aPriority - bPriority;
+      });
     })();
 
     const attrSizesLocal = parsedAttrs.find((a) => a.name?.toLowerCase() === "size")?.values || [];
