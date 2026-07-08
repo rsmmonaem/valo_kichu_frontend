@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { Search, Trash2, CheckCircle, Clock, Smartphone, Mail, MapPin, BarChart2 } from 'lucide-react';
+import { Search, Trash2, CheckCircle, Clock, Smartphone, Mail, MapPin, BarChart2, Eye, X } from 'lucide-react';
 import { authFetch } from '@/lib/api';
 import toast, { Toaster } from 'react-hot-toast';
 import clsx from 'clsx';
@@ -46,6 +46,7 @@ const CheckoutLeadsPage = () => {
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "converted">("all");
   const [page, setPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
 
   const fetchLeads = async () => {
     setLoading(true);
@@ -208,7 +209,6 @@ const CheckoutLeadsPage = () => {
               <tr>
                 <th className="p-4 w-12">ID</th>
                 <th className="p-4">Customer info</th>
-                <th className="p-4">Cart items</th>
                 <th className="p-4">Delivery address</th>
                 <th className="p-4">Status</th>
                 <th className="p-4">Payment</th>
@@ -219,7 +219,7 @@ const CheckoutLeadsPage = () => {
             </thead>
             <tbody className="divide-y divide-gray-100 text-sm">
               {loading ? (
-                <tr><td colSpan={9} className="p-8 text-center text-gray-500">Loading leads...</td></tr>
+                <tr><td colSpan={8} className="p-8 text-center text-gray-500">Loading leads...</td></tr>
               ) : leads.length > 0 ? (
                 leads.map((lead) => (
                   <tr key={lead.id} className="hover:bg-gray-50 transition">
@@ -235,43 +235,6 @@ const CheckoutLeadsPage = () => {
                           <Mail size={12} />
                           <span>{lead.email}</span>
                         </div>
-                      )}
-                    </td>
-                    <td className="p-4">
-                      {lead.cart_data && lead.cart_data.length > 0 ? (
-                        <div className="space-y-1.5 max-w-xs">
-                          {lead.cart_data.map((item, idx) => (
-                            <div key={idx} className="flex items-start gap-2 bg-gray-50 p-1.5 rounded-lg border border-gray-100 text-xs">
-                              {item.image && (
-                                <img
-                                  src={
-                                    item.image.startsWith("http")
-                                      ? item.image
-                                      : `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/${item.image}`
-                                  }
-                                  alt={item.name}
-                                  className="w-8 h-8 rounded object-cover shrink-0 border"
-                                />
-                              )}
-                              <div className="min-w-0 flex-1">
-                                <p className="font-semibold text-gray-800 truncate" title={item.name}>
-                                  {item.name}
-                                </p>
-                                <div className="flex justify-between items-center text-gray-500 mt-0.5">
-                                  <span>Qty: {item.quantity}</span>
-                                  <span className="font-medium text-gray-700">৳{item.price}</span>
-                                </div>
-                                {item.variation_snapshot && (
-                                  <span className="text-[10px] text-gray-400 block truncate" title={item.variation_snapshot}>
-                                    {item.variation_snapshot}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <span className="text-gray-400 italic">Empty Cart</span>
                       )}
                     </td>
                     <td className="p-4 max-w-xs">
@@ -321,19 +284,28 @@ const CheckoutLeadsPage = () => {
                     <td className="p-4 text-gray-500 text-xs">
                       {new Date(lead.updated_at).toLocaleString()}
                     </td>
-                    <td className="p-4 text-right">
-                      <button
-                        onClick={() => handleDelete(lead.id)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
-                        title="Delete Lead"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                    <td className="p-4 text-right whitespace-nowrap">
+                      <div className="flex justify-end gap-1">
+                        <button
+                          onClick={() => setSelectedLead(lead)}
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                          title="View Lead Details"
+                        >
+                          <Eye size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(lead.id)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                          title="Delete Lead"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
               ) : (
-                <tr><td colSpan={9} className="p-8 text-center text-gray-500">No checkout leads found.</td></tr>
+                <tr><td colSpan={8} className="p-8 text-center text-gray-500">No checkout leads found.</td></tr>
               )}
             </tbody>
           </table>
@@ -362,6 +334,185 @@ const CheckoutLeadsPage = () => {
           </div>
         )}
       </div>
+
+      {/* Lead Details Modal */}
+      {selectedLead && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden border border-gray-100 animate-in fade-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-gray-50/50">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">Lead Details</h2>
+                <p className="text-sm text-gray-500 mt-1">Lead ID: #{selectedLead.id}</p>
+              </div>
+              <button
+                onClick={() => setSelectedLead(null)}
+                className="p-2 hover:bg-gray-200 rounded-full text-gray-500 hover:text-gray-700 transition"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+              {/* Grid 2 Columns */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Customer Details */}
+                <div className="space-y-4">
+                  <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Customer Information</h3>
+                  <div className="bg-gray-50 p-4 rounded-xl space-y-3">
+                    <div>
+                      <p className="text-xs text-gray-505">Name</p>
+                      <p className="font-semibold text-gray-900">{selectedLead.name || 'Guest'}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-505">Phone</p>
+                      <p className="font-semibold text-gray-900 flex items-center gap-1.5 mt-0.5">
+                        <Smartphone size={14} className="text-gray-400" />
+                        {selectedLead.phone || 'N/A'}
+                      </p>
+                    </div>
+                    {selectedLead.email && (
+                      <div>
+                        <p className="text-xs text-gray-505">Email</p>
+                        <p className="font-semibold text-gray-900 flex items-center gap-1.5 mt-0.5">
+                          <Mail size={14} className="text-gray-400" />
+                          {selectedLead.email}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Delivery & Status Details */}
+                <div className="space-y-4">
+                  <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Delivery & Payment</h3>
+                  <div className="bg-gray-50 p-4 rounded-xl space-y-3">
+                    <div>
+                      <p className="text-xs text-gray-505">Shipping Address</p>
+                      <p className="font-semibold text-gray-900 flex items-start gap-1.5 mt-0.5">
+                        <MapPin size={14} className="text-gray-400 mt-1 shrink-0" />
+                        <span>
+                          {selectedLead.address || 'N/A'}
+                          {selectedLead.area && (
+                            <span className="ml-2 text-xs text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded font-medium inline-block">
+                              {selectedLead.area}
+                            </span>
+                          )}
+                        </span>
+                      </p>
+                    </div>
+                    <div className="flex gap-4">
+                      <div>
+                        <p className="text-xs text-gray-505">Payment Method</p>
+                        <p className="font-semibold text-gray-900 capitalize mt-0.5">{selectedLead.payment_method || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-505">Status</p>
+                        <span className={clsx(
+                          "px-2 py-0.5 rounded-full text-xs font-semibold inline-flex items-center gap-1 mt-1",
+                          selectedLead.converted
+                            ? "bg-green-100 text-green-700"
+                            : "bg-yellow-100 text-yellow-700"
+                        )}>
+                          {selectedLead.converted ? 'Converted' : 'Pending'}
+                        </span>
+                      </div>
+                    </div>
+                    {selectedLead.order_id && (
+                      <div>
+                        <p className="text-xs text-gray-505">Linked Order ID</p>
+                        <p className="font-bold text-green-600">#{selectedLead.order_id}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Notes */}
+              {selectedLead.notes && (
+                <div className="space-y-2">
+                  <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Order Notes</h3>
+                  <div className="bg-yellow-50/50 border border-yellow-100 p-4 rounded-xl text-gray-700 italic">
+                    {selectedLead.notes}
+                  </div>
+                </div>
+              )}
+
+              {/* Cart Products List */}
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Cart Products</h3>
+                {selectedLead.cart_data && selectedLead.cart_data.length > 0 ? (
+                  <div className="border border-gray-100 rounded-xl overflow-hidden shadow-sm">
+                    <table className="w-full text-left text-sm">
+                      <thead className="bg-gray-50 text-gray-600 font-semibold border-b border-gray-100">
+                        <tr>
+                          <th className="p-3">Product</th>
+                          <th className="p-3 text-center">Qty</th>
+                          <th className="p-3 text-right">Price</th>
+                          <th className="p-3 text-right">Total</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100">
+                        {selectedLead.cart_data.map((item, idx) => (
+                          <tr key={idx} className="hover:bg-gray-50/50">
+                            <td className="p-3">
+                              <div className="flex items-center gap-3">
+                                {item.image && (
+                                  <img
+                                    src={
+                                      item.image.startsWith("http")
+                                        ? item.image
+                                        : `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/${item.image}`
+                                    }
+                                    alt={item.name}
+                                    className="w-10 h-10 rounded object-cover border"
+                                  />
+                                )}
+                                <div className="min-w-0">
+                                  <p className="font-semibold text-gray-900 truncate max-w-xs">{item.name}</p>
+                                  {item.variation_snapshot && (
+                                    <span className="text-xs text-gray-505">{item.variation_snapshot}</span>
+                                  )}
+                                </div>
+                              </div>
+                            </td>
+                            <td className="p-3 text-center text-gray-700 font-medium">{item.quantity}</td>
+                            <td className="p-3 text-right text-gray-700">৳{item.price}</td>
+                            <td className="p-3 text-right text-gray-900 font-semibold">৳{item.price * item.quantity}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                      <tfoot className="bg-gray-50/50 border-t border-gray-100">
+                        <tr>
+                          <td colSpan={3} className="p-3 font-semibold text-gray-700 text-right">Subtotal:</td>
+                          <td className="p-3 font-bold text-gray-950 text-right">
+                            ৳{selectedLead.cart_data.reduce((sum, item) => sum + (item.price * item.quantity), 0)}
+                          </td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="text-center py-6 text-gray-400 bg-gray-50 rounded-xl italic">
+                    No products in the cart for this lead.
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-6 border-t border-gray-100 bg-gray-50/50 flex justify-end">
+              <button
+                onClick={() => setSelectedLead(null)}
+                className="px-5 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-xl font-bold transition text-sm cursor-pointer"
+              >
+                Close Details
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
