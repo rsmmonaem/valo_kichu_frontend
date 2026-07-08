@@ -20,6 +20,15 @@ interface Lead {
   order_id: number | null;
   created_at: string;
   updated_at: string;
+  cart_data?: Array<{
+    product_id: number;
+    name: string;
+    image: string;
+    product_variation_id: number | null;
+    variation_snapshot: string | null;
+    quantity: number;
+    price: number;
+  }>;
 }
 
 interface Stats {
@@ -199,6 +208,7 @@ const CheckoutLeadsPage = () => {
               <tr>
                 <th className="p-4 w-12">ID</th>
                 <th className="p-4">Customer info</th>
+                <th className="p-4">Cart items</th>
                 <th className="p-4">Delivery address</th>
                 <th className="p-4">Status</th>
                 <th className="p-4">Payment</th>
@@ -209,7 +219,7 @@ const CheckoutLeadsPage = () => {
             </thead>
             <tbody className="divide-y divide-gray-100 text-sm">
               {loading ? (
-                <tr><td colSpan={8} className="p-8 text-center text-gray-500">Loading leads...</td></tr>
+                <tr><td colSpan={9} className="p-8 text-center text-gray-500">Loading leads...</td></tr>
               ) : leads.length > 0 ? (
                 leads.map((lead) => (
                   <tr key={lead.id} className="hover:bg-gray-50 transition">
@@ -225,6 +235,43 @@ const CheckoutLeadsPage = () => {
                           <Mail size={12} />
                           <span>{lead.email}</span>
                         </div>
+                      )}
+                    </td>
+                    <td className="p-4">
+                      {lead.cart_data && lead.cart_data.length > 0 ? (
+                        <div className="space-y-1.5 max-w-xs">
+                          {lead.cart_data.map((item, idx) => (
+                            <div key={idx} className="flex items-start gap-2 bg-gray-50 p-1.5 rounded-lg border border-gray-100 text-xs">
+                              {item.image && (
+                                <img
+                                  src={
+                                    item.image.startsWith("http")
+                                      ? item.image
+                                      : `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/${item.image}`
+                                  }
+                                  alt={item.name}
+                                  className="w-8 h-8 rounded object-cover shrink-0 border"
+                                />
+                              )}
+                              <div className="min-w-0 flex-1">
+                                <p className="font-semibold text-gray-800 truncate" title={item.name}>
+                                  {item.name}
+                                </p>
+                                <div className="flex justify-between items-center text-gray-500 mt-0.5">
+                                  <span>Qty: {item.quantity}</span>
+                                  <span className="font-medium text-gray-700">৳{item.price}</span>
+                                </div>
+                                {item.variation_snapshot && (
+                                  <span className="text-[10px] text-gray-400 block truncate" title={item.variation_snapshot}>
+                                    {item.variation_snapshot}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-gray-400 italic">Empty Cart</span>
                       )}
                     </td>
                     <td className="p-4 max-w-xs">
@@ -286,7 +333,7 @@ const CheckoutLeadsPage = () => {
                   </tr>
                 ))
               ) : (
-                <tr><td colSpan={8} className="p-8 text-center text-gray-500">No checkout leads found.</td></tr>
+                <tr><td colSpan={9} className="p-8 text-center text-gray-500">No checkout leads found.</td></tr>
               )}
             </tbody>
           </table>

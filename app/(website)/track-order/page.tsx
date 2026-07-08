@@ -1,16 +1,59 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Image from 'next/image';
-import { Truck, Package, Clock, CheckCircle, Navigation } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
+import { Truck, Package, Clock, CheckCircle, Navigation, Loader2 } from 'lucide-react';
 import { authFetch } from '@/lib/api';
 
-export default function TrackOrderPage() {
-  const [orderId, setOrderId] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
+function TrackOrderContent() {
+  const searchParams = useSearchParams();
+  const paramOrderId = searchParams.get('orderId') || '';
+  const paramPhoneNumber = searchParams.get('phoneNumber') || '';
+
+  const [orderId, setOrderId] = useState(paramOrderId);
+  const [phoneNumber, setPhoneNumber] = useState(paramPhoneNumber);
   const [loading, setLoading] = useState(false);
   const [orderData, setOrderData] = useState<any>(null);
   const [error, setError] = useState('');
+
+  // Auto track if params are provided
+  useEffect(() => {
+    if (paramOrderId && paramPhoneNumber) {
+      const autoTrack = async () => {
+        setLoading(true);
+        setError('');
+        setOrderData(null);
+        try {
+          const response = await authFetch('/v1/order/track', {
+            method: 'POST',
+            body: JSON.stringify({
+              order_id: paramOrderId,
+              phone_number: paramPhoneNumber,
+            }),
+          });
+          const data = await response.json().catch(() => ({}));
+          if (response.ok) {
+            setOrderData(data);
+          } else {
+            setError(data.error || 'Order not found. Please check your details and try again.');
+          }
+        } catch (err: any) {
+          console.error(err);
+          setError(err.message || 'Order not found or something went wrong.');
+        } finally {
+          setLoading(false);
+        }
+      };
+      autoTrack();
+    }
+  }, [paramOrderId, paramPhoneNumber]);
+
+  // Update states if parameters change
+  useEffect(() => {
+    if (paramOrderId) setOrderId(paramOrderId);
+    if (paramPhoneNumber) setPhoneNumber(paramPhoneNumber);
+  }, [paramOrderId, paramPhoneNumber]);
 
   const handleTrackOrder = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -245,3 +288,16 @@ export default function TrackOrderPage() {
     </div>
   );
 }
+
+export default function TrackOrderPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="animate-spin text-orange-500" size={48} />
+      </div>
+    }>
+      <TrackOrderContent />
+    </Suspense>
+  );
+}
+

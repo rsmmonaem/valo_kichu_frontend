@@ -332,3 +332,14 @@ export const sendOrderInvoice = async (orderId: string, email: string) => {
     return { status: false, message: 'Failed to connect to server' };
   }
 };
+
+export const getOrderSuccessDetails = async (orderId: string) => {
+  try {
+    const res = await fetch(`${API_URL}/v1/orders/${orderId}/success-details`);
+    if (!res.ok) return { status: false, message: 'Order not found' };
+    return await res.json();
+  } catch (e) {
+    return { status: false, message: 'Failed to connect to server' };
+  }
+};
+

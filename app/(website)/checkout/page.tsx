@@ -107,6 +107,28 @@ const CheckoutPage = () => {
         const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
         const baseUrl = API_URL.endsWith("/api") ? API_URL : `${API_URL}/api`;
 
+        const cartData = cart.map((item) => {
+          const varDetails = [];
+          if (item.variant?.size) varDetails.push(`Size: ${item.variant.size}`);
+          if (item.variant?.color)
+            varDetails.push(`Color: ${item.variant.color}`);
+          if (item.variant?.weight)
+            varDetails.push(`Weight: ${item.variant.weight}`);
+
+          const variationSnapshot =
+            varDetails.length > 0 ? varDetails.join(", ") : null;
+
+          return {
+            product_id: item.id,
+            name: item.name,
+            image: item.image,
+            product_variation_id: item.variant?.id || null,
+            variation_snapshot: variationSnapshot,
+            quantity: item.quantity,
+            price: item.price,
+          };
+        });
+
         await fetch(`${baseUrl}/v1/order/checkout-lead`, {
           method: "POST",
           headers: {
@@ -124,6 +146,7 @@ const CheckoutPage = () => {
             area: checkoutData.area,
             payment_method: checkoutData.payment_method,
             notes: checkoutData.notes,
+            cart_data: cartData,
           }),
         });
       } catch (err) {
@@ -132,7 +155,7 @@ const CheckoutPage = () => {
     }, 1500);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [checkoutData, sessionToken]);
+  }, [checkoutData, sessionToken, cart]);
 
   useEffect(() => {
     const fetchShippingMethods = async () => {
