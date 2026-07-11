@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { Search, Trash2, CheckCircle, Clock, Smartphone, Mail, MapPin, BarChart2, Eye, X } from 'lucide-react';
+import { Search, Trash2, CheckCircle, Clock, Smartphone, Mail, MapPin, BarChart2, Eye, X, ShoppingBag } from 'lucide-react';
 import { authFetch } from '@/lib/api';
 import toast, { Toaster } from 'react-hot-toast';
 import clsx from 'clsx';
+import Link from 'next/link';
 
 interface Lead {
   id: number;
@@ -47,6 +48,46 @@ const CheckoutLeadsPage = () => {
   const [page, setPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  const [converting, setConverting] = useState(false);
+
+  const handleConvertToOrder = async (leadId: number) => {
+    if (!window.confirm("Are you sure you want to convert this lead to a pending order?")) return;
+
+    setConverting(true);
+    try {
+      const res = await authFetch(`/admin/v1/checkout-leads/${leadId}/convert`, {
+        method: 'POST',
+      });
+      const data = await res.json();
+      if (res.ok && data.status) {
+        toast.success(data.message || "Lead converted to order successfully!");
+        
+        // Update leads list in state
+        setLeads(prevLeads => prevLeads.map(lead => {
+          if (lead.id === leadId) {
+            return { ...lead, converted: true, order_id: data.order_id };
+          }
+          return lead;
+        }));
+        
+        // Update currently selected lead modal details
+        setSelectedLead(prevSelected => {
+          if (prevSelected && prevSelected.id === leadId) {
+            return { ...prevSelected, converted: true, order_id: data.order_id };
+          }
+          return prevSelected;
+        });
+        
+        fetchStats();
+      } else {
+        toast.error(data.message || "Failed to convert lead to order");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "An error occurred during conversion");
+    } finally {
+      setConverting(false);
+    }
+  };
 
   const fetchLeads = async () => {
     setLoading(true);
@@ -271,7 +312,10 @@ const CheckoutLeadsPage = () => {
                       </span>
                       {lead.order_id && (
                         <div className="text-xs text-gray-500 mt-1 font-medium">
-                          Order ID: #{lead.order_id}
+                          Order ID:{" "}
+                          <Link href={`/admin/orders/${lead.order_id}`} className="text-blue-600 hover:underline font-semibold">
+                            #{lead.order_id}
+                          </Link>
                         </div>
                       )}
                     </td>
@@ -422,7 +466,12 @@ const CheckoutLeadsPage = () => {
                     {selectedLead.order_id && (
                       <div>
                         <p className="text-xs text-gray-505">Linked Order ID</p>
-                        <p className="font-bold text-green-600">#{selectedLead.order_id}</p>
+                        <Link
+                          href={`/admin/orders/${selectedLead.order_id}`}
+                          className="font-bold text-green-600 hover:underline inline-flex items-center gap-1 mt-0.5"
+                        >
+                          #{selectedLead.order_id}
+                        </Link>
                       </div>
                     )}
                   </div>
@@ -502,7 +551,17 @@ const CheckoutLeadsPage = () => {
             </div>
 
             {/* Modal Footer */}
-            <div className="p-6 border-t border-gray-100 bg-gray-50/50 flex justify-end">
+            <div className="p-6 border-t border-gray-100 bg-gray-50/50 flex justify-end gap-3">
+              {!selectedLead.converted && (
+                <button
+                  disabled={converting}
+                  onClick={() => handleConvertToOrder(selectedLead.id)}
+                  className="px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold transition text-sm cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+                >
+                  <ShoppingBag size={16} />
+                  {converting ? "Converting..." : "Make Order"}
+                </button>
+              )}
               <button
                 onClick={() => setSelectedLead(null)}
                 className="px-5 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-xl font-bold transition text-sm cursor-pointer"
