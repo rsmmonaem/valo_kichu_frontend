@@ -663,21 +663,23 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
                                 className="w-20 px-2 py-1 border rounded text-center text-xs"
                               />
                             </div>
-                            <div className="flex items-center gap-1 justify-center">
-                              <span className="text-xs text-green-600 font-bold">DRP:</span>
-                              <input
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                value={item.order_price || 0}
-                                onChange={(e) => {
-                                  const newItems = [...editedOrder.items];
-                                  newItems[idx].order_price = parseFloat(e.target.value) || 0;
-                                  setEditedOrder({ ...editedOrder, items: newItems });
-                                }}
-                                className="w-20 px-2 py-1 border rounded text-center text-xs text-green-600 font-bold border-green-200"
-                              />
-                            </div>
+                            {order.order_type === 'dropshipping' && (
+                              <div className="flex items-center gap-1 justify-center">
+                                <span className="text-xs text-green-600 font-bold">DRP:</span>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="0.01"
+                                  value={item.order_price || 0}
+                                  onChange={(e) => {
+                                    const newItems = [...editedOrder.items];
+                                    newItems[idx].order_price = parseFloat(e.target.value) || 0;
+                                    setEditedOrder({ ...editedOrder, items: newItems });
+                                  }}
+                                  className="w-20 px-2 py-1 border rounded text-center text-xs text-green-600 font-bold border-green-200"
+                                />
+                              </div>
+                            )}
                           </div>
                         </td>
                         <td className="px-6 py-4 text-center">
@@ -723,9 +725,11 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
                               <div className="font-bold text-gray-900">
                                 ৳{((item.unit_price || item.price || 0) * item.quantity).toFixed(2)}
                               </div>
-                              <div className="font-semibold text-green-600 mt-1">
-                                ৳{((item.order_price || 0) * item.quantity).toFixed(2)}
-                              </div>
+                              {order.order_type === 'dropshipping' && (
+                                <div className="font-semibold text-green-600 mt-1">
+                                  ৳{((item.order_price || 0) * item.quantity).toFixed(2)}
+                                </div>
+                              )}
                             </div>
                             <button
                               type="button"
@@ -789,9 +793,11 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
                         <td className="px-6 py-4 text-center font-medium">
                           <div className="text-sm leading-tight">
                             <div>MRP: ৳{item.price || item.unit_price}</div>
-                            <div className="font-semibold text-green-600 mt-1">
-                              DRP: ৳{item.order_price || 0}
-                            </div>
+                            {order.order_type === 'dropshipping' && (
+                              <div className="font-semibold text-green-600 mt-1">
+                                DRP: ৳{item.order_price || 0}
+                              </div>
+                            )}
                           </div>
                         </td>
                         <td className="px-6 py-4 text-center">
@@ -802,9 +808,11 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
                         <td className="px-6 py-4 text-right font-bold ">
                           <div className="text-sm leading-tight">
                             <div>৳{item.total || item.total_price}</div>
-                            <div className="font-semibold text-green-600 mt-1">
-                              ৳{(item.order_price * item.quantity || 0).toFixed(2)}
-                            </div>
+                            {order.order_type === 'dropshipping' && (
+                              <div className="font-semibold text-green-600 mt-1">
+                                ৳{(item.order_price * item.quantity || 0).toFixed(2)}
+                              </div>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -943,27 +951,29 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-6 pt-4 border-t border-gray-200">
-                    {/* DRP Summary */}
-                    <div className="space-y-2">
-                      <div className="text-xs text-gray-400 uppercase font-semibold tracking-wider mb-1 text-center">
-                        DRP Calculation
+                  <div className={`grid gap-6 pt-4 border-t border-gray-200 ${order.order_type === 'dropshipping' ? 'grid-cols-2' : 'grid-cols-1 max-w-xs ml-auto'}`}>
+                    {/* DRP Summary - only for dropshipping */}
+                    {order.order_type === 'dropshipping' && (
+                      <div className="space-y-2">
+                        <div className="text-xs text-gray-400 uppercase font-semibold tracking-wider mb-1 text-center">
+                          DRP Calculation
+                        </div>
+                        <div className="flex justify-between text-gray-600">
+                          <span>Subtotal</span>
+                          <span className="font-bold">৳{
+                            editedOrder.items?.reduce((sum: number, item: any) => sum + (item.order_price || 0) * item.quantity, 0).toFixed(2)
+                          }</span>
+                        </div>
+                        <div className="flex justify-between text-lg font-black text-gray-900 pt-2 border-t border-dashed">
+                          <span>Total</span>
+                          <span className="text-green-600">
+                            ৳{
+                              (editedOrder.items?.reduce((sum: number, item: any) => sum + (item.order_price || 0) * item.quantity, 0) + parseFloat(editedOrder.shipping_cost || 0)).toFixed(2)
+                            }
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex justify-between text-gray-600">
-                        <span>Subtotal</span>
-                        <span className="font-bold">৳{
-                          editedOrder.items?.reduce((sum: number, item: any) => sum + (item.order_price || 0) * item.quantity, 0).toFixed(2)
-                        }</span>
-                      </div>
-                      <div className="flex justify-between text-lg font-black text-gray-900 pt-2 border-t border-dashed">
-                        <span>Total</span>
-                        <span className="text-green-600">
-                          ৳{
-                            (editedOrder.items?.reduce((sum: number, item: any) => sum + (item.order_price || 0) * item.quantity, 0) + parseFloat(editedOrder.shipping_cost || 0)).toFixed(2)
-                          }
-                        </span>
-                      </div>
-                    </div>
+                    )}
 
                     {/* MRP Summary */}
                     <div className="space-y-2">
@@ -988,32 +998,34 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
                   </div>
                 </div>
               ) : (
-                <div className="max-w-xs ml-auto grid grid-cols-2 gap-6">
-                  {/* Left Column - DRP Summary */}
-                  <div className="space-y-3 text-sm">
-                    <div className="text-xs text-gray-400 uppercase font-semibold tracking-wider mb-2 text-center">
-                      DRP Calculation
+                <div className={`ml-auto ${order.order_type === 'dropshipping' ? 'max-w-xs grid grid-cols-2 gap-6' : 'max-w-[200px]'}`}>
+                  {/* Left Column - DRP Summary - only for dropshipping */}
+                  {order.order_type === 'dropshipping' && (
+                    <div className="space-y-3 text-sm">
+                      <div className="text-xs text-gray-400 uppercase font-semibold tracking-wider mb-2 text-center">
+                        DRP Calculation
+                      </div>
+                      <div className="flex justify-between text-gray-600">
+                        <span>Subtotal</span>
+                        <span className="font-bold">৳{drpSubtotal.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between text-gray-600">
+                        <span>Shipping</span>
+                        <span className="font-bold">৳{parseFloat(order.shipping_cost || 0).toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between text-xl font-black text-gray-900 pt-3 border-t border-gray-200">
+                        <span>Total</span>
+                        <span className="text-green-600">
+                          ৳{drpTotal.toFixed(2)}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex justify-between text-gray-600">
-                      <span>Subtotal</span>
-                      <span className="font-bold">৳{drpSubtotal.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between text-gray-600">
-                      <span>Shipping</span>
-                      <span className="font-bold">৳{parseFloat(order.shipping_cost || 0).toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between text-xl font-black text-gray-900 pt-3 border-t border-gray-200">
-                      <span>Total</span>
-                      <span className="text-green-600">
-                        ৳{drpTotal.toFixed(2)}
-                      </span>
-                    </div>
-                  </div>
+                  )}
 
-                  {/* Right Column - MRP Summary (Original Prices) */}
+                  {/* MRP Summary */}
                   <div className="space-y-3 text-sm">
                     <div className="text-xs text-gray-400 uppercase font-semibold tracking-wider mb-2 text-center">
-                      MRP Calculation
+                      {order.order_type === 'dropshipping' ? 'MRP Calculation' : 'Order Total'}
                     </div>
                     <div className="flex justify-between text-gray-600">
                       <span>Subtotal</span>
