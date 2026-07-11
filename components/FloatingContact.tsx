@@ -15,9 +15,9 @@ export default function FloatingContact() {
                 title="Track your order"
                 prefetch={false}
             >
-                <img 
-                    src="/tracking.png" 
-                    alt="Track Your Order" 
+                <img
+                    src="/tracking.png"
+                    alt="Track Your Order"
                     className="w-8 h-8 md:w-10 md:h-10 object-contain"
                 />
                 {/* Tooltip bubble */}
@@ -30,7 +30,7 @@ export default function FloatingContact() {
 
             {/* WhatsApp Floating Icon */}
             <Link
-                href="https://wa.me/01410643138"
+                href="https://wa.me/+8801410643138"
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => fpixel.event('Contact', { method: 'WhatsApp Floating' })}
