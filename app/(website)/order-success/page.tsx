@@ -39,8 +39,8 @@ const OrderSuccessContent = () => {
 
     const handleDownload = () => {
         if (!orderId) return;
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-        window.open(`${apiUrl}/api/v1/invoice/${orderId}`, '_blank');
+        const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
+        window.open(`${baseUrl}/api/v1/invoice/${orderId}`, '_blank');
     };
 
     const handleSendEmail = async (e: React.FormEvent) => {
@@ -138,7 +138,7 @@ const OrderSuccessContent = () => {
                         </div>
                         <div className="h-[500px] w-full bg-white relative">
                             <iframe
-                                src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v1/invoice/${orderId}/preview`}
+                                src={`${(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '')}/api/v1/invoice/${orderId}/preview`}
                                 className="w-full h-full border-0"
                                 title="Invoice Preview"
                             />

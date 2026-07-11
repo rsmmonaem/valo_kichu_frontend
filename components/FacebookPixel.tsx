@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, Suspense, useRef } from 'react';
+import { useEffect, Suspense } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import Script from 'next/script';
 import * as fpixel from '@/lib/fpixel';
@@ -8,13 +8,8 @@ import * as fpixel from '@/lib/fpixel';
 function NavigationEvents() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const isFirstRender = useRef(true);
 
   useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
-    }
     fpixel.pageview();
   }, [pathname, searchParams]);
 
@@ -40,7 +35,6 @@ export default function FacebookPixel() {
             s.parentNode.insertBefore(t,s)}(window, document,'script',
             'https://connect.facebook.net/en_US/fbevents.js');
             fbq('init', '${fpixel.FB_PIXEL_ID}');
-            fbq('track', 'PageView'${fpixel.TEST_EVENT_CODE ? `, { test_event_code: '${fpixel.TEST_EVENT_CODE}' }` : ''});
           `,
         }}
       />

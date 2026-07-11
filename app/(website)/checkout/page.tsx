@@ -42,6 +42,10 @@ const CheckoutPage = () => {
   // Meta Pixel: Track InitiateCheckout
   useEffect(() => {
     if (cart && cart.length > 0 && !hasInitiatedCheckout) {
+      const nameParts = (user?.name || `${user?.first_name || ''} ${user?.last_name || ''}`).trim().split(/\s+/);
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+
       fpixel.event('InitiateCheckout', {
         content_ids: cart.map((item) => item.id.toString()),
         content_type: 'product',
@@ -52,10 +56,17 @@ const CheckoutPage = () => {
         value: Number(cartTotal || 0),
         currency: 'BDT',
         num_items: cart.reduce((acc, item) => acc + item.quantity, 0)
+      }, {
+        email: user?.email || undefined,
+        phone: user?.phone_number || undefined,
+        firstName: firstName || undefined,
+        lastName: lastName || undefined,
+        city: user?.address || undefined,
+        externalId: user?.id ? String(user.id) : undefined,
       });
       setHasInitiatedCheckout(true);
     }
-  }, [cart, cartTotal, hasInitiatedCheckout]);
+  }, [cart, cartTotal, hasInitiatedCheckout, user]);
 
   // Initial state setup needs to leverage user data if available
   const [checkoutData, setCheckoutData] = useState({
@@ -242,6 +253,10 @@ const CheckoutPage = () => {
 
     try {
       // Meta Pixel: Track AddPaymentInfo
+      const nameParts = (checkoutData.name || '').trim().split(/\s+/);
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+
       fpixel.event('AddPaymentInfo', {
         content_ids: cart.map((item) => item.id.toString()),
         content_type: 'product',
@@ -249,9 +264,18 @@ const CheckoutPage = () => {
           id: item.id.toString(),
           quantity: item.quantity,
         })),
-        value: Number(cartTotal) + Number(shippingCost),
+        value: Number(cartTotal || 0) + Number(shippingCost || 0),
         currency: 'BDT',
         payment_category: checkoutData.payment_method === 'cod' ? 'Cash on Delivery' : 'Online Payment'
+      }, {
+        email: checkoutData.email || undefined,
+        phone: checkoutData.phone || undefined,
+        firstName: firstName || undefined,
+        lastName: lastName || undefined,
+        city: checkoutData.city || undefined,
+        country: checkoutData.country || undefined,
+        zip: checkoutData.zip_code || undefined,
+        externalId: user?.id ? String(user.id) : undefined,
       });
 
       // 1. Prepare Payload
@@ -309,6 +333,10 @@ const CheckoutPage = () => {
         localStorage.removeItem("checkout_lead_session_token");
 
         // Meta Pixel: Track Purchase
+        const purchaseNameParts = (checkoutData.name || '').trim().split(/\s+/);
+        const purchaseFirstName = purchaseNameParts[0] || '';
+        const purchaseLastName = purchaseNameParts.slice(1).join(' ') || '';
+
         fpixel.event('Purchase', {
           content_ids: cart.map((item) => item.id.toString()),
           content_type: 'product',
@@ -316,9 +344,18 @@ const CheckoutPage = () => {
             id: item.id.toString(),
             quantity: item.quantity,
           })),
-          value: Number(cartTotal) + Number(shippingCost),
+          value: Number(cartTotal || 0) + Number(shippingCost || 0),
           currency: 'BDT',
           order_id: data.order ? data.order.id : data.id || data.order_id
+        }, {
+          email: checkoutData.email || undefined,
+          phone: checkoutData.phone || undefined,
+          firstName: purchaseFirstName || undefined,
+          lastName: purchaseLastName || undefined,
+          city: checkoutData.city || undefined,
+          country: checkoutData.country || undefined,
+          zip: checkoutData.zip_code || undefined,
+          externalId: user?.id ? String(user.id) : undefined,
         });
 
         // Hande success

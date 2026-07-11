@@ -77,15 +77,22 @@ const DropshipperSignupPage = () => {
                 login(data.access_token, userData);
 
                 // Meta Pixel: Track CompleteRegistration & Lead
+                const signupUserData = {
+                    email: formData.email || undefined,
+                    phone: formData.phone_number || undefined,
+                    firstName: formData.first_name || undefined,
+                    lastName: formData.last_name || undefined,
+                    externalId: userData?.id ? String(userData.id) : undefined
+                };
                 fpixel.event('CompleteRegistration', {
                     status: true,
                     role: 'dropshipper'
-                });
+                }, signupUserData);
                 fpixel.event('Lead', {
                     content_category: 'Dropshipper Signup',
                     content_name: `${formData.first_name} ${formData.last_name}`,
                     status: 'Success'
-                });
+                }, signupUserData);
 
                 router.push('/dropshipper/dashboard');
             } else {

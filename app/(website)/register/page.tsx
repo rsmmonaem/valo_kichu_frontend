@@ -56,10 +56,20 @@ const RegisterPage = () => {
 
                 login(data.access_token, userData);
 
+                const nameParts = (name || '').trim().split(/\s+/);
+                const firstName = nameParts[0] || '';
+                const lastName = nameParts.slice(1).join(' ') || '';
+
                 // Meta Pixel: Track CompleteRegistration
                 fpixel.event('CompleteRegistration', {
                     status: true,
                     role: 'customer'
+                }, {
+                    email: email || undefined,
+                    phone: phone_number || undefined,
+                    firstName: firstName || undefined,
+                    lastName: lastName || undefined,
+                    externalId: userData?.id ? String(userData.id) : undefined
                 });
 
                 // Redirect based on role

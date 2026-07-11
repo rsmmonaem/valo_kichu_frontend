@@ -21,7 +21,7 @@ const generateEventId = () => {
   return `evt_${Date.now()}_${Math.floor(Math.random() * 1000000)}`;
 };
 
-const sendCapiEvent = async (eventName: string, customData: any, eventId: string) => {
+const sendCapiEvent = async (eventName: string, customData: any, eventId: string, userData: any = {}) => {
   if (typeof window === 'undefined') return;
   
   try {
@@ -33,6 +33,7 @@ const sendCapiEvent = async (eventName: string, customData: any, eventId: string
         event_id: eventId,
         event_source_url: window.location.href,
         custom_data: customData,
+        user_data: userData,
       }),
     });
   } catch (error) {
@@ -40,7 +41,7 @@ const sendCapiEvent = async (eventName: string, customData: any, eventId: string
   }
 };
 
-export const pageview = () => {
+export const pageview = (userData: any = {}) => {
   if (typeof window !== 'undefined') {
     const eventId = generateEventId();
     const options: any = {};
@@ -48,19 +49,36 @@ export const pageview = () => {
       options.test_event_code = TEST_EVENT_CODE;
     }
     (window as any).fbq('track', 'PageView', options, { eventID: eventId });
-    sendCapiEvent('PageView', {}, eventId);
+    sendCapiEvent('PageView', {}, eventId, userData);
   }
 };
 
 // https://developers.facebook.com/docs/meta-pixel/reference
-export const event = (name: string, options: any = {}) => {
+export const event = (name: string, options: any = {}, userData: any = {}) => {
   if (typeof window !== 'undefined') {
     const eventId = generateEventId();
     const payload = { ...options };
     if (TEST_EVENT_CODE) {
       payload.test_event_code = TEST_EVENT_CODE;
     }
+
+    // Normalize value to a clean decimal number if present
+    if (payload.value !== undefined) {
+      const parsedValue = parseFloat(Number(payload.value).toFixed(2));
+      if (!isNaN(parsedValue)) {
+        payload.value = parsedValue;
+      }
+    }
+
+    // Also normalize option value for CAPI
+    if (options.value !== undefined) {
+      const parsedValue = parseFloat(Number(options.value).toFixed(2));
+      if (!isNaN(parsedValue)) {
+        options.value = parsedValue;
+      }
+    }
+
     (window as any).fbq('track', name, payload, { eventID: eventId });
-    sendCapiEvent(name, options, eventId);
+    sendCapiEvent(name, options, eventId, userData);
   }
 };
