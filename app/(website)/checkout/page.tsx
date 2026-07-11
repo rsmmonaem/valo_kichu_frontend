@@ -849,7 +849,7 @@ const CheckoutPage = () => {
                 </h4>
                 <div className="flex justify-center gap-4">
                   <a
-                    href="https://wa.me/8801314861089"
+                    href="https://wa.me/01410643138"
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={() => fpixel.event('Contact', { method: 'WhatsApp Checkout' })}
@@ -866,7 +866,7 @@ const CheckoutPage = () => {
                     WhatsApp
                   </a>
                   <a
-                    href="tel:+8801314861089"
+                    href="tel:+01410643138"
                     onClick={() => fpixel.event('Contact', { method: 'Phone Checkout' })}
                     className="flex items-center justify-center gap-2 flex-1 bg-blue-50 text-blue-600 hover:bg-blue-100 py-3 rounded-lg font-bold transition"
                   >

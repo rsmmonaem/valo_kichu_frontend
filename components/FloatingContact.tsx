@@ -30,7 +30,7 @@ export default function FloatingContact() {
 
             {/* WhatsApp Floating Icon */}
             <Link
-                href="https://wa.me/8801314861089"
+                href="https://wa.me/01410643138"
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => fpixel.event('Contact', { method: 'WhatsApp Floating' })}
