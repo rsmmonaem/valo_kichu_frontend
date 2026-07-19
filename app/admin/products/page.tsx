@@ -57,6 +57,25 @@ const AdminProductsPage = () => {
         }
     };
 
+    const handleToggleStatus = async (product: any) => {
+        const newStatus = !product.is_active;
+        try {
+            const res = await authFetch(`/admin/v1/products/${product.id}`, {
+                method: 'PUT',
+                body: JSON.stringify({ is_active: newStatus })
+            });
+            if (res.ok) {
+                toast.success("Status updated successfully");
+                fetchProducts(currentPage);
+            } else {
+                toast.error("Failed to update status");
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error("An error occurred");
+        }
+    };
+
     return (
         <div>
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
@@ -141,12 +160,22 @@ const AdminProductsPage = () => {
                                         </td>
                                         <td className="p-4 font-medium">৳{product.price}</td>
                                         <td className="p-4">
-                                            <span className={clsx(
-                                                "px-2 py-1 rounded text-xs capitalize",
-                                                product.status === 'active' ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"
-                                            )}>
-                                                {product.status || 'Active'}
-                                            </span>
+                                            <button
+                                                onClick={() => handleToggleStatus(product)}
+                                                className={clsx(
+                                                    "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
+                                                    product.is_active ? "bg-green-500" : "bg-gray-300"
+                                                )}
+                                                role="switch"
+                                                aria-checked={product.is_active}
+                                            >
+                                                <span
+                                                    className={clsx(
+                                                        "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
+                                                        product.is_active ? "translate-x-5" : "translate-x-0"
+                                                    )}
+                                                />
+                                            </button>
                                         </td>
                                         <td className="p-4 text-right">
                                             <div className="flex items-center justify-end gap-2">
