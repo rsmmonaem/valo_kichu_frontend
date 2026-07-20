@@ -6,6 +6,7 @@ import {
   getBanners,
   getNewArrivals,
   getRecommendedProducts,
+  getSettings,
 } from "@/lib/api";
 import CategorySidebar from "@/components/CategorySidebar";
 import HeroSlider from "@/components/HeroSlider";
@@ -17,12 +18,13 @@ import CategoryGrid from "@/components/CategoryGrid";
 
 export default async function Home() {
   // Parallel Fetching for Critical Content only
-  const [categoriesRes, banners, newArrivals, recommendedProducts] =
+  const [categoriesRes, banners, newArrivals, recommendedProducts, settings] =
     await Promise.all([
       getCategoryList(),
       getBanners(),
       getNewArrivals(),
       getRecommendedProducts(),
+      getSettings(),
     ]);
 
   const categories = (categoriesRes.data || []).slice().sort((a: any, b: any) => {
@@ -34,7 +36,7 @@ export default async function Home() {
   return (
     <div className="bg-gray-50 min-h-screen">
       {/* Hero Slider Area */}  
-      {false && (
+      {settings.home_show_hero_slider !== 'false' && (
               <div className="bg-white">
               <div className="container mx-auto px-4 py-4 md:py-6">
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
@@ -50,21 +52,20 @@ export default async function Home() {
             </div>
       )}
       {/* Category Carousel - Critical Path */}
+      {settings.home_show_shop_by_category !== 'false' && (
       <section className="py-8 bg-white mb-4">
         <div className="container mx-auto px-4">
           <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
             <span className="w-1 h-6 bg-blue-600 rounded-full"></span>
             Shop by Category
           </h2>
-          {/* <CategoryCarousel
-            // categories={categories.filter((c: any) => c.show_shop_by_category)} // Optional filter for "Shop by Category" flag
-            categories={categories}
-          /> */}
           <CategoryGrid categories={categories} />
         </div>
       </section>
+      )}
 
       {/* New Arrivals Section - Critical Path */}
+      {settings.home_show_new_arrivals !== 'false' && (
       <section className="py-8 bg-white mb-4">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between mb-6">
@@ -93,15 +94,19 @@ export default async function Home() {
           </div>
         </div>
       </section>
+      )}
 
       {/* Dynamic Category Sections - Client Loaded for Non-Blocking UX */}
+      {settings.home_show_dynamic_feeds !== 'false' && (
       <section className="py-4">
         <div className="container mx-auto px-4">
           <HomeFeeds />
         </div>
       </section>
+      )}
 
       {/* Recommended Section - Lower Priority but can stay SSR or move to client if heavy */}
+      {settings.home_show_recommended !== 'false' && (
       <section className="py-12 bg-gray-100">
         <div className="container mx-auto px-4">
           <div className="text-center mb-10">
@@ -122,9 +127,12 @@ export default async function Home() {
           </div>
         </div>
       </section>
+      )}
 
       {/* Infinite Product Feed */}
-      <HomeAllProducts />
+      {settings.home_show_infinite_products !== 'false' && (
+        <HomeAllProducts />
+      )}
     </div>
   );
 }

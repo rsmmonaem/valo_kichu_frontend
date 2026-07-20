@@ -19,7 +19,9 @@ import {
     Truck,
     ChevronDown,
     ChevronRight,
-    ClipboardList
+    ClipboardList,
+    FileText,
+    ShieldAlert
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import clsx from 'clsx';
@@ -73,7 +75,10 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, setIsOpen }) => {
         { path: '/admin/checkout-leads', label: 'Checkout Leads', icon: ClipboardList },
         { path: '/admin/shipping', label: 'Shipping', icon: Truck },
         { path: '/admin/dropshippers', label: 'Dropshippers', icon: Users },
-        { path: '/admin/settings', label: 'Settings', icon: Settings },
+        { path: '/admin/ip-logs', label: 'IP Logs & Limits', icon: ShieldAlert },
+        { path: '/admin/settings', label: 'Global Settings', icon: Settings },
+        { path: '/admin/home-settings', label: 'Home Settings', icon: LayoutDashboard },
+        { path: '/admin/page-settings', label: 'Page Settings', icon: FileText },
     ];
 
     return (
@@ -88,7 +93,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, setIsOpen }) => {
 
             {/* Sidebar */}
             <div className={clsx(
-                "fixed top-0 left-0 h-full bg-gradient-to-b from-slate-900 to-slate-950 text-white w-64 z-50 transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:h-screen flex flex-col shadow-xl",
+                "fixed top-0 left-0 h-full bg-gradient-to-b from-slate-900 to-slate-950 text-white w-64 z-50 transition-transform duration-300 ease-in-out md:translate-x-0 md:sticky md:top-0 md:h-screen flex flex-col shadow-xl",
                 isOpen ? "translate-x-0" : "-translate-x-full"
             )}>
                 {/* Logo Area */}

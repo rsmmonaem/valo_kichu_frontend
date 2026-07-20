@@ -35,7 +35,7 @@ export default function AdminLayout({
     }
 
     return (
-        <div className="flex min-h-screen bg-gray-100">
+        <div className="flex h-screen bg-gray-100 overflow-hidden">
             {/* Sidebar */}
             <AdminSidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
 

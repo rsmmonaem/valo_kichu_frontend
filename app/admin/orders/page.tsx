@@ -57,8 +57,21 @@ const AdminOrdersPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
   const [totalOrders, setTotalOrders] = useState(0);
+  const [perPage, setPerPage] = useState(20);
   const [showDownloadMenu, setShowDownloadMenu] = useState(false);
   const downloadMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('adminOrdersPerPage');
+    if (saved) {
+      setPerPage(Number(saved));
+    }
+  }, []);
+
+  const handlePerPageChange = (val: number) => {
+    setPerPage(val);
+    localStorage.setItem('adminOrdersPerPage', val.toString());
+  };
 
   const statusTabs = [
     { key: "all", label: "All Orders", color: "gray" },
@@ -145,6 +158,7 @@ const AdminOrdersPage = () => {
       if (endDate) params.append("end_date", endDate);
       if (selectedCategoryId) params.append("category_id", selectedCategoryId);
       params.append("page", String(page));
+      params.append("limit", String(perPage));
 
       const res = await authFetch(`/admin/v1/orders?${params.toString()}`);
       if (res.ok) {
@@ -213,7 +227,7 @@ const AdminOrdersPage = () => {
     setCurrentPage(1);
     fetchOrders(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeStatus, typeFilter, startDate, endDate, selectedCategoryId]);
+  }, [activeStatus, typeFilter, startDate, endDate, selectedCategoryId, perPage]);
 
   const goToPage = (page: number) => {
     if (page < 1 || page > lastPage) return;
@@ -415,6 +429,16 @@ const AdminOrdersPage = () => {
                 </option>
               ))}
             </select>
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase">Per Page</label>
+            <input
+              type="number"
+              min="1"
+              value={perPage}
+              onChange={(e) => handlePerPageChange(Number(e.target.value) || 20)}
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            />
           </div>
           <div>
             <button
