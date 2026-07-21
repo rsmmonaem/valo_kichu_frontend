@@ -16,7 +16,7 @@ export default function IpLogsPage() {
     const fetchLogs = async (p = page, s = search) => {
         setLoading(true);
         try {
-            const res = await authFetch(`/admin/v1/ip-logs?page=${p}&search=${s}`);
+            const res = await authFetch(`/admin/v1/ip-logs?page=${p}&search=${encodeURIComponent(s)}`);
             if (res.ok) {
                 const data = await res.json();
                 setLogs(data.data);

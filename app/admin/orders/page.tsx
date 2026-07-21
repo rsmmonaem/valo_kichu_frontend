@@ -32,6 +32,7 @@ const AdminOrdersPage = () => {
   const [activeStatus, setActiveStatus] = useState("all");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategoryId, setSelectedCategoryId] = useState("");
   const [categories, setCategories] = useState<any[]>([]);
   const [summary, setSummary] = useState<any>({
@@ -156,6 +157,7 @@ const AdminOrdersPage = () => {
       if (typeFilter) params.append("order_type", typeFilter);
       if (startDate) params.append("start_date", startDate);
       if (endDate) params.append("end_date", endDate);
+      if (searchQuery) params.append("search", searchQuery);
       if (selectedCategoryId) params.append("category_id", selectedCategoryId);
       params.append("page", String(page));
       params.append("limit", String(perPage));
@@ -185,6 +187,7 @@ const AdminOrdersPage = () => {
       if (typeFilter) params.append("order_type", typeFilter);
       if (startDate) params.append("start_date", startDate);
       if (endDate) params.append("end_date", endDate);
+      if (searchQuery) params.append("search", searchQuery);
       if (selectedCategoryId) params.append("category_id", selectedCategoryId);
 
       const res = await authFetch(`/admin/v1/orders?${params.toString()}`);
@@ -227,7 +230,7 @@ const AdminOrdersPage = () => {
     setCurrentPage(1);
     fetchOrders(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeStatus, typeFilter, startDate, endDate, selectedCategoryId, perPage]);
+  }, [activeStatus, typeFilter, startDate, endDate, selectedCategoryId, perPage, searchQuery]);
 
   const goToPage = (page: number) => {
     if (page < 1 || page > lastPage) return;
@@ -238,7 +241,7 @@ const AdminOrdersPage = () => {
   useEffect(() => {
     fetchStats();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [typeFilter, startDate, endDate, selectedCategoryId]);
+  }, [typeFilter, startDate, endDate, selectedCategoryId, searchQuery]);
 
   const updateStatus = async (orderId: number, newStatus: string) => {
     if (
@@ -395,8 +398,18 @@ const AdminOrdersPage = () => {
 
       {/* Date & Category Filter Box */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
-        <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wider mb-4">Filter By Date &amp; Category</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
+        <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wider mb-4">Search &amp; Filters</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+          <div className="sm:col-span-2 lg:col-span-1">
+            <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase">Search</label>
+            <input
+              type="text"
+              placeholder="Order ID, Name, Phone..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            />
+          </div>
           <div>
             <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase">Start Date</label>
             <input
@@ -443,6 +456,7 @@ const AdminOrdersPage = () => {
           <div>
             <button
               onClick={() => {
+                setSearchQuery("");
                 setStartDate("");
                 setEndDate("");
                 setSelectedCategoryId("");

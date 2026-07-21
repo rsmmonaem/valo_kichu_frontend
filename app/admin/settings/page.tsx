@@ -75,12 +75,132 @@ const LinkEditor = ({ title, links, onUpdate, fieldKey }: {
     );
 };
 
+const TeamMemberEditor = ({ members, onUpdate, onImageUpload, resolveImageUrl }: {
+    members: { name: string, designation: string, email: string, image: string }[],
+    onUpdate: (members: any[]) => void,
+    onImageUpload: (e: React.ChangeEvent<HTMLInputElement>, index: number) => void,
+    resolveImageUrl: (url: string) => string
+}) => {
+    const addMember = () => onUpdate([...members, { name: '', designation: '', email: '', image: '' }]);
+    const removeMember = (index: number) => onUpdate(members.filter((_, i) => i !== index));
+    const updateMember = (index: number, field: string, value: string) => {
+        const newMembers = [...members];
+        newMembers[index] = { ...newMembers[index], [field]: value };
+        onUpdate(newMembers);
+    };
+
+    return (
+        <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div className="flex justify-between items-center mb-4">
+                <h3 className="font-bold text-gray-700 text-sm">Team Members</h3>
+                <button type="button" onClick={addMember} className="text-[10px] bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 transition">
+                    + Add Member
+                </button>
+            </div>
+            <div className="space-y-4">
+                {members.map((member, index) => (
+                    <div key={index} className="flex gap-4 items-start bg-white p-4 rounded border border-gray-100 shadow-sm relative group">
+                        <div className="w-20 h-20 bg-gray-50 border border-gray-200 rounded flex items-center justify-center overflow-hidden shrink-0">
+                            {member.image ? (
+                                <img src={resolveImageUrl(member.image)} alt={member.name} className="w-full h-full object-cover" />
+                            ) : (
+                                <ImageIcon className="text-gray-300" size={24} />
+                            )}
+                        </div>
+                        <div className="flex-1 grid grid-cols-2 gap-3">
+                            <div className="col-span-2 flex items-center justify-between gap-2">
+                                <label className="text-[10px] font-medium text-gray-500 bg-gray-100 hover:bg-gray-200 cursor-pointer px-2 py-1 rounded border border-gray-200">
+                                    Upload Image
+                                    <input type="file" className="hidden" accept="image/*" onChange={(e) => onImageUpload(e, index)} />
+                                </label>
+                                <button type="button" onClick={() => removeMember(index)} className="text-red-400 hover:text-red-600" title="Remove Member">
+                                    <span className="text-xl font-bold leading-none">&times;</span>
+                                </button>
+                            </div>
+                            <input
+                                type="text" placeholder="Name" value={member.name}
+                                onChange={(e) => updateMember(index, 'name', e.target.value)}
+                                className="border border-gray-200 rounded px-2 py-1.5 text-xs outline-none focus:border-blue-500"
+                            />
+                            <input
+                                type="text" placeholder="Designation" value={member.designation}
+                                onChange={(e) => updateMember(index, 'designation', e.target.value)}
+                                className="border border-gray-200 rounded px-2 py-1.5 text-xs outline-none focus:border-blue-500"
+                            />
+                            <input
+                                type="email" placeholder="Email" value={member.email}
+                                onChange={(e) => updateMember(index, 'email', e.target.value)}
+                                className="col-span-2 border border-gray-200 rounded px-2 py-1.5 text-xs outline-none focus:border-blue-500"
+                            />
+                        </div>
+                    </div>
+                ))}
+                {members.length === 0 && (
+                    <div className="text-center py-6 bg-gray-100/50 rounded-lg border border-dashed border-gray-200">
+                        <p className="text-[10px] text-gray-400 italic">No team members added yet</p>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+const WorkflowImageEditor = ({ images, onUpdate, onImageUpload, resolveImageUrl }: {
+    images: { image: string }[],
+    onUpdate: (images: any[]) => void,
+    onImageUpload: (e: React.ChangeEvent<HTMLInputElement>, index: number) => void,
+    resolveImageUrl: (url: string) => string
+}) => {
+    const addImage = () => onUpdate([...images, { image: '' }]);
+    const removeImage = (index: number) => onUpdate(images.filter((_, i) => i !== index));
+
+    return (
+        <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div className="flex justify-between items-center mb-4">
+                <h3 className="font-bold text-gray-700 text-sm">Work Flow Images</h3>
+                <button type="button" onClick={addImage} className="text-[10px] bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 transition">
+                    + Add Image
+                </button>
+            </div>
+            <div className="space-y-4">
+                {images.map((img, index) => (
+                    <div key={index} className="flex gap-4 items-center bg-white p-4 rounded border border-gray-100 shadow-sm relative group">
+                        <div className="w-32 h-20 bg-gray-50 border border-gray-200 rounded flex items-center justify-center overflow-hidden shrink-0">
+                            {img.image ? (
+                                <img src={resolveImageUrl(img.image)} className="w-full h-full object-cover" />
+                            ) : (
+                                <ImageIcon className="text-gray-300" size={24} />
+                            )}
+                        </div>
+                        <div className="flex-1 flex items-center justify-between gap-4">
+                            <label className="text-[10px] font-medium text-gray-500 bg-gray-100 hover:bg-gray-200 cursor-pointer px-3 py-1.5 rounded border border-gray-200">
+                                Upload Image
+                                <input type="file" className="hidden" accept="image/*" onChange={(e) => onImageUpload(e, index)} />
+                            </label>
+                            <button type="button" onClick={() => removeImage(index)} className="text-red-400 hover:text-red-600" title="Remove Image">
+                                <span className="text-xl font-bold leading-none">&times;</span>
+                            </button>
+                        </div>
+                    </div>
+                ))}
+                {images.length === 0 && (
+                    <div className="text-center py-6 bg-gray-100/50 rounded-lg border border-dashed border-gray-200">
+                        <p className="text-[10px] text-gray-400 italic">No work flow images added yet</p>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
 const SettingsPage = () => {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [settings, setSettings] = useState<Record<string, string>>({});
     const [customerServiceLinks, setCustomerServiceLinks] = useState<{ label: string, url: string }[]>([]);
     const [quickLinks, setQuickLinks] = useState<{ label: string, url: string }[]>([]);
+    const [teamMembers, setTeamMembers] = useState<{ name: string, designation: string, email: string, image: string }[]>([]);
+    const [workflowImages, setWorkflowImages] = useState<{ image: string }[]>([]);
 
     const fields = [
         { key: 'site_name', label: 'Site Name', type: 'text' },
@@ -106,7 +226,7 @@ const SettingsPage = () => {
                 data.forEach(s => settingsMap[s.key] = s.value);
                 setSettings(settingsMap);
 
-                // Initialize dynamic link arrays
+                // Initialize dynamic arrays
                 try {
                     setCustomerServiceLinks(JSON.parse(settingsMap.footer_customer_service_links || '[]'));
                 } catch (e) { setCustomerServiceLinks([]); }
@@ -114,6 +234,14 @@ const SettingsPage = () => {
                 try {
                     setQuickLinks(JSON.parse(settingsMap.footer_quick_links || '[]'));
                 } catch (e) { setQuickLinks([]); }
+                
+                try {
+                    setTeamMembers(JSON.parse(settingsMap.our_teams_members || '[]'));
+                } catch (e) { setTeamMembers([]); }
+                
+                try {
+                    setWorkflowImages(JSON.parse(settingsMap.our_workflow_images || '[]'));
+                } catch (e) { setWorkflowImages([]); }
             }
         } catch (error) {
             console.error(error);
@@ -167,6 +295,79 @@ const SettingsPage = () => {
         handleChange(key, JSON.stringify(newLinks));
     };
 
+    const updateTeamMembers = (members: any[]) => {
+        setTeamMembers(members);
+        handleChange('our_teams_members', JSON.stringify(members));
+    };
+
+    const handleTeamMemberImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            const formData = new FormData();
+            formData.append('image', file);
+            formData.append('folder', 'settings');
+
+            const savingToast = toast.loading('Uploading member image...');
+            try {
+                const res = await authFetch('/admin/v1/upload', {
+                    method: 'POST',
+                    body: formData,
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    const newMembers = [...teamMembers];
+                    newMembers[index].image = data.path;
+                    updateTeamMembers(newMembers);
+                    toast.dismiss(savingToast);
+                    toast.success('Member image uploaded successfully');
+                } else {
+                    toast.dismiss(savingToast);
+                    toast.error('Upload failed');
+                }
+            } catch (error) {
+                console.error(error);
+                toast.dismiss(savingToast);
+                toast.error('Upload error');
+            }
+        }
+    };
+
+    const updateWorkflowImages = (images: any[]) => {
+        setWorkflowImages(images);
+        handleChange('our_workflow_images', JSON.stringify(images));
+    };
+
+    const handleWorkflowImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            const formData = new FormData();
+            formData.append('image', file);
+            formData.append('folder', 'settings');
+
+            const savingToast = toast.loading('Uploading workflow image...');
+            try {
+                const res = await authFetch('/admin/v1/upload', {
+                    method: 'POST',
+                    body: formData,
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    const newImages = [...workflowImages];
+                    newImages[index].image = data.path;
+                    updateWorkflowImages(newImages);
+                    toast.dismiss(savingToast);
+                    toast.success('Workflow image uploaded successfully');
+                } else {
+                    toast.dismiss(savingToast);
+                    toast.error('Upload failed');
+                }
+            } catch (error) {
+                console.error(error);
+                toast.dismiss(savingToast);
+                toast.error('Upload error');
+            }
+        }
+    };
 
     const handleSave = async () => {
         setSaving(true);
@@ -482,6 +683,53 @@ const SettingsPage = () => {
                                 links={quickLinks}
                                 onUpdate={updateLinkField}
                                 fieldKey="footer_quick_links"
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Our Teams Page Configuration */}
+                <div className="border-t border-gray-100 pt-6">
+                    <h2 className="text-lg font-semibold text-gray-800 mb-4 text-purple-600">Our Teams Page Configuration</h2>
+                    <div className="space-y-6">
+                        <div className="grid md:grid-cols-2 gap-6 p-4 bg-purple-50/30 rounded-lg border border-purple-100">
+                            <div className="md:col-span-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Our Mission</label>
+                                <textarea
+                                    rows={3}
+                                    value={settings.our_teams_mission || ''}
+                                    onChange={(e) => handleChange('our_teams_mission', e.target.value)}
+                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500/20 outline-none"
+                                    placeholder="Enter your mission statement..."
+                                />
+                            </div>
+                            <div className="md:col-span-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Our Vision</label>
+                                <textarea
+                                    rows={3}
+                                    value={settings.our_teams_vision || ''}
+                                    onChange={(e) => handleChange('our_teams_vision', e.target.value)}
+                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500/20 outline-none"
+                                    placeholder="Enter your vision statement..."
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <TeamMemberEditor
+                                members={teamMembers}
+                                onUpdate={updateTeamMembers}
+                                onImageUpload={handleTeamMemberImageUpload}
+                                resolveImageUrl={resolveSettingImageUrl}
+                            />
+                        </div>
+
+                        <div>
+                            <WorkflowImageEditor
+                                images={workflowImages}
+                                onUpdate={updateWorkflowImages}
+                                onImageUpload={handleWorkflowImageUpload}
+                                resolveImageUrl={resolveSettingImageUrl}
                             />
                         </div>
                     </div>

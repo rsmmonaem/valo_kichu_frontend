@@ -178,9 +178,9 @@ const AdminProductsPage = () => {
                                         <td className="p-4">
                                             <span className={clsx(
                                                 "font-medium",
-                                                (product.current_stock || product.stock_quantity) > 10 ? "text-green-600" : "text-red-500"
+                                                (product.current_stock ?? product.stock_quantity ?? 0) > 10 ? "text-green-600" : "text-red-500"
                                             )}>
-                                                {product.current_stock || product.stock_quantity || 0}
+                                                {product.current_stock ?? product.stock_quantity ?? 0}
                                             </span>
                                         </td>
                                         <td className="p-4 font-medium">৳{product.price}</td>

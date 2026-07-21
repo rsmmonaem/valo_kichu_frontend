@@ -187,6 +187,15 @@ export default function Footer() {
                   </li>
                   <li>
                     <Link
+                      href="/our-teams"
+                      className="hover:text-blue-600 transition-colors"
+                      prefetch={false}
+                    >
+                      Our Teams
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
                       href="/careers"
                       className="hover:text-blue-600 transition-colors"
                       prefetch={false}

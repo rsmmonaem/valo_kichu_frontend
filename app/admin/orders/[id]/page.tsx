@@ -384,6 +384,38 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
     );
   }
 
+  const getVariationSku = (item: any) => {
+    if (item.variation?.sku) return item.variation.sku;
+    
+    if (item.product?.variations && item.variation_snapshot) {
+      try {
+        const vars = typeof item.product.variations === 'string' ? JSON.parse(item.product.variations) : item.product.variations;
+        const variationsArr = Array.isArray(vars) ? vars : Object.values(vars);
+        
+        const snapshot = item.variation_snapshot.toLowerCase();
+        
+        for (const v of variationsArr as any[]) {
+          if (!v.sku) continue;
+          
+          const size = String(v.size || v.attributes?.Weight || v.attributes?.Size || "").toLowerCase();
+          const color = String(v.color || "").toLowerCase();
+          
+          let matches = true;
+          if (size && !snapshot.includes(size)) matches = false;
+          if (color && !snapshot.includes(color)) matches = false;
+          
+          if (matches && (size || color)) {
+            return v.sku;
+          }
+        }
+      } catch (e) {
+        return null;
+      }
+    }
+    
+    return null;
+  };
+
   const shippingAddress = (() => {
     try {
       const addr = JSON.parse(order.shipping_address);
@@ -635,13 +667,22 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
                               <p className="text-xs text-gray-500 mt-1">
                                 {item.variation_snapshot || "No variation"}
                               </p>
-                              {item.product?.product_code && (
-                                <p className="mt-1">
+                              <div className="mt-1 flex flex-wrap gap-1">
+                                {(item.product?.product_code || item.product?.product_sku) && (
                                   <span className="text-xs bg-gray-100 px-2 py-1 rounded-lg text-gray-600 font-mono">
-                                    Code: {item.product.product_code}
+                                    Code: {item.product.product_code || item.product.product_sku}
                                   </span>
-                                </p>
-                              )}
+                                )}
+                                {(() => {
+                                  const varSku = getVariationSku(item);
+                                  if (!varSku) return null;
+                                  return (
+                                    <span className="text-xs bg-blue-50 px-2 py-1 rounded-lg text-blue-600 font-mono border border-blue-100">
+                                      Var SKU: {varSku}
+                                    </span>
+                                  );
+                                })()}
+                              </div>
                             </div>
                           </div>
                         </td>
@@ -775,17 +816,26 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
                                     item.variant_name ||
                                     "No variation"}
                                 </p>
-                                <p>
-                                  {item.product?.product_code ? (
+                                <div className="mt-1 flex flex-wrap gap-1">
+                                  {(item.product?.product_code || item.product?.product_sku) ? (
                                     <span className="text-xs bg-gray-100 px-2 py-1 rounded-lg text-gray-600 font-mono">
-                                      Code: {item.product.product_code}
+                                      Code: {item.product.product_code || item.product.product_sku}
                                     </span>
                                   ) : (
                                     <span className="text-xs bg-gray-100 px-2 py-1 rounded-lg text-gray-600 font-mono">
                                       SKU not available
                                     </span>
                                   )}
-                                </p>
+                                  {(() => {
+                                    const varSku = getVariationSku(item);
+                                    if (!varSku) return null;
+                                    return (
+                                      <span className="text-xs bg-blue-50 px-2 py-1 rounded-lg text-blue-600 font-mono border border-blue-100">
+                                        Var SKU: {varSku}
+                                      </span>
+                                    );
+                                  })()}
+                                </div>
                               </div>
                             </div>
                           </div>
