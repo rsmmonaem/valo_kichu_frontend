@@ -477,7 +477,7 @@ const AdminOrdersPage = () => {
         </div>
         <div className="bg-gradient-to-br from-green-50 to-green-100/50 p-5 rounded-xl border border-green-100/85 shadow-sm">
           <p className="text-xs font-bold text-green-600 uppercase tracking-wider mb-1">Total Sales</p>
-          <p className="text-3xl font-black text-green-950">৳{summary.total_sales}</p>
+          <p className="text-3xl font-black text-green-950">৳{Number(summary.total_sales || 0).toLocaleString()}</p>
         </div>
         <div className="bg-gradient-to-br from-amber-50 to-amber-100/50 p-5 rounded-xl border border-amber-100/85 shadow-sm">
           <p className="text-xs font-bold text-amber-600 uppercase tracking-wider mb-1">Items Qty Sold</p>
@@ -486,7 +486,7 @@ const AdminOrdersPage = () => {
         {selectedCategoryId && (
           <div className="bg-gradient-to-br from-purple-50 to-purple-100/50 p-5 rounded-xl border border-purple-100/85 shadow-sm md:col-span-3 lg:col-span-1">
             <p className="text-xs font-bold text-purple-600 uppercase tracking-wider mb-1">Category Specific Sales</p>
-            <p className="text-2xl font-black text-purple-950">৳{summary.category_sales}</p>
+            <p className="text-2xl font-black text-purple-950">৳{Number(summary.category_sales || 0).toLocaleString()}</p>
             <p className="text-xs text-purple-700 mt-1 font-semibold">Qty Sold: {summary.category_items_qty} pcs</p>
           </div>
         )}
