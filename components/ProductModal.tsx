@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { X, Minus, Plus, ShoppingCart, Star } from "lucide-react";
+import { X, Minus, Plus, ShoppingCart, Star, ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { useCart } from "@/context/CartContext";
 // import points from "@/public/coin.png";
@@ -19,14 +19,22 @@ import { getDefaultColor } from '@/lib/utils/getDefaultColorImage';
 interface ProductModalProps {
   product: Product | null;
   onClose: () => void;
+  onNextProduct?: () => void;
+  onPrevProduct?: () => void;
 }
 
-export default function ProductModal({ product: initialProduct, onClose }: ProductModalProps) {
+export default function ProductModal({
+  product: initialProduct,
+  onClose,
+  onNextProduct,
+  onPrevProduct,
+}: ProductModalProps) {
   const router = useRouter();
   const [product, setProduct] = useState(initialProduct);
 
-  // Fetch fresh product data on mount
+  // Update product state and fetch fresh data when initialProduct prop changes
   useEffect(() => {
+    setProduct(initialProduct);
     if (initialProduct?.slug) {
       getProduct(initialProduct.slug).then(res => {
         if (res.status && res.data) {
@@ -34,7 +42,7 @@ export default function ProductModal({ product: initialProduct, onClose }: Produ
         }
       }).catch(console.error);
     }
-  }, [initialProduct?.slug]);
+  }, [initialProduct]);
   const [quantity, setQuantity] = useState(1);
   const [isMobile, setIsMobile] = useState(false);
   const [hasImageError, setHasImageError] = useState(false);
@@ -336,8 +344,10 @@ export default function ProductModal({ product: initialProduct, onClose }: Produ
   }, []);
 
   useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
+    const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
+      if (e.key === "ArrowLeft" && onPrevProduct) onPrevProduct();
+      if (e.key === "ArrowRight" && onNextProduct) onNextProduct();
     };
 
     const handleClickOutside = (e: MouseEvent) => {
@@ -346,14 +356,43 @@ export default function ProductModal({ product: initialProduct, onClose }: Produ
       }
     };
 
-    document.addEventListener("keydown", handleEscape);
+    document.addEventListener("keydown", handleKeyDown);
     document.addEventListener("mousedown", handleClickOutside);
 
     return () => {
-      document.removeEventListener("keydown", handleEscape);
+      document.removeEventListener("keydown", handleKeyDown);
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [onClose]);
+  }, [onClose, onNextProduct, onPrevProduct]);
+
+  // Touch Swipe gestures for Gallery-like product switching
+  const touchStartX = useRef<number | null>(null);
+  const touchEndX = useRef<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.targetTouches[0].clientX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.targetTouches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStartX.current || !touchEndX.current) return;
+    const distance = touchStartX.current - touchEndX.current;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe && onNextProduct) {
+      onNextProduct();
+    }
+    if (isRightSwipe && onPrevProduct) {
+      onPrevProduct();
+    }
+
+    touchStartX.current = null;
+    touchEndX.current = null;
+  };
 
   // ---------------- HANDLERS ----------------
   const handleAddToCart = () => {
@@ -655,6 +694,9 @@ export default function ProductModal({ product: initialProduct, onClose }: Produ
       <div className="fixed inset-0 z-50 flex items-center justify-center p-2 md:p-6">
         <div
           ref={modalRef}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
           className="relative w-full max-w-6xl max-h-[75vh] md:max-h-[92vh] bg-white border border-yellow-600 rounded-3xl shadow-[0_30px_80px_rgba(0,0,0,0.35)] animate-in fade-in zoom-in-95 duration-300 overflow-hidden flex flex-col"
         >
           {/* Close Button */}
@@ -666,16 +708,41 @@ export default function ProductModal({ product: initialProduct, onClose }: Produ
             <X size={20} className="text-gray-800" />
           </button>
 
-          {/* ADDED: Cart Animation
-          {showCartAnimation && (
-//             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50">
-// <AddtocartToster />
-//             </div> */}
-          {/* <div className="absolute top-1/2 left-[60%] transform -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md px-4">
-    <AddtocartToster />
-</div>
-            
-          )} */}
+          {/* Product Switching - Floating on Modal Left Edge */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onPrevProduct) onPrevProduct();
+            }}
+            disabled={!onPrevProduct}
+            className={`absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-50 p-3 md:p-4 rounded-full bg-white/95 backdrop-blur-md shadow-2xl transition-all border border-gray-200 group text-gray-800 ${
+              onPrevProduct
+                ? "hover:bg-blue-600 hover:text-white hover:scale-110 active:scale-95 cursor-pointer"
+                : "opacity-40 cursor-not-allowed text-gray-400"
+            }`}
+            aria-label="Previous Product"
+            title="Previous Product"
+          >
+            <ChevronLeft size={28} />
+          </button>
+
+          {/* Product Switching - Floating on Modal Right Edge */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onNextProduct) onNextProduct();
+            }}
+            disabled={!onNextProduct}
+            className={`absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-50 p-3 md:p-4 rounded-full bg-white/95 backdrop-blur-md shadow-2xl transition-all border border-gray-200 group text-gray-800 ${
+              onNextProduct
+                ? "hover:bg-blue-600 hover:text-white hover:scale-110 active:scale-95 cursor-pointer"
+                : "opacity-40 cursor-not-allowed text-gray-400"
+            }`}
+            aria-label="Next Product"
+            title="Next Product"
+          >
+            <ChevronRight size={28} />
+          </button>
 
           {/* Scrollable Content */}
           <div className="overflow-y-auto flex-1 custom-scrollbar">
@@ -701,6 +768,41 @@ export default function ProductModal({ product: initialProduct, onClose }: Produ
                       onError={() => setHasImageError(true)}
                     />
                   </div>
+
+                  {/* Image Navigation - Floating inside Product Image */}
+                  {galleryImages.length > 1 && (
+                    <>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const currIndex = galleryImages.findIndex((g: any) => g.img === preview);
+                          const prevIndex = currIndex <= 0 ? galleryImages.length - 1 : currIndex - 1;
+                          setPreview(galleryImages[prevIndex]?.img);
+                          setGalleryId(galleryImages[prevIndex]?.id);
+                        }}
+                        className="absolute left-3 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full bg-black/40 text-white backdrop-blur-sm hover:bg-black/70 transition cursor-pointer"
+                        aria-label="Previous Image"
+                        title="Previous Image"
+                      >
+                        <ChevronLeft size={20} />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const currIndex = galleryImages.findIndex((g: any) => g.img === preview);
+                          const nextIndex = currIndex >= galleryImages.length - 1 ? 0 : currIndex + 1;
+                          setPreview(galleryImages[nextIndex]?.img);
+                          setGalleryId(galleryImages[nextIndex]?.id);
+                        }}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full bg-black/40 text-white backdrop-blur-sm hover:bg-black/70 transition cursor-pointer"
+                        aria-label="Next Image"
+                        title="Next Image"
+                      >
+                        <ChevronRight size={20} />
+                      </button>
+                    </>
+                  )}
+
                   {product.tags &&
                     Array.isArray(product.tags) &&
                     product.tags.includes("best_seller") && (

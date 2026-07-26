@@ -12,6 +12,7 @@ import CategorySidebar from "@/components/CategorySidebar";
 import HeroSlider from "@/components/HeroSlider";
 import CategoryCarousel from "@/components/CategoryCarousel";
 import ProductCard from "@/components/ProductCard";
+import ProductGridSection from "@/components/ProductGridSection";
 import HomeFeeds from "@/components/HomeFeeds"; // New Client Component
 import HomeAllProducts from "@/components/HomeAllProducts";
 import CategoryGrid from "@/components/CategoryGrid";
@@ -81,17 +82,13 @@ export default async function Home() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {newArrivals.length > 0 ? (
-              newArrivals.map((product: any) => (
-                <ProductCard key={product.id} product={product} />
-              ))
-            ) : (
-              <div className="col-span-full py-8 text-center text-gray-400 bg-gray-50 rounded-lg">
-                No new arrivals yet.
-              </div>
-            )}
-          </div>
+          {newArrivals.length > 0 ? (
+            <ProductGridSection products={newArrivals} />
+          ) : (
+            <div className="col-span-full py-8 text-center text-gray-400 bg-gray-50 rounded-lg">
+              No new arrivals yet.
+            </div>
+          )}
         </div>
       </section>
       )}
@@ -120,11 +117,7 @@ export default async function Home() {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {recommendedProducts.map((product: any) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
+          <ProductGridSection products={recommendedProducts} />
         </div>
       </section>
       )}

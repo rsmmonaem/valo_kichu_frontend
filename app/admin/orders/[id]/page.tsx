@@ -22,6 +22,8 @@ import {
   Search,
   Minus,
   X,
+  Eye,
+  PhoneCall,
 } from "lucide-react";
 import { authFetch } from "@/lib/api";
 import clsx from "clsx";
@@ -53,6 +55,92 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
     phone: ""
   });
   const [isAddressJson, setIsAddressJson] = useState(false);
+  const [previousOrders, setPreviousOrders] = useState<any[]>([]);
+  const [loadingPreviousOrders, setLoadingPreviousOrders] = useState<boolean>(false);
+
+  // CRM Call Log States
+  const [crmCallStatus, setCrmCallStatus] = useState("contacted");
+  const [crmCallDate, setCrmCallDate] = useState(() => {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    return now.toISOString().slice(0, 16);
+  });
+  const [crmNextCallDate, setCrmNextCallDate] = useState(() => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setMinutes(tomorrow.getMinutes() - tomorrow.getTimezoneOffset());
+    return tomorrow.toISOString().slice(0, 16);
+  });
+  const [crmNote, setCrmNote] = useState("");
+  const [savingCrmLog, setSavingCrmLog] = useState(false);
+
+  const handleSaveCrmLog = async () => {
+    if (!crmCallStatus) {
+      toast.error("Please select a call status");
+      return;
+    }
+    setSavingCrmLog(true);
+    try {
+      const res = await authFetch(`/admin/v1/orders/${orderId}/crm-log`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          call_status: crmCallStatus,
+          last_called_at: crmCallDate,
+          next_call_at: crmNextCallDate,
+          note: crmNote,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        toast.success("CRM Call Log saved successfully!");
+        if (data.order) {
+          setOrder(data.order);
+        } else {
+          fetchOrderDetails();
+        }
+        setCrmNote("");
+      } else {
+        toast.error("Failed to save CRM log");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Something went wrong");
+    } finally {
+      setSavingCrmLog(false);
+    }
+  };
+
+  const fetchPreviousOrders = async (currentOrder: any) => {
+    if (!currentOrder) return;
+    const phone = currentOrder.phone || currentOrder.contact_number || currentOrder.user?.phone_number || "";
+    const email = currentOrder.email || currentOrder.user?.email || "";
+    const userId = currentOrder.user_id || "";
+
+    if (!phone && !email && !userId) return;
+
+    setLoadingPreviousOrders(true);
+    try {
+      const params = new URLSearchParams();
+      if (phone) params.append("phone", phone);
+      if (email) params.append("email", email);
+      if (userId) params.append("user_id", String(userId));
+      if (currentOrder.id) params.append("exclude_id", String(currentOrder.id));
+
+      const res = await authFetch(`/admin/v1/orders/customer-history?${params.toString()}`);
+      if (res.ok) {
+        const data = await res.json();
+        setPreviousOrders(Array.isArray(data) ? data : []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch previous orders:", error);
+    } finally {
+      setLoadingPreviousOrders(false);
+    }
+  };
 
   const fetchOrderDetails = async () => {
     setLoading(true);
@@ -62,6 +150,7 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
         const data = await res.json();
         console.log("Fetched order details:", data);
         setOrder(data);
+        fetchPreviousOrders(data);
       } else {
         toast.error("Failed to fetch order details");
       }
@@ -323,6 +412,7 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
   const getStatusBadge = (status: string) => {
     const styles: any = {
       pending: "bg-yellow-100 text-yellow-700",
+      contacted: "bg-teal-100 text-teal-700",
       confirmed: "bg-green-100 text-green-600",
       purchased_by_admin: "bg-indigo-100 text-indigo-700",
       ready_to_ship_bd: "bg-purple-100 text-purple-700",
@@ -1106,6 +1196,7 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {[
                 "pending",
+                "contacted",
                 "confirmed",
                 "purchased_by_admin",
                 "ready_to_ship_bd",
@@ -1130,6 +1221,185 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
               ))}
             </div>
           </div>
+
+          {/* CRM Follow-up / Call Log Card - Only shown when status is 'contacted' */}
+          {order.status === "contacted" && (
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-6">
+              <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 bg-emerald-100 text-emerald-700 rounded-xl">
+                    <PhoneCall size={20} />
+                  </div>
+                  <div>
+                    <h2 className="font-bold text-lg text-gray-900 leading-tight">
+                      CRM Call &amp; Follow-up Log
+                    </h2>
+                    <p className="text-xs text-gray-500 font-medium">
+                      Track call status, date &amp; conversation notes
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 flex-wrap justify-end">
+                  {order.call_status && (
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[11px] text-gray-400 uppercase font-bold">Status:</span>
+                      <span className={clsx(
+                        "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border",
+                        order.call_status === 'contacted' && "bg-green-100 text-green-700 border-green-200",
+                        order.call_status === 'no_answer' && "bg-red-100 text-red-700 border-red-200",
+                        order.call_status === 'busy' && "bg-amber-100 text-amber-700 border-amber-200",
+                        order.call_status === 'callback_requested' && "bg-purple-100 text-purple-700 border-purple-200",
+                        order.call_status === 'wrong_number' && "bg-gray-100 text-gray-700 border-gray-200",
+                      )}>
+                        {order.call_status.replace(/_/g, " ")}
+                      </span>
+                    </div>
+                  )}
+                  {order.next_call_at && (
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[11px] text-blue-500 uppercase font-bold">Next Call:</span>
+                      <span className="px-3 py-1 bg-blue-50 text-blue-700 font-bold text-xs rounded-full border border-blue-200">
+                        {new Date(order.next_call_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Input Form */}
+              <div className="bg-gray-50/70 p-5 rounded-xl border border-gray-150 space-y-4">
+                <div>
+                  <label className="block text-xs font-bold uppercase text-gray-600 mb-2">
+                    Call Status
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { key: "contacted", label: "Contacted" },
+                      { key: "no_answer", label: "No Answer" },
+                      { key: "busy", label: "Busy" },
+                      { key: "callback_requested", label: "Callback Requested" },
+                      { key: "wrong_number", label: "Wrong Number" },
+                    ].map((item) => (
+                      <button
+                        type="button"
+                        key={item.key}
+                        onClick={() => setCrmCallStatus(item.key)}
+                        className={clsx(
+                          "px-3 py-2 rounded-lg text-xs font-bold transition border",
+                          crmCallStatus === item.key
+                            ? "bg-slate-900 text-white border-slate-900 shadow-sm"
+                            : "bg-white text-gray-700 border-gray-200 hover:border-gray-300"
+                        )}
+                      >
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-gray-600 mb-1.5">
+                      Call Date &amp; Time
+                    </label>
+                    <input
+                      type="datetime-local"
+                      value={crmCallDate}
+                      onChange={(e) => setCrmCallDate(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-white font-medium"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-blue-600 mb-1.5 flex items-center justify-between">
+                      <span>Next Follow-up Call Date</span>
+                      <span className="text-[10px] text-blue-500 lowercase font-normal">(optional)</span>
+                    </label>
+                    <input
+                      type="datetime-local"
+                      value={crmNextCallDate}
+                      onChange={(e) => setCrmNextCallDate(e.target.value)}
+                      className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-blue-50/30 text-blue-900 font-semibold"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase text-gray-600 mb-1.5">
+                    Conversation Note / Remarks
+                  </label>
+                  <textarea
+                    rows={3}
+                    placeholder="Enter details of conversation with customer (e.g. Customer confirmed order, requested delivery tomorrow at 4 PM)..."
+                    value={crmNote}
+                    onChange={(e) => setCrmNote(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-white"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between pt-1">
+                  <div className="text-xs text-gray-500">
+                    <span className="font-semibold text-gray-700">Last Called:</span>{" "}
+                    {order.last_called_at ? new Date(order.last_called_at).toLocaleString() : "Never called"}
+                  </div>
+                  <button
+                    disabled={savingCrmLog}
+                    onClick={handleSaveCrmLog}
+                    className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold transition flex items-center gap-2 shadow-sm disabled:opacity-50"
+                  >
+                    <PhoneCall size={16} /> Save CRM Call Log
+                  </button>
+                </div>
+              </div>
+
+              {/* Call Log History Timeline */}
+              {order.crm_logs && order.crm_logs.length > 0 && (
+                <div className="space-y-3 pt-2">
+                  <h3 className="text-xs uppercase font-bold text-gray-500 tracking-wider">
+                    Call History &amp; Notes ({order.crm_logs.length})
+                  </h3>
+                  <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
+                    {order.crm_logs.map((log: any, idx: number) => (
+                      <div key={log.id || idx} className="p-3.5 bg-white border border-gray-150 rounded-xl space-y-1.5 text-xs shadow-2xs">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className={clsx(
+                              "px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider text-[10px] border",
+                              log.call_status === 'contacted' && "bg-green-100 text-green-700 border-green-200",
+                              log.call_status === 'no_answer' && "bg-red-100 text-red-700 border-red-200",
+                              log.call_status === 'busy' && "bg-amber-100 text-amber-700 border-amber-200",
+                              log.call_status === 'callback_requested' && "bg-purple-100 text-purple-700 border-purple-200",
+                              log.call_status === 'wrong_number' && "bg-gray-100 text-gray-700 border-gray-200",
+                            )}>
+                              {(log.call_status || 'contacted').replace(/_/g, " ")}
+                            </span>
+                            {log.next_call_at && (
+                              <span className="text-[11px] text-blue-600 font-semibold bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
+                                Next Call: {new Date(log.next_call_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-gray-400 font-mono text-[11px]">
+                            {new Date(log.called_at || log.created_at).toLocaleString()}
+                          </span>
+                        </div>
+                        {log.note ? (
+                          <p className="text-gray-800 font-medium whitespace-pre-wrap pl-1">
+                            &ldquo;{log.note}&rdquo;
+                          </p>
+                        ) : (
+                          <p className="text-gray-400 italic pl-1">No notes recorded</p>
+                        )}
+                        <div className="text-[10px] text-gray-400 text-right">
+                          Logged by: <span className="font-semibold text-gray-600">{log.created_by || 'Admin'}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Payment Status Update Actions */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
@@ -1157,6 +1427,91 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
                   {p.label}
                 </button>
               ))}
+            </div>
+          </div>
+
+          {/* Previous Order List Card */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-blue-50/50 via-indigo-50/30 to-purple-50/20">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-blue-100 text-blue-600 rounded-xl">
+                  <Clock size={20} />
+                </div>
+                <div>
+                  <h2 className="font-bold text-lg text-gray-900 leading-tight">
+                    Previous Order List
+                  </h2>
+                  <p className="text-xs text-gray-500 font-medium">
+                    Customer&apos;s past order history
+                  </p>
+                </div>
+              </div>
+              <span className="px-3.5 py-1 bg-blue-50 text-blue-700 font-bold text-xs rounded-full border border-blue-100">
+                {previousOrders.length} {previousOrders.length === 1 ? "Order" : "Orders"}
+              </span>
+            </div>
+
+            <div className="p-6">
+              {loadingPreviousOrders ? (
+                <div className="text-center py-8 text-gray-400 text-sm flex items-center justify-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                  Loading previous orders...
+                </div>
+              ) : previousOrders.length === 0 ? (
+                <div className="text-center py-8 bg-gray-50/50 rounded-xl border border-dashed border-gray-200 text-gray-500 text-sm">
+                  No previous orders found for this customer.
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider border-b border-gray-100">
+                        <th className="py-3 px-4 font-bold">SL</th>
+                        <th className="py-3 px-4 font-bold">Order ID</th>
+                        <th className="py-3 px-4 font-bold">Date</th>
+                        <th className="py-3 px-4 font-bold">Total</th>
+                        <th className="py-3 px-4 font-bold">Status</th>
+                        <th className="py-3 px-4 font-bold">Payment</th>
+                        <th className="py-3 px-4 font-bold text-right">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 text-sm">
+                      {previousOrders.map((prevOrder: any, idx: number) => (
+                        <tr key={prevOrder.id} className="hover:bg-gray-50/80 transition">
+                          <td className="py-3.5 px-4 font-bold text-gray-500 text-xs">
+                            {idx + 1}
+                          </td>
+                          <td className="py-3.5 px-4 font-mono font-bold text-blue-600 text-xs">
+                            <Link href={`/admin/orders/${prevOrder.id}`} className="hover:underline">
+                              #{prevOrder.order_number || prevOrder.id}
+                            </Link>
+                          </td>
+                          <td className="py-3.5 px-4 text-gray-600 text-xs">
+                            {new Date(prevOrder.created_at).toLocaleDateString()}
+                          </td>
+                          <td className="py-3.5 px-4 font-bold text-gray-900 text-xs">
+                            ৳{Number(prevOrder.total_price || prevOrder.total_amount || 0).toLocaleString()}
+                          </td>
+                          <td className="py-3.5 px-4">
+                            {getStatusBadge(prevOrder.status)}
+                          </td>
+                          <td className="py-3.5 px-4">
+                            {getPaymentStatusBadge(prevOrder.payment_status)}
+                          </td>
+                          <td className="py-3.5 px-4 text-right">
+                            <Link
+                              href={`/admin/orders/${prevOrder.id}`}
+                              className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition border border-blue-100"
+                            >
+                              <Eye size={14} /> View
+                            </Link>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           </div>
         </div>

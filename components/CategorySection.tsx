@@ -1,10 +1,11 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { Star, ChevronRight } from 'lucide-react';
 import { Product } from '@/lib/api';
 import ProductCard from './ProductCard';
+import ProductModal from './ProductModal';
 
 interface CategorySectionProps {
     title: string;
@@ -13,6 +14,9 @@ interface CategorySectionProps {
 }
 
 const CategorySection: React.FC<CategorySectionProps> = ({ title, categorySlug, products }) => {
+    const [activeModalIndex, setActiveModalIndex] = useState<number | null>(null);
+    const displayProducts = products.slice(0, 6);
+
     return (
         <section className="py-8 border-b border-gray-100 bg-white mb-4">
             <div className="container mx-auto px-4">
@@ -27,8 +31,10 @@ const CategorySection: React.FC<CategorySectionProps> = ({ title, categorySlug, 
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 border-t border-gray-50 pt-4">
-                    {products.length > 0 ? (
-                        products.slice(0, 6).map(product => <ProductCard key={product.id} product={product} />)
+                    {displayProducts.length > 0 ? (
+                        displayProducts.map((product, idx) => (
+                            <ProductCard key={product.id} product={product} onOpenModal={() => setActiveModalIndex(idx)} />
+                        ))
                     ) : (
                         <div className="col-span-full py-8 text-center text-gray-400 bg-gray-50 rounded-lg border border-dashed border-gray-200">
                             No products found in {title}
@@ -36,6 +42,15 @@ const CategorySection: React.FC<CategorySectionProps> = ({ title, categorySlug, 
                     )}
                 </div>
             </div>
+
+            {activeModalIndex !== null && displayProducts[activeModalIndex] && (
+                <ProductModal
+                    product={displayProducts[activeModalIndex]}
+                    onClose={() => setActiveModalIndex(null)}
+                    onNextProduct={activeModalIndex < displayProducts.length - 1 ? () => setActiveModalIndex(activeModalIndex + 1) : undefined}
+                    onPrevProduct={activeModalIndex > 0 ? () => setActiveModalIndex(activeModalIndex - 1) : undefined}
+                />
+            )}
         </section>
     );
 };

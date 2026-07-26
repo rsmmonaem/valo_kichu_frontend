@@ -62,6 +62,48 @@ const AdminOrdersPage = () => {
   const [showDownloadMenu, setShowDownloadMenu] = useState(false);
   const downloadMenuRef = useRef<HTMLDivElement>(null);
 
+  const [previousOrders, setPreviousOrders] = useState<any[]>([]);
+  const [loadingPreviousOrders, setLoadingPreviousOrders] = useState(false);
+
+  useEffect(() => {
+    if (!selectedOrder) {
+      setPreviousOrders([]);
+      return;
+    }
+
+    const phone = selectedOrder.phone || selectedOrder.contact_number || selectedOrder.user?.phone_number || "";
+    const email = selectedOrder.email || selectedOrder.user?.email || "";
+    const userId = selectedOrder.user_id || "";
+
+    if (!phone && !email && !userId) {
+      setPreviousOrders([]);
+      return;
+    }
+
+    const fetchHistory = async () => {
+      setLoadingPreviousOrders(true);
+      try {
+        const params = new URLSearchParams();
+        if (phone) params.append("phone", phone);
+        if (email) params.append("email", email);
+        if (userId) params.append("user_id", String(userId));
+        if (selectedOrder.id) params.append("exclude_id", String(selectedOrder.id));
+
+        const res = await authFetch(`/admin/v1/orders/customer-history?${params.toString()}`);
+        if (res.ok) {
+          const data = await res.json();
+          setPreviousOrders(Array.isArray(data) ? data : []);
+        }
+      } catch (err) {
+        console.error("Failed to fetch customer history", err);
+      } finally {
+        setLoadingPreviousOrders(false);
+      }
+    };
+
+    fetchHistory();
+  }, [selectedOrder]);
+
   useEffect(() => {
     const saved = localStorage.getItem('adminOrdersPerPage');
     if (saved) {
@@ -77,6 +119,7 @@ const AdminOrdersPage = () => {
   const statusTabs = [
     { key: "all", label: "All Orders", color: "gray" },
     { key: "pending", label: "Pending", color: "yellow" },
+    { key: "contacted", label: "Contacted", color: "emerald" },
     { key: "confirmed", label: "Confirmed", color: "blue" },
     { key: "purchased_by_admin", label: "Purchased", color: "indigo" },
     { key: "ready_to_ship_bd", label: "Ready to Ship", color: "purple" },
@@ -172,6 +215,9 @@ const AdminOrdersPage = () => {
         if (data.summary) {
           setSummary(data.summary);
         }
+        if (data.status_counts) {
+          setStats(data.status_counts);
+        }
       }
     } catch (error) {
       console.error(error);
@@ -183,7 +229,7 @@ const AdminOrdersPage = () => {
   const fetchStats = async () => {
     try {
       const params = new URLSearchParams();
-      params.append("per_page", "1000");
+      params.append("limit", "1");
       if (typeFilter) params.append("order_type", typeFilter);
       if (startDate) params.append("start_date", startDate);
       if (endDate) params.append("end_date", endDate);
@@ -193,28 +239,9 @@ const AdminOrdersPage = () => {
       const res = await authFetch(`/admin/v1/orders?${params.toString()}`);
       if (res.ok) {
         const data = await res.json();
-        const allOrders = data.data || [];
-        const newStats = {
-          all: allOrders.length,
-          pending: allOrders.filter((o: any) => o.status === "pending").length,
-          confirmed: allOrders.filter((o: any) => o.status === "confirmed")
-            .length,
-          purchased_by_admin: allOrders.filter(
-            (o: any) => o.status === "purchased_by_admin"
-          ).length,
-          ready_to_ship_bd: allOrders.filter(
-            (o: any) => o.status === "ready_to_ship_bd"
-          ).length,
-          shipping: allOrders.filter((o: any) => o.status === "shipping")
-            .length,
-          delivered: allOrders.filter((o: any) => o.status === "delivered")
-            .length,
-          cancelled: allOrders.filter((o: any) => o.status === "cancelled")
-            .length,
-          refunded: allOrders.filter((o: any) => o.status === "refunded")
-            .length,
-        };
-        setStats(newStats);
+        if (data.status_counts) {
+          setStats(data.status_counts);
+        }
       }
     } catch (error) {
       console.error("Failed to fetch stats", error);
@@ -330,6 +357,7 @@ const AdminOrdersPage = () => {
   const getStatusBadge = (status: string) => {
     const styles: any = {
       pending: "bg-yellow-100 text-yellow-700",
+      contacted: "bg-emerald-100 text-emerald-700",
       confirmed: "text-green-600 bg-green-100",
       purchased_by_admin: "bg-indigo-100 text-indigo-700",
       ready_to_ship_bd: "bg-purple-100 text-purple-700",
@@ -340,6 +368,7 @@ const AdminOrdersPage = () => {
     };
     const labels: any = {
       pending: "Pending",
+      contacted: "Contacted",
       confirmed: "Confirmed",
       purchased_by_admin: "Purchased",
       ready_to_ship_bd: "Ready to Ship",
@@ -527,6 +556,7 @@ const AdminOrdersPage = () => {
           <table className="w-full text-left">
             <thead className="bg-gray-50 text-gray-600 font-medium border-b border-gray-200">
               <tr>
+                <th className="p-4">SL</th>
                 <th className="p-4">Order ID</th>
                 <th className="p-4 text-blue-700">{typeFilter === "dropshipper" ? "Dropshipper" : "Customer"}</th>
                 {typeFilter === "dropshipper" && (
@@ -542,13 +572,16 @@ const AdminOrdersPage = () => {
             <tbody className="divide-y divide-gray-100 text-sm">
               {loading ? (
                 <tr>
-                  <td colSpan={typeFilter === "dropshipper" ? 8 : 7} className="p-8 text-center text-gray-500">
+                  <td colSpan={typeFilter === "dropshipper" ? 9 : 8} className="p-8 text-center text-gray-500">
                     Loading orders...
                   </td>
                 </tr>
               ) : orders.length > 0 ? (
-                orders.map((order) => (
+                orders.map((order, idx) => (
                   <tr key={order.id} className="hover:bg-gray-50 transition">
+                    <td className="p-4 font-bold text-gray-500 text-xs">
+                      {(currentPage - 1) * perPage + idx + 1}
+                    </td>
                     <td className="p-4 font-medium">
                       <Link
                         href={`/admin/orders/${order.id}`}
@@ -643,7 +676,7 @@ const AdminOrdersPage = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={typeFilter === "dropshipper" ? 8 : 7} className="p-8 text-center text-gray-500">
+                  <td colSpan={typeFilter === "dropshipper" ? 9 : 8} className="p-8 text-center text-gray-500">
                     No orders found.
                   </td>
                 </tr>
@@ -852,6 +885,7 @@ const AdminOrdersPage = () => {
                     <div className="flex flex-wrap gap-2">
                       {[
                         "pending",
+                        "contacted",
                         "confirmed",
                         "processing",
                         "shipping",
@@ -984,6 +1018,78 @@ const AdminOrdersPage = () => {
                     </span>
                   </div>
                 </div>
+              </div>
+
+              {/* Previous Order List Section */}
+              <div className="mt-8 pt-6 border-t border-gray-200">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <Clock size={18} className="text-blue-600" />
+                    <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider">
+                      Previous Order List
+                    </h3>
+                  </div>
+                  <span className="px-2.5 py-0.5 bg-blue-50 text-blue-700 font-bold text-xs rounded-full border border-blue-100">
+                    {previousOrders.length} {previousOrders.length === 1 ? "Order" : "Orders"}
+                  </span>
+                </div>
+
+                {loadingPreviousOrders ? (
+                  <div className="text-center py-6 text-gray-400 text-xs flex items-center justify-center gap-2">
+                    <div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-blue-600"></div>
+                    Loading previous orders...
+                  </div>
+                ) : previousOrders.length === 0 ? (
+                  <div className="text-center py-6 bg-gray-50 rounded-lg border border-dashed border-gray-200 text-gray-500 text-xs">
+                    No previous orders found for this customer.
+                  </div>
+                ) : (
+                  <div className="border rounded-lg overflow-hidden text-xs">
+                    <table className="w-full text-left">
+                      <thead className="bg-gray-50 text-gray-600 border-b">
+                        <tr>
+                          <th className="p-3 font-semibold">SL</th>
+                          <th className="p-3 font-semibold">Order ID</th>
+                          <th className="p-3 font-semibold">Date</th>
+                          <th className="p-3 font-semibold">Total</th>
+                          <th className="p-3 font-semibold">Status</th>
+                          <th className="p-3 font-semibold">Payment</th>
+                          <th className="p-3 font-semibold text-right">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y">
+                        {previousOrders.map((prevOrder: any, idx: number) => (
+                          <tr key={prevOrder.id} className="hover:bg-gray-50 transition">
+                            <td className="p-3 font-bold text-gray-500 text-xs">
+                              {idx + 1}
+                            </td>
+                            <td className="p-3 font-mono font-bold text-blue-600">
+                              <Link href={`/admin/orders/${prevOrder.id}`} className="hover:underline">
+                                #{prevOrder.order_number || prevOrder.id}
+                              </Link>
+                            </td>
+                            <td className="p-3 text-gray-600">
+                              {new Date(prevOrder.created_at).toLocaleDateString()}
+                            </td>
+                            <td className="p-3 font-bold text-gray-900">
+                              ৳{Number(prevOrder.total_price || prevOrder.total_amount || 0).toLocaleString()}
+                            </td>
+                            <td className="p-3">{getStatusBadge(prevOrder.status)}</td>
+                            <td className="p-3">{getPaymentStatusBadge(prevOrder.payment_status)}</td>
+                            <td className="p-3 text-right">
+                              <Link
+                                href={`/admin/orders/${prevOrder.id}`}
+                                className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-800 bg-blue-50 px-2 py-1 rounded transition border border-blue-100"
+                              >
+                                <Eye size={13} /> Details
+                              </Link>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             </div>
           </div>

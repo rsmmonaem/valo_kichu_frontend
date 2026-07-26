@@ -11,9 +11,12 @@ import { getDefaultColor } from '@/lib/utils/getDefaultColorImage';
 
 interface ProductCardProps {
     product: Product;
+    onNextProduct?: () => void;
+    onPrevProduct?: () => void;
+    onOpenModal?: () => void;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
+const ProductCard: React.FC<ProductCardProps> = ({ product, onNextProduct, onPrevProduct, onOpenModal }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     // if (!product.image) {
@@ -97,8 +100,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     const handleEyeClick = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        // console.log('Eye icon clicked for:', product.name);
-        setIsModalOpen(true);
+        if (onOpenModal) {
+            onOpenModal();
+        } else {
+            setIsModalOpen(true);
+        }
     };
 
     const closeModal = () => {
@@ -112,7 +118,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                 <Link href={`/products/${product.slug}`} className="absolute inset-0 z-0" aria-label={product.name} prefetch={false} />
 
                 <div className="aspect-square bg-gray-100 relative overflow-hidden">
-                    <div className="relative overflow-hidden group w-full h-full" onClick={handleEyeClick}>
+                    <div className="relative overflow-hidden group w-full h-full z-10 cursor-pointer" onClick={handleEyeClick}>
                         <Image
                             src={finalImage}
                             alt={product.name}
@@ -186,6 +192,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                 <ProductModal
                     product={product}
                     onClose={closeModal}
+                    onNextProduct={onNextProduct}
+                    onPrevProduct={onPrevProduct}
                 />
             )}
         </>

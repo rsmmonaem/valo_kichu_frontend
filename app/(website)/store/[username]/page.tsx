@@ -12,6 +12,7 @@ import CategorySidebar from '@/components/CategorySidebar';
 import HeroSlider from '@/components/HeroSlider';
 import CategoryCarousel from '@/components/CategoryCarousel';
 import ProductCard from '@/components/ProductCard';
+import ProductGridSection from '@/components/ProductGridSection';
 import HomeFeeds from '@/components/HomeFeeds';
 import HomeAllProducts from '@/components/HomeAllProducts';
 import StoreInitializer from '@/components/StoreInitializer';
@@ -122,15 +123,13 @@ export default async function StoreFront({ params }: { params: Promise<{ usernam
                         </Link>
                     </div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                        {newArrivals.length > 0 ? (
-                            newArrivals.map((product: any) => <ProductCard key={product.id} product={product} />)
-                        ) : (
-                            <div className="col-span-full py-8 text-center text-gray-400 bg-gray-50 rounded-lg">
-                                Loading store items...
-                            </div>
-                        )}
-                    </div>
+                    {newArrivals.length > 0 ? (
+                        <ProductGridSection products={newArrivals} />
+                    ) : (
+                        <div className="col-span-full py-8 text-center text-gray-400 bg-gray-50 rounded-lg">
+                            Loading store items...
+                        </div>
+                    )}
                 </div>
             </section>
 
@@ -152,9 +151,7 @@ export default async function StoreFront({ params }: { params: Promise<{ usernam
                         <p className="text-gray-500 mt-2">Curated selection for our store visitors</p>
                     </div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                        {recommendedProducts.map((product: any) => <ProductCard key={product.id} product={product} />)}
-                    </div>
+                    <ProductGridSection products={recommendedProducts} />
                 </div>
             </section>
 

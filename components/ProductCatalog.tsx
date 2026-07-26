@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { getProducts, Product } from '@/lib/api';
 import ProductCard from '@/components/ProductCard';
+import ProductModal from '@/components/ProductModal';
 import InfiniteScrollTrigger from '@/components/InfiniteScrollTrigger';
 import * as fpixel from '@/lib/fpixel';
 
@@ -69,12 +70,14 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({ initialProducts, initia
         }
     };
 
+    const [activeModalIndex, setActiveModalIndex] = useState<number | null>(null);
+
     return (
         <div className="space-y-8">
             <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
                 {products.length > 0 ? (
                     products.map((product, idx) => (
-                        <ProductCard key={`${product.id}-${idx}`} product={product} />
+                        <ProductCard key={`${product.id}-${idx}`} product={product} onOpenModal={() => setActiveModalIndex(idx)} />
                     ))
                 ) : (
                     <div className="col-span-full py-12 text-center bg-gray-50 rounded-xl border border-dashed border-gray-200">
@@ -90,6 +93,15 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({ initialProducts, initia
                     </div>
                 )}
             </div>
+
+            {activeModalIndex !== null && products[activeModalIndex] && (
+                <ProductModal
+                    product={products[activeModalIndex]}
+                    onClose={() => setActiveModalIndex(null)}
+                    onNextProduct={activeModalIndex < products.length - 1 ? () => setActiveModalIndex(activeModalIndex + 1) : undefined}
+                    onPrevProduct={activeModalIndex > 0 ? () => setActiveModalIndex(activeModalIndex - 1) : undefined}
+                />
+            )}
 
             <InfiniteScrollTrigger
                 onIntersect={loadMore}
