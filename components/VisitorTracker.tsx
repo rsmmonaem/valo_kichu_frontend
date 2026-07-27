@@ -1,23 +1,37 @@
 "use client";
 
-import { useEffect, Suspense } from 'react';
+import { useEffect, Suspense, useRef } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 
 function VisitorTrackerInner() {
     const pathname = usePathname();
     const searchParams = useSearchParams();
-    const { user } = useAuth();
+    const { user, loading } = useAuth();
+    const lastTrackedUrl = useRef<string | null>(null);
 
     useEffect(() => {
-        const excludedRoles = ['admin', 'super_admin', 'dropshipper', 'sub_dropshipper', 'sub_sub_dropshipper'];
-
-        // Do not track admin pages or internal users
-        if (pathname.startsWith('/admin') || (user?.role && excludedRoles.includes(user.role))) {
+        // Wait until we know for sure if the user is logged in
+        if (loading) {
             return;
         }
 
         const url = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : '');
+
+        // Prevent double tracking the same URL if dependencies change
+        if (lastTrackedUrl.current === url) {
+            return;
+        }
+
+        const excludedRoles = ['admin', 'super_admin', 'dropshipper', 'sub_dropshipper', 'sub_sub_dropshipper'];
+        
+        // Do not track admin pages or internal users
+        if (pathname.startsWith('/admin') || (user?.role && excludedRoles.includes(user.role))) {
+            lastTrackedUrl.current = url;
+            return;
+        }
+
+        lastTrackedUrl.current = url;
 
         // Get the base API URL (e.g. https://backend.valokichu.com/api)
         // If NEXT_PUBLIC_API_URL is just the domain, append /api
