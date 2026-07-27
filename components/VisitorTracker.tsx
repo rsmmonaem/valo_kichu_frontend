@@ -8,6 +8,11 @@ function VisitorTrackerInner() {
     const searchParams = useSearchParams();
 
     useEffect(() => {
+        // Do not track admin pages
+        if (pathname.startsWith('/admin')) {
+            return;
+        }
+
         const url = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : '');
 
         // Get the base API URL (e.g. https://backend.valokichu.com/api)
