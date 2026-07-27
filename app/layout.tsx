@@ -55,6 +55,7 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 import { SettingsProvider } from '@/context/SettingsContext';
 import { UIProvider } from '@/context/UIContext';
 import FacebookPixel from '@/components/FacebookPixel';
+import VisitorTracker from '@/components/VisitorTracker';
 
 export default function RootLayout({
   children,
@@ -66,6 +67,7 @@ export default function RootLayout({
 
       <body className={`${inter.variable} min-h-screen bg-gray-50 flex flex-col font-sans text-gray-800 antialiased`} suppressHydrationWarning>
         <FacebookPixel />
+        <VisitorTracker />
         <SettingsProvider>
           <AuthProvider>
             <CartProvider>

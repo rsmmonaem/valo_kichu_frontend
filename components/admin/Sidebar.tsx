@@ -21,7 +21,8 @@ import {
     ChevronRight,
     ClipboardList,
     FileText,
-    ShieldAlert
+    ShieldAlert,
+    Activity
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import clsx from 'clsx';
@@ -73,6 +74,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, setIsOpen }) => {
         { path: '/admin/banners', label: 'Banners', icon: ImageIcon },
         { path: '/admin/customers', label: 'Customers', icon: Users },
         { path: '/admin/checkout-leads', label: 'Checkout Leads', icon: ClipboardList },
+        { path: '/admin/visitors', label: 'Visitors', icon: Activity },
         { path: '/admin/shipping', label: 'Shipping', icon: Truck },
         { path: '/admin/dropshippers', label: 'Dropshippers', icon: Users },
         { path: '/admin/ip-logs', label: 'IP Logs & Limits', icon: ShieldAlert },
