@@ -10,8 +10,10 @@ function VisitorTrackerInner() {
     const { user } = useAuth();
 
     useEffect(() => {
-        // Do not track admin pages or admin users
-        if (pathname.startsWith('/admin') || user?.role === 'admin') {
+        const excludedRoles = ['admin', 'super_admin', 'dropshipper', 'sub_dropshipper', 'sub_sub_dropshipper'];
+
+        // Do not track admin pages or internal users
+        if (pathname.startsWith('/admin') || (user?.role && excludedRoles.includes(user.role))) {
             return;
         }
 
