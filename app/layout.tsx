@@ -67,9 +67,9 @@ export default function RootLayout({
 
       <body className={`${inter.variable} min-h-screen bg-gray-50 flex flex-col font-sans text-gray-800 antialiased`} suppressHydrationWarning>
         <FacebookPixel />
-        <VisitorTracker />
         <SettingsProvider>
           <AuthProvider>
+            <VisitorTracker />
             <CartProvider>
               <UIProvider>
                 <div suppressHydrationWarning={true}>
