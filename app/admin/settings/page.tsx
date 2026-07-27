@@ -735,6 +735,45 @@ const SettingsPage = () => {
                     </div>
                 </div>
 
+                {/* Steadfast Courier API Configuration */}
+                <div className="border-t border-gray-100 pt-6">
+                    <h2 className="text-lg font-semibold text-gray-800 mb-4 text-emerald-600">Steadfast Courier API Settings</h2>
+                    <div className="p-5 bg-emerald-50/30 rounded-xl border border-emerald-100 space-y-4">
+                        <div className="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Steadfast API Key</label>
+                                <input
+                                    type="text"
+                                    value={settings.steadfast_api_key || ''}
+                                    onChange={(e) => handleChange('steadfast_api_key', e.target.value)}
+                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20 font-mono"
+                                    placeholder="Enter Steadfast API Key"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Steadfast Secret Key</label>
+                                <input
+                                    type="password"
+                                    value={settings.steadfast_secret_key || ''}
+                                    onChange={(e) => handleChange('steadfast_secret_key', e.target.value)}
+                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20 font-mono"
+                                    placeholder="Enter Steadfast Secret Key"
+                                />
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Steadfast API Base URL</label>
+                            <input
+                                type="text"
+                                value={settings.steadfast_base_url || ''}
+                                onChange={(e) => handleChange('steadfast_base_url', e.target.value)}
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20 font-mono"
+                                placeholder="https://portal.steadfast.com.bd/api/v1"
+                            />
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     );

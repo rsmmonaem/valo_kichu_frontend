@@ -24,6 +24,10 @@ import {
   X,
   Eye,
   PhoneCall,
+  Globe,
+  Facebook,
+  Upload,
+  Image as ImageIcon,
 } from "lucide-react";
 import { authFetch } from "@/lib/api";
 import clsx from "clsx";
@@ -73,6 +77,155 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
   });
   const [crmNote, setCrmNote] = useState("");
   const [savingCrmLog, setSavingCrmLog] = useState(false);
+
+  // Courier Modal States
+  const [showCourierModal, setShowCourierModal] = useState(false);
+  const [selectedCourier, setSelectedCourier] = useState("steadfast");
+  const [courierRecipientName, setCourierRecipientName] = useState("");
+  const [courierRecipientPhone, setCourierRecipientPhone] = useState("");
+  const [courierRecipientAddress, setCourierRecipientAddress] = useState("");
+  const [courierCodAmount, setCourierCodAmount] = useState<number | string>(0);
+  const [courierNote, setCourierNote] = useState("");
+  const [sendingToCourier, setSendingToCourier] = useState(false);
+  const [courierError, setCourierError] = useState<string | null>(null);
+
+  // Dynamic Source Pages States
+  const [availablePages, setAvailablePages] = useState<any[]>([]);
+  const [loadingSourcePages, setLoadingSourcePages] = useState(false);
+  const [customPageInput, setCustomPageInput] = useState("");
+  const [customPageLogo, setCustomPageLogo] = useState("");
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [showAddCustomPage, setShowAddCustomPage] = useState(false);
+  const [updatingPageName, setUpdatingPageName] = useState(false);
+
+  const fetchSourcePages = async () => {
+    setLoadingSourcePages(true);
+    try {
+      const res = await authFetch("/admin/v1/source-pages");
+      if (res.ok) {
+        const data = await res.json();
+        setAvailablePages(data.data || []);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingSourcePages(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSourcePages();
+  }, []);
+
+  const handleLogoFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("image", file);
+
+    setUploadingLogo(true);
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/v1/upload`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (res.ok && data.url) {
+        setCustomPageLogo(data.url);
+        toast.success("Logo uploaded successfully!");
+      } else {
+        toast.error(data.message || "Logo upload failed");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Error uploading logo");
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
+  const handleSelectPageName = async (pageName: string) => {
+    if (!pageName) return;
+    setUpdatingPageName(true);
+    try {
+      const res = await authFetch(`/admin/v1/orders/${orderId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ page_name: pageName }),
+      });
+
+      if (res.ok) {
+        toast.success(`Order page updated to "${pageName}"`);
+        setOrder((prev: any) => ({ ...prev, page_name: pageName }));
+      } else {
+        toast.error("Failed to update page name");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Something went wrong");
+    } finally {
+      setUpdatingPageName(false);
+    }
+  };
+
+  const handleAddCustomPageName = async () => {
+    if (!customPageInput.trim()) {
+      toast.error("Please enter a page name");
+      return;
+    }
+
+    try {
+      const res = await authFetch("/admin/v1/source-pages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: customPageInput.trim(),
+          logo: customPageLogo || null,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        toast.success("New page created!");
+        const newPage = data.data;
+        setAvailablePages((prev) => [newPage, ...prev]);
+        handleSelectPageName(newPage.name);
+        setCustomPageInput("");
+        setCustomPageLogo("");
+        setShowAddCustomPage(false);
+      } else {
+        toast.error(data.message || "Failed to create page");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Something went wrong creating page");
+    }
+  };
+
+  const handleDeleteSourcePage = async (e: React.MouseEvent, pageId: number) => {
+    e.stopPropagation();
+    if (!confirm("Are you sure you want to delete this page source?")) return;
+
+    try {
+      const res = await authFetch(`/admin/v1/source-pages/${pageId}`, {
+        method: "DELETE",
+      });
+
+      if (res.ok) {
+        toast.success("Page deleted");
+        setAvailablePages((prev) => prev.filter((p) => p.id !== pageId));
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to delete page");
+    }
+  };
 
   const handleSaveCrmLog = async () => {
     if (!crmCallStatus) {
@@ -352,6 +505,33 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
   }, [orderId]);
 
   const updateStatus = async (newStatus: string) => {
+    if (newStatus === "confirmed") {
+      // Prepare default modal form fields from current order data
+      const name = order.name || order.user?.name || "Customer";
+      const phone = order.phone || order.contact_number || order.user?.phone_number || "";
+      let addressStr = "";
+      try {
+        const addr = JSON.parse(order.shipping_address);
+        if (addr && typeof addr === 'object') {
+          addressStr = [addr.address, addr.area, addr.city].filter(Boolean).join(", ");
+        } else {
+          addressStr = order.shipping_address || "";
+        }
+      } catch {
+        addressStr = order.shipping_address || "";
+      }
+
+      setCourierRecipientName(name);
+      setCourierRecipientPhone(phone);
+      setCourierRecipientAddress(addressStr);
+      setCourierCodAmount(order.total_price || order.total_amount || 0);
+      setCourierNote(order.notes || "");
+      setSelectedCourier("steadfast");
+      setCourierError(null);
+      setShowCourierModal(true);
+      return;
+    }
+
     if (
       !window.confirm(`Update order status to ${newStatus.replace(/_/g, " ")}?`)
     )
@@ -377,6 +557,52 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
       toast.error("Something went wrong");
     } finally {
       setStatusUpdating(false);
+    }
+  };
+
+  const handleConfirmSendCourier = async () => {
+    setCourierError(null);
+    if (!courierRecipientName.trim() || !courierRecipientPhone.trim() || !courierRecipientAddress.trim()) {
+      const errMsg = "Please fill in recipient name, phone, and address.";
+      setCourierError(errMsg);
+      toast.error(errMsg);
+      return;
+    }
+
+    setSendingToCourier(true);
+    try {
+      const res = await authFetch(`/admin/v1/orders/${orderId}/send-courier`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          courier_name: selectedCourier,
+          recipient_name: courierRecipientName,
+          recipient_phone: courierRecipientPhone,
+          recipient_address: courierRecipientAddress,
+          cod_amount: parseFloat(String(courierCodAmount)) || 0,
+          note: courierNote,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        toast.success(data.message || "Order confirmed & sent to courier!");
+        setShowCourierModal(false);
+        fetchOrderDetails();
+      } else {
+        const errMsg = data.message || "Failed to send order to courier";
+        setCourierError(errMsg);
+        toast.error(errMsg);
+      }
+    } catch (error: any) {
+      console.error(error);
+      const errMsg = error?.message || "Something went wrong with courier dispatch";
+      setCourierError(errMsg);
+      toast.error(errMsg);
+    } finally {
+      setSendingToCourier(false);
     }
   };
 
@@ -1851,10 +2077,331 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
                   {order.tracking_id || "Not assigned"}
                 </span>
               </div>
+              {order.courier_name && (
+                <div className="pt-3 border-t border-emerald-100 bg-emerald-50/50 p-3 rounded-xl space-y-1 text-xs">
+                  <p className="font-bold text-emerald-800 uppercase tracking-wider flex items-center gap-1">
+                    <Truck size={14} /> Courier: {order.courier_name}
+                  </p>
+                  {order.courier_consignment_id && (
+                    <p className="text-gray-700 font-mono">
+                      Consignment ID: <span className="font-bold text-gray-900">{order.courier_consignment_id}</span>
+                    </p>
+                  )}
+                  {order.courier_status && (
+                    <p className="text-gray-700 capitalize">
+                      Courier Status: <span className="font-semibold text-emerald-700">{order.courier_status.replace(/_/g, " ")}</span>
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Page Source Card */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-blue-50/40 to-indigo-50/20 flex items-center justify-between">
+              <h2 className="font-bold text-lg flex items-center gap-2 text-gray-900">
+                <Globe size={20} className="text-indigo-600" />
+                Order Page Source
+              </h2>
+              {order.page_name && (
+                <span className="px-3 py-1 bg-indigo-50 text-indigo-700 font-bold text-xs rounded-full border border-indigo-100 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-indigo-600"></span>
+                  {order.page_name}
+                </span>
+              )}
+            </div>
+            <div className="p-6 space-y-4">
+              <p className="text-xs text-gray-500 font-medium">
+                Select or upload the logo &amp; name of the Facebook Page / Source where this order originated:
+              </p>
+
+              {/* Dynamic Page Buttons Grid */}
+              {loadingSourcePages ? (
+                <div className="text-center py-6 text-xs text-gray-400">Loading page sources...</div>
+              ) : availablePages.length === 0 ? (
+                <div className="text-center py-4 text-xs text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                  No pages added yet. Click "+ Add New Page &amp; Logo" below.
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-2.5">
+                  {availablePages.map((page) => {
+                    const isSelected = (order.page_name || "").toLowerCase() === page.name.toLowerCase();
+                    return (
+                      <div
+                        key={page.id}
+                        onClick={() => handleSelectPageName(page.name)}
+                        className={clsx(
+                          "flex items-center gap-2.5 p-3 rounded-xl border text-xs font-bold transition text-left cursor-pointer relative overflow-hidden group",
+                          isSelected
+                            ? "bg-slate-900 text-white border-slate-900 shadow-md"
+                            : "bg-gray-50/70 text-gray-700 border-gray-200 hover:bg-gray-100 hover:border-gray-300"
+                        )}
+                      >
+                        {page.logo ? (
+                          <img
+                            src={page.logo}
+                            alt={page.name}
+                            className="w-7 h-7 rounded-lg object-cover border border-gray-200 bg-white"
+                          />
+                        ) : (
+                          <div className={clsx("p-1.5 rounded-lg", isSelected ? "bg-indigo-600 text-white" : "bg-indigo-100 text-indigo-600")}>
+                            <Globe size={14} />
+                          </div>
+                        )}
+                        <span className="truncate flex-1 font-semibold">{page.name}</span>
+
+                        <button
+                          type="button"
+                          title="Delete page"
+                          onClick={(e) => handleDeleteSourcePage(e, page.id)}
+                          className={clsx(
+                            "opacity-0 group-hover:opacity-100 transition p-1 rounded-md",
+                            isSelected ? "hover:bg-red-950 text-red-300" : "hover:bg-red-100 text-red-600"
+                          )}
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Dynamic Add New Page Input with Logo Upload */}
+              {showAddCustomPage ? (
+                <div className="pt-3 p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3 animate-in fade-in duration-200">
+                  <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                    Create Page &amp; Upload Logo
+                  </h4>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-gray-600 mb-1">Page Name / Title *</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. BD Fashion Official"
+                      value={customPageInput}
+                      onChange={(e) => setCustomPageInput(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 bg-white font-medium"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-gray-600 mb-1">Page Logo (Optional)</label>
+                    <div className="flex items-center gap-3">
+                      {customPageLogo ? (
+                        <div className="relative w-10 h-10 rounded-lg overflow-hidden border border-gray-300 bg-white flex-shrink-0">
+                          <img src={customPageLogo} alt="Logo" className="w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => setCustomPageLogo("")}
+                            className="absolute top-0 right-0 bg-red-600 text-white p-0.5 rounded-bl text-[9px]"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ) : (
+                        <label className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-white border border-gray-300 border-dashed rounded-xl cursor-pointer hover:bg-gray-50 text-xs font-semibold text-indigo-600">
+                          <Upload size={14} />
+                          {uploadingLogo ? "Uploading..." : "Upload Logo Image"}
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleLogoFileUpload}
+                            className="hidden"
+                          />
+                        </label>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setShowAddCustomPage(false)}
+                      className="px-3 py-1.5 bg-white border border-gray-200 text-gray-600 rounded-lg text-xs font-bold transition hover:bg-gray-100"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleAddCustomPageName}
+                      className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition shadow-xs flex items-center gap-1.5"
+                    >
+                      <Plus size={13} /> Save &amp; Select
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setShowAddCustomPage(true)}
+                  className="w-full py-2.5 bg-dashed border-2 border-dashed border-indigo-200 hover:border-indigo-400 hover:bg-indigo-50/50 text-indigo-600 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5"
+                >
+                  <Plus size={14} /> Add New Page &amp; Upload Logo
+                </button>
+              )}
             </div>
           </div>
         </div>
       </div>
+
+      {/* Courier Selection & Auto Dispatch Modal */}
+      {showCourierModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200">
+            <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-emerald-600 to-teal-700 text-white">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 bg-white/20 rounded-xl">
+                  <Truck size={20} className="text-white" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg leading-tight">Dispatch Order to Courier</h3>
+                  <p className="text-xs text-emerald-100">Select courier service to automatically transfer order</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowCourierModal(false)}
+                className="p-1.5 hover:bg-white/20 rounded-full transition text-white"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4 text-sm text-gray-700">
+              {courierError && (
+                <div className="p-3.5 bg-red-50 border border-red-200 rounded-xl text-red-700 text-xs font-semibold flex items-center justify-between animate-in fade-in">
+                  <span>{courierError}</span>
+                  <button onClick={() => setCourierError(null)} className="text-red-500 hover:text-red-700 font-bold ml-2">
+                    ✕
+                  </button>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs font-bold uppercase text-gray-500 mb-1.5">
+                  Select Courier Service
+                </label>
+                <div className="grid grid-cols-1 gap-2">
+                  <label
+                    className={clsx(
+                      "flex items-center justify-between p-3.5 rounded-xl border-2 cursor-pointer transition",
+                      selectedCourier === "steadfast"
+                        ? "border-emerald-600 bg-emerald-50/50 shadow-xs"
+                        : "border-gray-200 hover:border-gray-300"
+                    )}
+                  >
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="radio"
+                        name="courier"
+                        value="steadfast"
+                        checked={selectedCourier === "steadfast"}
+                        onChange={(e) => setSelectedCourier(e.target.value)}
+                        className="w-4 h-4 text-emerald-600 focus:ring-emerald-500"
+                      />
+                      <div>
+                        <p className="font-bold text-gray-900">Steadfast Courier</p>
+                        <p className="text-xs text-gray-500">Auto-create consignment & tracking</p>
+                      </div>
+                    </div>
+                    <span className="px-2.5 py-1 bg-emerald-100 text-emerald-800 text-[10px] font-extrabold uppercase rounded-md">
+                      Active API
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="space-y-3 pt-2 border-t border-gray-100">
+                <h4 className="text-xs font-bold uppercase text-gray-400 tracking-wider">
+                  Consignment &amp; Recipient Details
+                </h4>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Recipient Name</label>
+                  <input
+                    type="text"
+                    value={courierRecipientName}
+                    onChange={(e) => setCourierRecipientName(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 mb-1">Recipient Phone</label>
+                    <input
+                      type="text"
+                      value={courierRecipientPhone}
+                      onChange={(e) => setCourierRecipientPhone(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500 font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 mb-1">COD Amount (৳)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={courierCodAmount}
+                      onChange={(e) => setCourierCodAmount(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500 font-bold text-emerald-700"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Recipient Address</label>
+                  <textarea
+                    rows={2}
+                    value={courierRecipientAddress}
+                    onChange={(e) => setCourierRecipientAddress(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Delivery Note (Optional)</label>
+                  <input
+                    type="text"
+                    placeholder="Handle with care..."
+                    value={courierNote}
+                    onChange={(e) => setCourierNote(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
+              <button
+                type="button"
+                disabled={sendingToCourier}
+                onClick={() => setShowCourierModal(false)}
+                className="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-xl font-bold text-sm hover:bg-gray-100 transition disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={sendingToCourier}
+                onClick={handleConfirmSendCourier}
+                className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm transition shadow-md shadow-emerald-500/20 flex items-center gap-2 disabled:opacity-50"
+              >
+                {sendingToCourier ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Sending to Steadfast...
+                  </>
+                ) : (
+                  <>
+                    <Truck size={16} /> Confirm &amp; Auto Transfer
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

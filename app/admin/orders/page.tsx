@@ -65,6 +65,17 @@ const AdminOrdersPage = () => {
   const [previousOrders, setPreviousOrders] = useState<any[]>([]);
   const [loadingPreviousOrders, setLoadingPreviousOrders] = useState(false);
 
+  // Courier Modal States for Orders List Quick Modal
+  const [courierTargetOrder, setCourierTargetOrder] = useState<any>(null);
+  const [selectedCourier, setSelectedCourier] = useState("steadfast");
+  const [courierRecipientName, setCourierRecipientName] = useState("");
+  const [courierRecipientPhone, setCourierRecipientPhone] = useState("");
+  const [courierRecipientAddress, setCourierRecipientAddress] = useState("");
+  const [courierCodAmount, setCourierCodAmount] = useState<number | string>(0);
+  const [courierNote, setCourierNote] = useState("");
+  const [sendingToCourier, setSendingToCourier] = useState(false);
+  const [courierError, setCourierError] = useState<string | null>(null);
+
   useEffect(() => {
     if (!selectedOrder) {
       setPreviousOrders([]);
@@ -271,6 +282,35 @@ const AdminOrdersPage = () => {
   }, [typeFilter, startDate, endDate, selectedCategoryId, searchQuery]);
 
   const updateStatus = async (orderId: number, newStatus: string) => {
+    if (newStatus === "confirmed") {
+      const order = orders.find((o) => o.id === orderId) || selectedOrder;
+      if (order) {
+        const name = order.name || order.user?.name || "Customer";
+        const phone = order.phone || order.contact_number || order.user?.phone_number || "";
+        let addressStr = "";
+        try {
+          const addr = JSON.parse(order.shipping_address);
+          if (addr && typeof addr === 'object') {
+            addressStr = [addr.address, addr.area, addr.city].filter(Boolean).join(", ");
+          } else {
+            addressStr = order.shipping_address || "";
+          }
+        } catch {
+          addressStr = order.shipping_address || "";
+        }
+
+        setCourierTargetOrder(order);
+        setCourierRecipientName(name);
+        setCourierRecipientPhone(phone);
+        setCourierRecipientAddress(addressStr);
+        setCourierCodAmount(order.total_price || order.total_amount || 0);
+        setCourierNote(order.notes || "");
+        setSelectedCourier("steadfast");
+        setCourierError(null);
+        return;
+      }
+    }
+
     if (
       !window.confirm(`Update order status to ${newStatus.replace(/_/g, " ")}?`)
     )
@@ -297,6 +337,57 @@ const AdminOrdersPage = () => {
       toast.error("Something went wrong");
     } finally {
       setStatusUpdating(false);
+    }
+  };
+
+  const handleConfirmSendCourier = async () => {
+    if (!courierTargetOrder) return;
+    setCourierError(null);
+    if (!courierRecipientName.trim() || !courierRecipientPhone.trim() || !courierRecipientAddress.trim()) {
+      const errMsg = "Please fill in recipient name, phone, and address.";
+      setCourierError(errMsg);
+      toast.error(errMsg);
+      return;
+    }
+
+    setSendingToCourier(true);
+    try {
+      const res = await authFetch(`/admin/v1/orders/${courierTargetOrder.id}/send-courier`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          courier_name: selectedCourier,
+          recipient_name: courierRecipientName,
+          recipient_phone: courierRecipientPhone,
+          recipient_address: courierRecipientAddress,
+          cod_amount: parseFloat(String(courierCodAmount)) || 0,
+          note: courierNote,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        toast.success(data.message || "Order confirmed & sent to courier!");
+        setCourierTargetOrder(null);
+        fetchOrders();
+        fetchStats();
+        if (selectedOrder && selectedOrder.id === courierTargetOrder.id) {
+          setSelectedOrder({ ...selectedOrder, status: 'confirmed', courier_name: 'Steadfast' });
+        }
+      } else {
+        const errMsg = data.message || "Failed to send order to courier";
+        setCourierError(errMsg);
+        toast.error(errMsg);
+      }
+    } catch (error: any) {
+      console.error(error);
+      const errMsg = error?.message || "Something went wrong with courier dispatch";
+      setCourierError(errMsg);
+      toast.error(errMsg);
+    } finally {
+      setSendingToCourier(false);
     }
   };
 
@@ -565,6 +656,7 @@ const AdminOrdersPage = () => {
                 <th className="p-4">Date</th>
                 <th className="p-4">Total</th>
                 <th className="p-4">Status</th>
+                <th className="p-4">Page Source</th>
                 <th className="p-4">Payment Status</th>
                 <th className="p-4 text-right">Actions</th>
               </tr>
@@ -572,7 +664,7 @@ const AdminOrdersPage = () => {
             <tbody className="divide-y divide-gray-100 text-sm">
               {loading ? (
                 <tr>
-                  <td colSpan={typeFilter === "dropshipper" ? 9 : 8} className="p-8 text-center text-gray-500">
+                  <td colSpan={typeFilter === "dropshipper" ? 10 : 9} className="p-8 text-center text-gray-500">
                     Loading orders...
                   </td>
                 </tr>
@@ -639,6 +731,15 @@ const AdminOrdersPage = () => {
                     </td>
                     <td className="p-4">{getStatusBadge(order.status)}</td>
                     <td className="p-4">
+                      {order.page_name ? (
+                        <span className="px-2.5 py-1 bg-indigo-50 text-indigo-700 font-bold text-xs rounded-lg border border-indigo-100">
+                          {order.page_name}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400 text-xs italic">—</span>
+                      )}
+                    </td>
+                    <td className="p-4">
                       <select
                         disabled={paymentStatusUpdating}
                         value={order.payment_status || "unpaid"}
@@ -676,7 +777,7 @@ const AdminOrdersPage = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={typeFilter === "dropshipper" ? 9 : 8} className="p-8 text-center text-gray-500">
+                  <td colSpan={typeFilter === "dropshipper" ? 10 : 9} className="p-8 text-center text-gray-500">
                     No orders found.
                   </td>
                 </tr>
@@ -1091,6 +1192,163 @@ const AdminOrdersPage = () => {
                   </div>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Courier Modal for Orders List page */}
+      {courierTargetOrder && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col">
+            <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-emerald-600 to-teal-700 text-white">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 bg-white/20 rounded-xl">
+                  <Truck size={20} className="text-white" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg leading-tight">Dispatch Order to Courier</h3>
+                  <p className="text-xs text-emerald-100">Order #{courierTargetOrder.order_number || courierTargetOrder.id}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setCourierTargetOrder(null)}
+                className="p-1.5 hover:bg-white/20 rounded-full transition text-white"
+              >
+                <XCircle size={20} />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4 text-sm text-gray-700">
+              {courierError && (
+                <div className="p-3.5 bg-red-50 border border-red-200 rounded-xl text-red-700 text-xs font-semibold flex items-center justify-between animate-in fade-in">
+                  <span>{courierError}</span>
+                  <button onClick={() => setCourierError(null)} className="text-red-500 hover:text-red-700 font-bold ml-2">
+                    ✕
+                  </button>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs font-bold uppercase text-gray-500 mb-1.5">
+                  Select Courier Service
+                </label>
+                <div className="grid grid-cols-1 gap-2">
+                  <label
+                    className={clsx(
+                      "flex items-center justify-between p-3.5 rounded-xl border-2 cursor-pointer transition",
+                      selectedCourier === "steadfast"
+                        ? "border-emerald-600 bg-emerald-50/50 shadow-xs"
+                        : "border-gray-200 hover:border-gray-300"
+                    )}
+                  >
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="radio"
+                        name="courier"
+                        value="steadfast"
+                        checked={selectedCourier === "steadfast"}
+                        onChange={(e) => setSelectedCourier(e.target.value)}
+                        className="w-4 h-4 text-emerald-600 focus:ring-emerald-500"
+                      />
+                      <div>
+                        <p className="font-bold text-gray-900">Steadfast Courier</p>
+                        <p className="text-xs text-gray-500">Auto-create consignment & tracking</p>
+                      </div>
+                    </div>
+                    <span className="px-2.5 py-1 bg-emerald-100 text-emerald-800 text-[10px] font-extrabold uppercase rounded-md">
+                      Active API
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="space-y-3 pt-2 border-t border-gray-100">
+                <h4 className="text-xs font-bold uppercase text-gray-400 tracking-wider">
+                  Consignment &amp; Recipient Details
+                </h4>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Recipient Name</label>
+                  <input
+                    type="text"
+                    value={courierRecipientName}
+                    onChange={(e) => setCourierRecipientName(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 mb-1">Recipient Phone</label>
+                    <input
+                      type="text"
+                      value={courierRecipientPhone}
+                      onChange={(e) => setCourierRecipientPhone(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500 font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 mb-1">COD Amount (৳)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={courierCodAmount}
+                      onChange={(e) => setCourierCodAmount(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500 font-bold text-emerald-700"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Recipient Address</label>
+                  <textarea
+                    rows={2}
+                    value={courierRecipientAddress}
+                    onChange={(e) => setCourierRecipientAddress(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Delivery Note (Optional)</label>
+                  <input
+                    type="text"
+                    placeholder="Handle with care..."
+                    value={courierNote}
+                    onChange={(e) => setCourierNote(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
+              <button
+                type="button"
+                disabled={sendingToCourier}
+                onClick={() => setCourierTargetOrder(null)}
+                className="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-xl font-bold text-sm hover:bg-gray-100 transition disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={sendingToCourier}
+                onClick={handleConfirmSendCourier}
+                className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm transition shadow-md shadow-emerald-500/20 flex items-center gap-2 disabled:opacity-50"
+              >
+                {sendingToCourier ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Sending to Steadfast...
+                  </>
+                ) : (
+                  <>
+                    <Truck size={16} /> Confirm &amp; Auto Transfer
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>
