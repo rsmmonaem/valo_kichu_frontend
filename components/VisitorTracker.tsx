@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 
-export default function VisitorTracker() {
+function VisitorTrackerInner() {
     const pathname = usePathname();
     const searchParams = useSearchParams();
 
@@ -25,4 +25,12 @@ export default function VisitorTracker() {
     }, [pathname, searchParams]);
 
     return null;
+}
+
+export default function VisitorTracker() {
+    return (
+        <Suspense fallback={null}>
+            <VisitorTrackerInner />
+        </Suspense>
+    );
 }
