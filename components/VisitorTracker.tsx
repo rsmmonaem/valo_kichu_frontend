@@ -2,14 +2,16 @@
 
 import { useEffect, Suspense } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 
 function VisitorTrackerInner() {
     const pathname = usePathname();
     const searchParams = useSearchParams();
+    const { user } = useAuth();
 
     useEffect(() => {
-        // Do not track admin pages
-        if (pathname.startsWith('/admin')) {
+        // Do not track admin pages or admin users
+        if (pathname.startsWith('/admin') || user?.role === 'admin') {
             return;
         }
 
