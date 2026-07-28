@@ -123,15 +123,12 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
 
     const formData = new FormData();
     formData.append("image", file);
+    formData.append("folder", "pages");
 
     setUploadingLogo(true);
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/v1/upload`, {
+      const res = await authFetch("/admin/v1/upload", {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
         body: formData,
       });
 
@@ -140,7 +137,7 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
         setCustomPageLogo(data.url);
         toast.success("Logo uploaded successfully!");
       } else {
-        toast.error(data.message || "Logo upload failed");
+        toast.error(data.error || data.message || "Logo upload failed");
       }
     } catch (err) {
       console.error(err);
@@ -195,7 +192,6 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
         toast.success("New page created!");
         const newPage = data.data;
         setAvailablePages((prev) => [newPage, ...prev]);
-        handleSelectPageName(newPage.name);
         setCustomPageInput("");
         setCustomPageLogo("");
         setShowAddCustomPage(false);
@@ -2142,25 +2138,25 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
                           <img
                             src={page.logo}
                             alt={page.name}
-                            className="w-7 h-7 rounded-lg object-cover border border-gray-200 bg-white"
+                            className="w-10 h-10 rounded-xl object-cover border border-gray-200 bg-white shrink-0 shadow-xs"
                           />
                         ) : (
-                          <div className={clsx("p-1.5 rounded-lg", isSelected ? "bg-indigo-600 text-white" : "bg-indigo-100 text-indigo-600")}>
-                            <Globe size={14} />
+                          <div className={clsx("p-2 rounded-xl shrink-0", isSelected ? "bg-indigo-600 text-white" : "bg-indigo-100 text-indigo-600")}>
+                            <Globe size={18} />
                           </div>
                         )}
-                        <span className="truncate flex-1 font-semibold">{page.name}</span>
+                        <span className="truncate flex-1 font-bold text-xs">{page.name}</span>
 
                         <button
                           type="button"
                           title="Delete page"
                           onClick={(e) => handleDeleteSourcePage(e, page.id)}
                           className={clsx(
-                            "opacity-0 group-hover:opacity-100 transition p-1 rounded-md",
+                            "opacity-0 group-hover:opacity-100 transition p-1.5 rounded-lg shrink-0",
                             isSelected ? "hover:bg-red-950 text-red-300" : "hover:bg-red-100 text-red-600"
                           )}
                         >
-                          <Trash2 size={12} />
+                          <Trash2 size={14} />
                         </button>
                       </div>
                     );
@@ -2187,23 +2183,28 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-semibold text-gray-600 mb-1">Page Logo (Optional)</label>
+                    <div className="flex justify-between items-center mb-1">
+                      <label className="block text-[11px] font-semibold text-gray-600">Page Logo (Optional)</label>
+                      <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">
+                        Recommended: 200x200 px (Square 1:1)
+                      </span>
+                    </div>
                     <div className="flex items-center gap-3">
                       {customPageLogo ? (
-                        <div className="relative w-10 h-10 rounded-lg overflow-hidden border border-gray-300 bg-white flex-shrink-0">
+                        <div className="relative w-12 h-12 rounded-xl overflow-hidden border border-gray-300 bg-white flex-shrink-0 shadow-xs">
                           <img src={customPageLogo} alt="Logo" className="w-full h-full object-cover" />
                           <button
                             type="button"
                             onClick={() => setCustomPageLogo("")}
-                            className="absolute top-0 right-0 bg-red-600 text-white p-0.5 rounded-bl text-[9px]"
+                            className="absolute top-0 right-0 bg-red-600 text-white p-1 rounded-bl text-[10px] leading-none"
                           >
                             ✕
                           </button>
                         </div>
                       ) : (
-                        <label className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-white border border-gray-300 border-dashed rounded-xl cursor-pointer hover:bg-gray-50 text-xs font-semibold text-indigo-600">
-                          <Upload size={14} />
-                          {uploadingLogo ? "Uploading..." : "Upload Logo Image"}
+                        <label className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 bg-white border border-gray-300 border-dashed rounded-xl cursor-pointer hover:bg-gray-50 text-xs font-semibold text-indigo-600 transition">
+                          <Upload size={15} />
+                          {uploadingLogo ? "Uploading..." : "Upload Logo Image (Square 1:1)"}
                           <input
                             type="file"
                             accept="image/*"
