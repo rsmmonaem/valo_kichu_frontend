@@ -29,7 +29,7 @@ const AdminOrdersPage = () => {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
-  const [activeStatus, setActiveStatus] = useState("all");
+  const [activeStatus, setActiveStatus] = useState("pending");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -615,30 +615,49 @@ const AdminOrdersPage = () => {
       {/* Status Tabs */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-6 overflow-x-auto">
         <div className="flex gap-2 p-4 min-w-max">
-          {statusTabs.map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveStatus(tab.key)}
-              className={clsx(
-                "px-4 py-2 rounded-lg font-medium text-sm transition-all flex items-center gap-2 border-2",
-                activeStatus === tab.key
-                  ? `bg-${tab.color}-50 text-${tab.color}-700 border-${tab.color}-200`
-                  : "bg-gray-50 text-gray-600 border-transparent hover:bg-gray-100"
-              )}
-            >
-              {tab.label}
-              <span
+          {statusTabs.map((tab) => {
+            const isSelected = activeStatus === tab.key;
+            
+            const tabStyleMap: Record<string, { activeBtn: string; activeBadge: string }> = {
+              all: { activeBtn: "bg-slate-800 text-white border-slate-800 shadow-sm", activeBadge: "bg-slate-700 text-slate-100" },
+              pending: { activeBtn: "bg-amber-50 text-amber-800 border-amber-300 font-bold", activeBadge: "bg-amber-200/80 text-amber-900" },
+              contacted: { activeBtn: "bg-emerald-50 text-emerald-800 border-emerald-300 font-bold", activeBadge: "bg-emerald-200/80 text-emerald-900" },
+              confirmed: { activeBtn: "bg-blue-50 text-blue-800 border-blue-300 font-bold", activeBadge: "bg-blue-200/80 text-blue-900" },
+              purchased_by_admin: { activeBtn: "bg-indigo-50 text-indigo-800 border-indigo-300 font-bold", activeBadge: "bg-indigo-200/80 text-indigo-900" },
+              ready_to_ship_bd: { activeBtn: "bg-purple-50 text-purple-800 border-purple-300 font-bold", activeBadge: "bg-purple-200/80 text-purple-900" },
+              shipping: { activeBtn: "bg-orange-50 text-orange-800 border-orange-300 font-bold", activeBadge: "bg-orange-200/80 text-orange-900" },
+              delivered: { activeBtn: "bg-green-50 text-green-800 border-green-300 font-bold", activeBadge: "bg-green-200/80 text-green-900" },
+              cancelled: { activeBtn: "bg-red-50 text-red-800 border-red-300 font-bold", activeBadge: "bg-red-200/80 text-red-900" },
+              refunded: { activeBtn: "bg-pink-50 text-pink-800 border-pink-300 font-bold", activeBadge: "bg-pink-200/80 text-pink-900" },
+            };
+
+            const styles = tabStyleMap[tab.key] || tabStyleMap.all;
+
+            return (
+              <button
+                key={tab.key}
+                onClick={() => setActiveStatus(tab.key)}
                 className={clsx(
-                  "px-2 py-0.5 rounded-full text-xs font-bold",
-                  activeStatus === tab.key
-                    ? `bg-${tab.color}-100 text-${tab.color}-800`
-                    : "bg-gray-200 text-gray-700"
+                  "px-4 py-2 rounded-lg font-medium text-sm transition-all flex items-center gap-2 border-2",
+                  isSelected
+                    ? styles.activeBtn
+                    : "bg-gray-50 text-gray-600 border-transparent hover:bg-gray-100"
                 )}
               >
-                {stats[tab.key] || 0}
-              </span>
-            </button>
-          ))}
+                {tab.label}
+                <span
+                  className={clsx(
+                    "px-2 py-0.5 rounded-full text-xs font-bold",
+                    isSelected
+                      ? styles.activeBadge
+                      : "bg-gray-200 text-gray-700"
+                  )}
+                >
+                  {stats[tab.key] || 0}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -658,13 +677,12 @@ const AdminOrdersPage = () => {
                 <th className="p-4">Status</th>
                 <th className="p-4">Page Source</th>
                 <th className="p-4">Payment Status</th>
-                <th className="p-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 text-sm">
               {loading ? (
                 <tr>
-                  <td colSpan={typeFilter === "dropshipper" ? 10 : 9} className="p-8 text-center text-gray-500">
+                  <td colSpan={typeFilter === "dropshipper" ? 9 : 8} className="p-8 text-center text-gray-500">
                     Loading orders...
                   </td>
                 </tr>
@@ -756,28 +774,11 @@ const AdminOrdersPage = () => {
                         <option value="partial" className="bg-white text-amber-700 font-semibold">Partial</option>
                       </select>
                     </td>
-                    <td className="p-4 text-right flex justify-end gap-3">
-                      {/* <button
-                        onClick={() => setSelectedOrder(order)}
-                        className="text-blue-600 hover:text-blue-800 font-medium inline-flex items-center gap-1"
-                        title="Quick View"
-                      >
-                        <Eye size={16} />
-                      </button> */}
-                      <Link
-                        href={`/admin/orders/${order.id}`}
-                        className="text-green-600 hover:text-green-800 font-medium inline-flex items-center gap-1"
-                        title="Order Details"
-                      >
-                        {/* <FileText size={16} /> */}
-                        <Eye size={16} />
-                      </Link>
-                    </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={typeFilter === "dropshipper" ? 10 : 9} className="p-8 text-center text-gray-500">
+                  <td colSpan={typeFilter === "dropshipper" ? 9 : 8} className="p-8 text-center text-gray-500">
                     No orders found.
                   </td>
                 </tr>
@@ -1233,14 +1234,13 @@ const AdminOrdersPage = () => {
                 <label className="block text-xs font-bold uppercase text-gray-500 mb-1.5">
                   Select Courier Service
                 </label>
-                <div className="grid grid-cols-1 gap-2">
+                <div className="space-y-2">
                   <label
-                    className={clsx(
-                      "flex items-center justify-between p-3.5 rounded-xl border-2 cursor-pointer transition",
+                    className={`flex items-center justify-between p-3.5 border rounded-xl cursor-pointer transition ${
                       selectedCourier === "steadfast"
-                        ? "border-emerald-600 bg-emerald-50/50 shadow-xs"
-                        : "border-gray-200 hover:border-gray-300"
-                    )}
+                        ? "border-emerald-500 bg-emerald-50/40 shadow-sm"
+                        : "border-gray-200 hover:bg-gray-50"
+                    }`}
                   >
                     <div className="flex items-center gap-3">
                       <input
@@ -1258,6 +1258,32 @@ const AdminOrdersPage = () => {
                     </div>
                     <span className="px-2.5 py-1 bg-emerald-100 text-emerald-800 text-[10px] font-extrabold uppercase rounded-md">
                       Active API
+                    </span>
+                  </label>
+
+                  <label
+                    className={`flex items-center justify-between p-3.5 border rounded-xl cursor-pointer transition ${
+                      selectedCourier === "self"
+                        ? "border-blue-500 bg-blue-50/40 shadow-sm"
+                        : "border-gray-200 hover:bg-gray-50"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="radio"
+                        name="courier"
+                        value="self"
+                        checked={selectedCourier === "self"}
+                        onChange={(e) => setSelectedCourier(e.target.value)}
+                        className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                      />
+                      <div>
+                        <p className="font-bold text-gray-900">Self Delivery (In-House)</p>
+                        <p className="text-xs text-gray-500">Confirm order without sending to external courier</p>
+                      </div>
+                    </div>
+                    <span className="px-2.5 py-1 bg-blue-100 text-blue-800 text-[10px] font-extrabold uppercase rounded-md">
+                      Self
                     </span>
                   </label>
                 </div>

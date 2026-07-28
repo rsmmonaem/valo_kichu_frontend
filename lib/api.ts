@@ -253,8 +253,8 @@ export const getCategorySections = async (): Promise<CategorySection[]> => {
 
 export const getNewArrivals = async (): Promise<Product[]> => {
   try {
-    const res = await fetch(`${API_URL}/v1/items-sections?type=newarrival&limit=12`, {
-      next: { revalidate: 60 },
+    const res = await fetch(`${API_URL}/v1/items-sections?type=newarrival&limit=24`, {
+      cache: 'no-store',
     });
     if (!res.ok) return [];
     const data = await res.json();

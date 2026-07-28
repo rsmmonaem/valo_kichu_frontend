@@ -83,7 +83,17 @@ export default async function Home() {
           </div>
 
           {newArrivals.length > 0 ? (
-            <ProductGridSection products={newArrivals} />
+            <>
+              <ProductGridSection products={newArrivals} />
+              <div className="mt-8 text-center">
+                <Link
+                  href="/products?sort_by=newest"
+                  className="inline-flex items-center gap-2 px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-full shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5"
+                >
+                  View All New Arrivals <ChevronRight size={18} />
+                </Link>
+              </div>
+            </>
           ) : (
             <div className="col-span-full py-8 text-center text-gray-400 bg-gray-50 rounded-lg">
               No new arrivals yet.

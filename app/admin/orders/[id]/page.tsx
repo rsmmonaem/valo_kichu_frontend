@@ -2282,14 +2282,13 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
                 <label className="block text-xs font-bold uppercase text-gray-500 mb-1.5">
                   Select Courier Service
                 </label>
-                <div className="grid grid-cols-1 gap-2">
+                <div className="space-y-2">
                   <label
-                    className={clsx(
-                      "flex items-center justify-between p-3.5 rounded-xl border-2 cursor-pointer transition",
+                    className={`flex items-center justify-between p-3.5 border rounded-xl cursor-pointer transition ${
                       selectedCourier === "steadfast"
-                        ? "border-emerald-600 bg-emerald-50/50 shadow-xs"
-                        : "border-gray-200 hover:border-gray-300"
-                    )}
+                        ? "border-emerald-500 bg-emerald-50/40 shadow-sm"
+                        : "border-gray-200 hover:bg-gray-50"
+                    }`}
                   >
                     <div className="flex items-center gap-3">
                       <input
@@ -2307,6 +2306,32 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
                     </div>
                     <span className="px-2.5 py-1 bg-emerald-100 text-emerald-800 text-[10px] font-extrabold uppercase rounded-md">
                       Active API
+                    </span>
+                  </label>
+
+                  <label
+                    className={`flex items-center justify-between p-3.5 border rounded-xl cursor-pointer transition ${
+                      selectedCourier === "self"
+                        ? "border-blue-500 bg-blue-50/40 shadow-sm"
+                        : "border-gray-200 hover:bg-gray-50"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="radio"
+                        name="courier"
+                        value="self"
+                        checked={selectedCourier === "self"}
+                        onChange={(e) => setSelectedCourier(e.target.value)}
+                        className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                      />
+                      <div>
+                        <p className="font-bold text-gray-900">Self Delivery (In-House)</p>
+                        <p className="text-xs text-gray-500">Confirm order without sending to external courier</p>
+                      </div>
+                    </div>
+                    <span className="px-2.5 py-1 bg-blue-100 text-blue-800 text-[10px] font-extrabold uppercase rounded-md">
+                      Self
                     </span>
                   </label>
                 </div>
