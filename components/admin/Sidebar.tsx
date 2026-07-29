@@ -22,7 +22,8 @@ import {
     ClipboardList,
     FileText,
     ShieldAlert,
-    Activity
+    Activity,
+    BarChart3
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import clsx from 'clsx';
@@ -40,7 +41,8 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, setIsOpen }) => {
     const currentType = searchParams.get('type');
 
     const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>({
-        Orders: pathname.startsWith('/admin/orders')
+        Orders: pathname.startsWith('/admin/orders'),
+        Reports: pathname.startsWith('/admin/reports')
     });
 
     const [lastPathname, setLastPathname] = useState(pathname);
@@ -48,6 +50,9 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, setIsOpen }) => {
         setLastPathname(pathname);
         if (pathname.startsWith('/admin/orders')) {
             setOpenDropdowns(prev => ({ ...prev, Orders: true }));
+        }
+        if (pathname.startsWith('/admin/reports')) {
+            setOpenDropdowns(prev => ({ ...prev, Reports: true }));
         }
     }
 
@@ -75,6 +80,13 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, setIsOpen }) => {
         { path: '/admin/customers', label: 'Customers', icon: Users },
         { path: '/admin/checkout-leads', label: 'Checkout Leads', icon: ClipboardList },
         { path: '/admin/visitors', label: 'Visitors', icon: Activity },
+        {
+            label: 'Reports',
+            icon: BarChart3,
+            subItems: [
+                { path: '/admin/reports/courier', label: 'Courier Reports' }
+            ]
+        },
         { path: '/admin/shipping', label: 'Shipping', icon: Truck },
         { path: '/admin/dropshippers', label: 'Dropshippers', icon: Users },
         { path: '/admin/ip-logs', label: 'IP Logs & Limits', icon: ShieldAlert },
@@ -118,8 +130,11 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, setIsOpen }) => {
                             if ('subItems' in item && item.subItems) {
                                 const isOpenDropdown = !!openDropdowns[item.label];
                                 const isAnySubActive = item.subItems.some(sub => {
-                                    const subType = sub.path.includes('type=customer') ? 'customer' : 'dropshipper';
-                                    return pathname === '/admin/orders' && (currentType === subType || (subType === 'customer' && !currentType));
+                                    if (item.label === 'Orders') {
+                                        const subType = sub.path.includes('type=customer') ? 'customer' : 'dropshipper';
+                                        return pathname === '/admin/orders' && (currentType === subType || (subType === 'customer' && !currentType));
+                                    }
+                                    return pathname === sub.path || pathname.startsWith(sub.path);
                                 });
                                 return (
                                     <div key={item.label} className="space-y-1">
@@ -143,15 +158,16 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, setIsOpen }) => {
                                             </div>
                                             {isOpenDropdown ? <ChevronDown size={16} className="text-slate-400 group-hover:text-white relative z-10" /> : <ChevronRight size={16} className="text-slate-400 group-hover:text-white relative z-10" />}
                                         </button>
-
+ 
                                         {/* Sub Items */}
                                         <div className={clsx(
                                             "pl-8 space-y-1 transition-all duration-200 overflow-hidden",
                                             isOpenDropdown ? "max-h-40 opacity-100 mt-1" : "max-h-0 opacity-0"
                                         )}>
                                             {item.subItems.map((sub) => {
-                                                const subType = sub.path.includes('type=customer') ? 'customer' : 'dropshipper';
-                                                const isSubActive = pathname === '/admin/orders' && (currentType === subType || (subType === 'customer' && !currentType));
+                                                const isSubActive = item.label === 'Orders'
+                                                    ? (pathname === '/admin/orders' && ((sub.path.includes('type=customer') && (currentType === 'customer' || !currentType)) || (sub.path.includes('type=dropshipper') && currentType === 'dropshipper')))
+                                                    : (pathname === sub.path || pathname.startsWith(sub.path));
                                                 return (
                                                     <Link
                                                         key={sub.path}
