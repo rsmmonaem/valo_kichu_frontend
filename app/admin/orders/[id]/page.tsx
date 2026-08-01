@@ -28,6 +28,7 @@ import {
   Facebook,
   Upload,
   Image as ImageIcon,
+  FileText,
 } from "lucide-react";
 import { authFetch } from "@/lib/api";
 import clsx from "clsx";
@@ -265,18 +266,16 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
 
   const fetchPreviousOrders = async (currentOrder: any) => {
     if (!currentOrder) return;
-    const phone = currentOrder.phone || currentOrder.contact_number || currentOrder.user?.phone_number || "";
-    const email = currentOrder.email || currentOrder.user?.email || "";
-    const userId = currentOrder.user_id || "";
+    const phone = currentOrder.phone || currentOrder.contact_number || "";
+    const email = currentOrder.email || "";
 
-    if (!phone && !email && !userId) return;
+    if (!phone && !email) return;
 
     setLoadingPreviousOrders(true);
     try {
       const params = new URLSearchParams();
       if (phone) params.append("phone", phone);
       if (email) params.append("email", email);
-      if (userId) params.append("user_id", String(userId));
       if (currentOrder.id) params.append("exclude_id", String(currentOrder.id));
 
       const res = await authFetch(`/admin/v1/orders/customer-history?${params.toString()}`);
@@ -770,7 +769,7 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
             {getStatusBadge(order.status)}
             {getPaymentStatusBadge(order.payment_status)}
           </div>
-          <p className="text-gray-500 mt-1">
+          <p className="text-gray-500 mt-1" suppressHydrationWarning>
             Placed on {new Date(order.created_at).toLocaleString()}
           </p>
         </div>
@@ -794,6 +793,15 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
             </>
           ) : (
             <>
+              <button
+                onClick={() => {
+                  const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
+                  window.open(`${baseUrl}/api/v1/invoice/${order.order_number || order.id}/preview`, '_blank');
+                }}
+                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition flex items-center gap-2 font-bold shadow-sm"
+              >
+                <FileText size={18} /> View Invoice
+              </button>
               <button
                 onClick={handleStartEdit}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2 font-bold"
@@ -1708,7 +1716,7 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
                               #{prevOrder.order_number || prevOrder.id}
                             </Link>
                           </td>
-                          <td className="py-3.5 px-4 text-gray-600 text-xs">
+                          <td className="py-3.5 px-4 text-gray-600 text-xs" suppressHydrationWarning>
                             {new Date(prevOrder.created_at).toLocaleDateString()}
                           </td>
                           <td className="py-3.5 px-4 font-bold text-gray-900 text-xs">

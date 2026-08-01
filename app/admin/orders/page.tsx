@@ -82,11 +82,10 @@ const AdminOrdersPage = () => {
       return;
     }
 
-    const phone = selectedOrder.phone || selectedOrder.contact_number || selectedOrder.user?.phone_number || "";
-    const email = selectedOrder.email || selectedOrder.user?.email || "";
-    const userId = selectedOrder.user_id || "";
+    const phone = selectedOrder.phone || selectedOrder.contact_number || "";
+    const email = selectedOrder.email || "";
 
-    if (!phone && !email && !userId) {
+    if (!phone && !email) {
       setPreviousOrders([]);
       return;
     }
@@ -97,7 +96,6 @@ const AdminOrdersPage = () => {
         const params = new URLSearchParams();
         if (phone) params.append("phone", phone);
         if (email) params.append("email", email);
-        if (userId) params.append("user_id", String(userId));
         if (selectedOrder.id) params.append("exclude_id", String(selectedOrder.id));
 
         const res = await authFetch(`/admin/v1/orders/customer-history?${params.toString()}`);
@@ -741,7 +739,7 @@ const AdminOrdersPage = () => {
                         </div>
                       </td>
                     )}
-                    <td className="p-4 text-gray-600">
+                    <td className="p-4 text-gray-600" suppressHydrationWarning>
                       {new Date(order.created_at).toLocaleDateString()}
                     </td>
                     <td className="p-4 font-bold text-gray-900">
@@ -854,16 +852,28 @@ const AdminOrdersPage = () => {
                     Dropshipper: {selectedOrder.user.store_name}
                   </p>
                 )}
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500" suppressHydrationWarning>
                   {new Date(selectedOrder.created_at).toLocaleString()}
                 </p>
               </div>
-              <button
-                onClick={() => setSelectedOrder(null)}
-                className="p-2 hover:bg-gray-100 rounded-full transition"
-              >
-                <XCircle className="text-gray-500" />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
+                    window.open(`${baseUrl}/api/v1/invoice/${selectedOrder.order_number || selectedOrder.id}/preview`, '_blank');
+                  }}
+                  className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-sm"
+                >
+                  <FileText size={15} /> View Invoice
+                </button>
+                <button
+                  onClick={() => setSelectedOrder(null)}
+                  className="p-2 hover:bg-gray-100 rounded-full transition"
+                >
+                  <XCircle className="text-gray-500" />
+                </button>
+              </div>
             </div>
 
             <div className="p-6 flex-1 overflow-y-auto">
@@ -1170,7 +1180,7 @@ const AdminOrdersPage = () => {
                                 #{prevOrder.order_number || prevOrder.id}
                               </Link>
                             </td>
-                            <td className="p-3 text-gray-600">
+                            <td className="p-3 text-gray-600" suppressHydrationWarning>
                               {new Date(prevOrder.created_at).toLocaleDateString()}
                             </td>
                             <td className="p-3 font-bold text-gray-900">
