@@ -284,7 +284,7 @@ const AdminOrdersPage = () => {
   }, [typeFilter, startDate, endDate, selectedCategoryId, searchQuery]);
 
   const updateStatus = async (orderId: number, newStatus: string) => {
-    if (newStatus === "transfer_to_courier" || newStatus === "confirmed") {
+    if (newStatus === "transfer_to_courier") {
       const order = orders.find((o) => o.id === orderId) || selectedOrder;
       if (order) {
         const name = order.name || order.user?.name || "Customer";

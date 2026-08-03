@@ -505,7 +505,7 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
   }, [orderId]);
 
   const updateStatus = async (newStatus: string) => {
-    if (newStatus === "transfer_to_courier" || newStatus === "confirmed") {
+    if (newStatus === "transfer_to_courier") {
       // Prepare default modal form fields from current order data
       const name = order.name || order.user?.name || "Customer";
       const phone = order.phone || order.contact_number || order.user?.phone_number || "";
