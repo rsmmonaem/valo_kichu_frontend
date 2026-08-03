@@ -90,6 +90,11 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
   const [sendingToCourier, setSendingToCourier] = useState(false);
   const [courierError, setCourierError] = useState<string | null>(null);
 
+  // Refund Modal States
+  const [showRefundModal, setShowRefundModal] = useState(false);
+  const [refundItems, setRefundItems] = useState<any[]>([]);
+  const [refunding, setRefunding] = useState(false);
+
   // Dynamic Source Pages States
   const [availablePages, setAvailablePages] = useState<any[]>([]);
   const [loadingSourcePages, setLoadingSourcePages] = useState(false);
@@ -500,7 +505,7 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
   }, [orderId]);
 
   const updateStatus = async (newStatus: string) => {
-    if (newStatus === "confirmed") {
+    if (newStatus === "transfer_to_courier" || newStatus === "confirmed") {
       // Prepare default modal form fields from current order data
       const name = order.name || order.user?.name || "Customer";
       const phone = order.phone || order.contact_number || order.user?.phone_number || "";
@@ -524,6 +529,20 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
       setSelectedCourier("steadfast");
       setCourierError(null);
       setShowCourierModal(true);
+      return;
+    }
+
+    if (newStatus === "refunded") {
+      setRefundItems(
+        order.items.map((item: any) => ({
+          id: item.id,
+          product_name: item.product_name,
+          quantity: item.quantity,
+          refunded_quantity: item.refunded_quantity || 0,
+          refund_input_qty: 0,
+        }))
+      );
+      setShowRefundModal(true);
       return;
     }
 
@@ -601,6 +620,36 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
     }
   };
 
+  const handleConfirmRefund = async () => {
+    setRefunding(true);
+    try {
+      const payload = {
+        refund_items: refundItems.map((item) => ({
+          item_id: item.id,
+          refund_quantity: item.refund_input_qty,
+        })),
+      };
+      const res = await authFetch(`/admin/v1/orders/${orderId}/refund`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) {
+        toast.success("Refund processed successfully!");
+        setShowRefundModal(false);
+        fetchOrderDetails();
+      } else {
+        const data = await res.json();
+        toast.error(data.message || "Failed to process refund");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("An error occurred during refund processing");
+    } finally {
+      setRefunding(false);
+    }
+  };
+
   const updatePaymentStatus = async (newPaymentStatus: string) => {
     if (
       !window.confirm(`Update payment status to ${newPaymentStatus}?`)
@@ -641,6 +690,8 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
       delivered: "bg-green-100 text-green-700",
       cancelled: "bg-red-100 text-red-700",
       refunded: "bg-pink-100 text-pink-700",
+      transfer_to_courier: "bg-sky-100 text-sky-700",
+      returned: "bg-rose-100 text-rose-700",
     };
     return (
       <span
@@ -1171,9 +1222,16 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
                           </div>
                         </td>
                         <td className="px-6 py-4 text-center">
-                          <span className="bg-gray-100 px-3 py-1 rounded-lg text-sm font-bold">
-                            {item.quantity}
-                          </span>
+                          <div className="flex flex-col items-center gap-1">
+                            <span className="bg-gray-100 px-3 py-1 rounded-lg text-sm font-bold">
+                              {item.quantity}
+                            </span>
+                            {item.refunded_quantity > 0 && (
+                              <span className="text-[10px] bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-semibold">
+                                Refunded: {item.refunded_quantity}
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td className="px-6 py-4 text-right font-bold ">
                           <div className="text-sm leading-tight">
@@ -1430,10 +1488,12 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
                 "confirmed",
                 "purchased_by_admin",
                 "ready_to_ship_bd",
+                "transfer_to_courier",
                 "shipping",
                 "delivered",
                 "cancelled",
                 "refunded",
+                "returned",
               ].map((s) => (
                 <button
                   key={s}
@@ -2431,6 +2491,80 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
                     <Truck size={16} /> Confirm &amp; Auto Transfer
                   </>
                 )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Refund Modal */}
+      {showRefundModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200">
+            <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-pink-600 to-rose-700 text-white">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 bg-white/20 rounded-xl">
+                  <RefreshCcw size={20} className="text-white" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg leading-tight">Process Item-wise Refund</h3>
+                  <p className="text-xs text-rose-100">Select items and quantities to refund/return</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowRefundModal(false)}
+                className="p-1.5 hover:bg-white/20 rounded-full transition text-white"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4 text-sm text-gray-700 max-h-[60vh] overflow-y-auto">
+              <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Order Items</p>
+              <div className="space-y-3 divide-y divide-gray-100">
+                {refundItems.map((item, idx) => (
+                  <div key={item.id} className="pt-3 first:pt-0 flex items-center justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-gray-900 truncate">{item.product_name}</p>
+                      <p className="text-xs text-gray-500">
+                        Qty ordered: {item.quantity} | Already refunded: {item.refunded_quantity}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        min="0"
+                        max={item.quantity - item.refunded_quantity}
+                        value={item.refund_input_qty}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value) || 0;
+                          const newRefundItems = [...refundItems];
+                          newRefundItems[idx].refund_input_qty = Math.min(item.quantity - item.refunded_quantity, Math.max(0, val));
+                          setRefundItems(newRefundItems);
+                        }}
+                        className="w-16 px-2 py-1.5 border border-gray-200 rounded-lg text-center font-bold text-xs focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="p-5 bg-gray-50/50 border-t border-gray-100 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setShowRefundModal(false)}
+                className="px-4 py-2 bg-white border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 font-bold transition text-xs"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={refunding}
+                onClick={handleConfirmRefund}
+                className="px-5 py-2 bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white rounded-xl font-bold transition text-xs flex items-center gap-1.5 shadow-md shadow-rose-600/25"
+              >
+                {refunding ? "Processing..." : "Confirm Refund"}
               </button>
             </div>
           </div>

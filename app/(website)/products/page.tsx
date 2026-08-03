@@ -19,17 +19,60 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
     if (categorySlug) {
         const { data: category } = await getCategory(categorySlug);
         if (category && category.id) {
+            const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
+            const rawImage = category.image_url || category.image;
+            let imageUrl = '';
+            if (rawImage) {
+                if (rawImage.startsWith('http')) {
+                    imageUrl = rawImage;
+                } else {
+                    imageUrl = `${baseUrl}/storage/${rawImage.replace(/^\/?storage\/?/, '')}`;
+                }
+                imageUrl = imageUrl.replace('/storage/products/', '/storage/categories/');
+                if (imageUrl.includes('/storage/') && !imageUrl.includes('/storage/categories/')) {
+                    imageUrl = imageUrl.replace('/storage/', '/storage/categories/');
+                }
+            }
+
+            const title = category.meta_title || category.name + ' | ValoKichu';
+            const description = category.meta_description || `Browse ${category.name} products.`;
+
             return {
-                title: category.meta_title || category.name + ' | ValoKichu',
-                description: category.meta_description || `Browse ${category.name} products.`,
-                keywords: category.meta_keywords || ''
+                title,
+                description,
+                keywords: category.meta_keywords || '',
+                openGraph: {
+                    title,
+                    description,
+                    images: imageUrl ? [{ url: imageUrl }] : [],
+                    type: 'website',
+                },
+                twitter: {
+                    card: 'summary_large_image',
+                    title,
+                    description,
+                    images: imageUrl ? [imageUrl] : [],
+                }
             };
         }
     }
 
+    const defaultTitle = settings.products_page_title || 'Products | ValoKichu';
+    const defaultDescription = settings.products_page_description || 'Browse our collection of high-quality products.';
+
     return {
-        title: settings.products_page_title || 'Products | ValoKichu',
-        description: settings.products_page_description || 'Browse our collection of high-quality products.',
+        title: defaultTitle,
+        description: defaultDescription,
+        openGraph: {
+            title: defaultTitle,
+            description: defaultDescription,
+            type: 'website',
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title: defaultTitle,
+            description: defaultDescription,
+        }
     };
 }
 

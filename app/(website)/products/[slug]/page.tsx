@@ -16,9 +16,35 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         };
     }
 
+    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
+    const rawImage = product.image_url || product.image;
+    let imageUrl = '';
+    if (rawImage) {
+        if (rawImage.startsWith('http')) {
+            imageUrl = rawImage;
+        } else {
+            imageUrl = `${baseUrl}/storage/products/${rawImage.replace(/^\/?(storage\/products|products)\/?/, '')}`;
+        }
+    }
+
+    const title = product.meta_title || product.name || 'Product Details';
+    const description = product.meta_description || product.description?.replace(/<[^>]*>?/gm, '').substring(0, 160) || 'Product details';
+
     return {
-        title: product.meta_title || product.name || 'Product Details',
-        description: product.meta_description || product.description?.replace(/<[^>]*>?/gm, '').substring(0, 160) || 'Product details',
+        title,
+        description,
+        openGraph: {
+            title,
+            description,
+            images: imageUrl ? [{ url: imageUrl }] : [],
+            type: 'og:product' as any,
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title,
+            description,
+            images: imageUrl ? [imageUrl] : [],
+        }
     };
 }
 

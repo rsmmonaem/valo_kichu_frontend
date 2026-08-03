@@ -9,7 +9,9 @@ export async function generateMetadata(): Promise<Metadata> {
     let settings = {
         site_title: 'Valokichu - Premium Wholesale Marketplace',
         site_description: 'Connect directly with best manufacturers.',
-        site_keywords: 'wholesale, marketplace, ecommerce'
+        site_keywords: 'wholesale, marketplace, ecommerce',
+        site_logo: '',
+        site_share_image: ''
     };
 
     try {
@@ -17,14 +19,48 @@ export async function generateMetadata(): Promise<Metadata> {
         if (settingsMap.site_title) settings.site_title = settingsMap.site_title;
         if (settingsMap.site_description) settings.site_description = settingsMap.site_description;
         if (settingsMap.site_keywords) settings.site_keywords = settingsMap.site_keywords;
+        if (settingsMap.site_logo) settings.site_logo = settingsMap.site_logo;
+        if (settingsMap.site_share_image) settings.site_share_image = settingsMap.site_share_image;
     } catch (e) {
         console.error('Metadata fetch failed', e);
+    }
+
+    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
+    
+    // Prefer site_share_image, fall back to site_logo
+    const rawImage = settings.site_share_image || settings.site_logo;
+    let shareImageUrl = '';
+    if (rawImage) {
+        if (rawImage.startsWith('http')) {
+            shareImageUrl = rawImage;
+        } else {
+            shareImageUrl = `${baseUrl}/storage/${rawImage.replace(/^\/?storage\/?/, '')}`;
+        }
+        
+        if (shareImageUrl.includes('localhost:8000') || shareImageUrl.includes('127.0.0.1')) {
+            const filename = shareImageUrl.split('/').pop() || '';
+            if (filename.startsWith('ss')) {
+                shareImageUrl = shareImageUrl.replace(/^https?:\/\/[^/]+/, 'https://backend.valokichu.com');
+            }
+        }
     }
 
     return {
         title: settings.site_title,
         description: settings.site_description,
         keywords: settings.site_keywords ? settings.site_keywords.split(',') : [],
+        openGraph: {
+            title: settings.site_title,
+            description: settings.site_description,
+            images: shareImageUrl ? [{ url: shareImageUrl }] : [],
+            type: 'website',
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title: settings.site_title,
+            description: settings.site_description,
+            images: shareImageUrl ? [shareImageUrl] : [],
+        }
     };
 }
 

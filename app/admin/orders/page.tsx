@@ -52,6 +52,8 @@ const AdminOrdersPage = () => {
     delivered: 0,
     cancelled: 0,
     refunded: 0,
+    transfer_to_courier: 0,
+    returned: 0,
   });
   const [statusUpdating, setStatusUpdating] = useState(false);
   const [paymentStatusUpdating, setPaymentStatusUpdating] = useState(false);
@@ -132,10 +134,12 @@ const AdminOrdersPage = () => {
     { key: "confirmed", label: "Confirmed", color: "blue" },
     { key: "purchased_by_admin", label: "Purchased", color: "indigo" },
     { key: "ready_to_ship_bd", label: "Ready to Ship", color: "purple" },
+    { key: "transfer_to_courier", label: "Transfer to Courier", color: "sky" },
     { key: "shipping", label: "Shipping", color: "orange" },
     { key: "delivered", label: "Delivered", color: "green" },
     { key: "cancelled", label: "Cancelled", color: "red" },
     { key: "refunded", label: "Refunded", color: "pink" },
+    { key: "returned", label: "Returned", color: "rose" },
   ];
 
   // Close dropdown on outside click
@@ -280,7 +284,7 @@ const AdminOrdersPage = () => {
   }, [typeFilter, startDate, endDate, selectedCategoryId, searchQuery]);
 
   const updateStatus = async (orderId: number, newStatus: string) => {
-    if (newStatus === "confirmed") {
+    if (newStatus === "transfer_to_courier" || newStatus === "confirmed") {
       const order = orders.find((o) => o.id === orderId) || selectedOrder;
       if (order) {
         const name = order.name || order.user?.name || "Customer";
@@ -372,7 +376,7 @@ const AdminOrdersPage = () => {
         fetchOrders();
         fetchStats();
         if (selectedOrder && selectedOrder.id === courierTargetOrder.id) {
-          setSelectedOrder({ ...selectedOrder, status: 'confirmed', courier_name: 'Steadfast' });
+          setSelectedOrder({ ...selectedOrder, status: 'transfer_to_courier', courier_name: 'Steadfast' });
         }
       } else {
         const errMsg = data.message || "Failed to send order to courier";
@@ -454,6 +458,8 @@ const AdminOrdersPage = () => {
       delivered: "bg-green-100 text-green-700",
       cancelled: "bg-red-100 text-red-700",
       refunded: "bg-pink-100 text-pink-700",
+      transfer_to_courier: "bg-sky-100 text-sky-700",
+      returned: "bg-rose-100 text-rose-700",
     };
     const labels: any = {
       pending: "Pending",
@@ -465,6 +471,8 @@ const AdminOrdersPage = () => {
       delivered: "Delivered",
       cancelled: "Cancelled",
       refunded: "Refunded",
+      transfer_to_courier: "Transfer to Courier",
+      returned: "Returned",
     };
     return (
       <span
@@ -627,6 +635,8 @@ const AdminOrdersPage = () => {
               delivered: { activeBtn: "bg-green-50 text-green-800 border-green-300 font-bold", activeBadge: "bg-green-200/80 text-green-900" },
               cancelled: { activeBtn: "bg-red-50 text-red-800 border-red-300 font-bold", activeBadge: "bg-red-200/80 text-red-900" },
               refunded: { activeBtn: "bg-pink-50 text-pink-800 border-pink-300 font-bold", activeBadge: "bg-pink-200/80 text-pink-900" },
+              transfer_to_courier: { activeBtn: "bg-sky-50 text-sky-800 border-sky-300 font-bold", activeBadge: "bg-sky-200/80 text-sky-900" },
+              returned: { activeBtn: "bg-rose-50 text-rose-800 border-rose-300 font-bold", activeBadge: "bg-rose-200/80 text-rose-900" },
             };
 
             const styles = tabStyleMap[tab.key] || tabStyleMap.all;

@@ -211,6 +211,7 @@ const SettingsPage = () => {
         { key: 'secondary_color', label: 'Secondary Color (Hex)', type: 'color' },
         { key: 'site_logo', label: 'Site Logo', type: 'image' },
         { key: 'site_favicon', label: 'Favicon', type: 'image' },
+        { key: 'site_share_image', label: 'Share Image (OG Thumbnail)', type: 'image' },
     ];
 
     useEffect(() => {
@@ -526,6 +527,31 @@ const SettingsPage = () => {
                                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500/20 outline-none"
                                 placeholder="e-commerce, wholesale, fashion"
                             />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Share Image (OG Thumbnail)</label>
+                            <div className="flex items-center gap-4">
+                                <div className="w-40 h-24 bg-gray-50 border border-gray-200 rounded-lg flex items-center justify-center overflow-hidden relative">
+                                    {settings.site_share_image ? (
+                                        <img src={resolveSettingImageUrl(settings.site_share_image)} className="w-full h-full object-contain" />
+                                    ) : (
+                                        <span className="text-xs text-gray-400 italic">No image selected</span>
+                                    )}
+                                </div>
+                                <label className="cursor-pointer bg-white border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 text-sm font-medium">
+                                    Upload Share Image
+                                    <input type="file" className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, 'site_share_image')} />
+                                </label>
+                                {settings.site_share_image && (
+                                    <button
+                                        type="button"
+                                        onClick={() => handleChange('site_share_image', '')}
+                                        className="text-red-500 hover:text-red-700 text-xs font-medium"
+                                    >
+                                        Remove
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
