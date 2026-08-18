@@ -11,6 +11,8 @@ import {
   ShoppingCart,
   RotateCcw,
   ArrowLeftRight,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Product } from "@/lib/api";
 import { parseAttributes, parseGalleryImages } from "@/lib/utils";
@@ -18,6 +20,7 @@ import clsx from "clsx";
 import { useCart } from "@/context/CartContext";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import AddtocartToster from "./AddtocartToster";
 import { formatProductDescriptionUniversal } from "@/lib/utils/formatProductDescription";
 import { formatAmount } from "@/lib/utils/formatAmount";
@@ -345,6 +348,15 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
     }
   };
 
+  const resolveProductImageUrl = (rawImage: string | null | undefined) => {
+    if (!rawImage) return "";
+    if (rawImage.startsWith("http")) return rawImage;
+    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
+    return `${baseUrl}/storage/products/${rawImage.replace(/^\/?(storage\/products|products)\/?/, '')}`;
+  };
+  const prevImageUrl = resolveProductImageUrl(product.prev_image);
+  const nextImageUrl = resolveProductImageUrl(product.next_image);
+
   // Calculate dynamic bulk discount preview for quantity selector
   let activeBulkDiscountPerItem = 0;
   if (product.bulk_discount_rules && Array.isArray(product.bulk_discount_rules)) {
@@ -364,7 +376,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-8">
         {/* Image Gallery */}
         <div className="p-2 md:p-8 bg-white">
-          <div className="aspect-square rounded-xl overflow-hidden bg-gray-50 mb-4 border border-gray-100 relative">
+          <div className="aspect-square rounded-xl overflow-hidden bg-gray-50 mb-4 border border-gray-100 relative group/gallery">
             {allImages.length > 0 ? (
               <Image
                 src={mainImageOverride || allImages[selectedImage]}
@@ -378,6 +390,30 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
                 No Image
               </div>
             )}
+            
+            {/* Prev/Next Product Navigation Arrows inside Image */}
+            <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 pointer-events-none flex justify-between px-3 z-10">
+              {product.prev_slug && (
+                <Link
+                  href={`/products/${product.prev_slug}`}
+                  className="pointer-events-auto flex items-center justify-center w-9 h-9 md:w-11 md:h-11 bg-white/95 hover:bg-white text-gray-800 hover:text-blue-600 rounded-full border border-gray-150 shadow-md transition-all hover:scale-110 active:scale-95"
+                  title="Previous Product"
+                >
+                  <ChevronLeft size={22} className="mr-0.5" />
+                </Link>
+              )}
+              {!product.prev_slug && <div />}
+              {product.next_slug && (
+                <Link
+                  href={`/products/${product.next_slug}`}
+                  className="pointer-events-auto flex items-center justify-center w-9 h-9 md:w-11 md:h-11 bg-white/95 hover:bg-white text-gray-800 hover:text-blue-600 rounded-full border border-gray-150 shadow-md transition-all hover:scale-110 active:scale-95"
+                  title="Next Product"
+                >
+                  <ChevronRight size={22} className="ml-0.5" />
+                </Link>
+              )}
+            </div>
+
             {hasDiscount && salePrice && (
               <div className="absolute top-4 left-4 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
                 -{Math.round(((basePrice - salePrice) / basePrice) * 100)}%

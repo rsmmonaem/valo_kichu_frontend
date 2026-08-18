@@ -194,11 +194,11 @@ export default function ProductModal({
   const [color, setColor] = useState(
     defaultColorForInit
       ? {
-          id: defaultColorForInit.id || 1,
-          name: typeof defaultColorForInit === 'string' ? defaultColorForInit : defaultColorForInit.name || '',
-          img: resolveImageUrl(defaultColorForInit?.image || defaultColorForInit?.color_image || ''),
-          priority: defaultColorForInit.priority ?? null,
-        }
+        id: defaultColorForInit.id || 1,
+        name: typeof defaultColorForInit === 'string' ? defaultColorForInit : defaultColorForInit.name || '',
+        img: resolveImageUrl(defaultColorForInit?.image || defaultColorForInit?.color_image || ''),
+        priority: defaultColorForInit.priority ?? null,
+      }
       : colorData[0] || {}
   );
   const [weight, setWeight] = useState(weightData[0]);
@@ -719,12 +719,26 @@ export default function ProductModal({
     }
   }, [product?.id, product?.name, product?.category?.name, displayPrice]);
 
+  // Calculate dynamic bulk discount preview for quantity selector in modal
+  let activeBulkDiscountPerItem = 0;
+  if (product?.bulk_discount_rules && Array.isArray(product.bulk_discount_rules)) {
+    for (const rule of product.bulk_discount_rules) {
+      const minQty = Number(rule.min_qty) || 0;
+      const discAmt = Number(rule.discount_amount) || 0;
+      if (minQty > 0 && quantity >= minQty) {
+        activeBulkDiscountPerItem = Math.max(activeBulkDiscountPerItem, discAmt);
+      }
+    }
+  }
+  const previewUnitPrice = Math.max(0, displayPrice - activeBulkDiscountPerItem);
+  const previewTotalPrice = previewUnitPrice * quantity;
+
   if (!product) return null;
 
   return (
     <>
       <div
-        className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 animate-in fade-in duration-300 "
+        className="jsx-15846967f5c40aee fixed inset-0 bg-black/70 backdrop-blur-sm z-40 animate-in fade-in duration-300 "
         onClick={onClose}
       />
 
@@ -753,15 +767,22 @@ export default function ProductModal({
               if (onPrevProduct) onPrevProduct();
             }}
             disabled={!onPrevProduct}
-            className={`absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-50 p-3 md:p-4 rounded-full bg-white/95 backdrop-blur-md shadow-2xl transition-all border border-gray-200 group text-gray-800 ${
-              onPrevProduct
-                ? "hover:bg-blue-600 hover:text-white hover:scale-110 active:scale-95 cursor-pointer"
-                : "opacity-40 cursor-not-allowed text-gray-400"
-            }`}
+            className={`absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-50 w-12 h-12 md:w-14 md:h-14 rounded-full border shadow-2xl transition-all relative overflow-hidden group/navbtn ${onPrevProduct
+              ? "border-white/60 hover:scale-110 active:scale-95 cursor-pointer"
+              : "opacity-40 border-gray-200 cursor-not-allowed text-gray-400"
+              }`}
             aria-label="Previous Product"
             title="Previous Product"
           >
-            <ChevronLeft size={28} />
+            {onPrevProduct && prevImageUrl ? (
+              <img src={prevImageUrl} className="absolute inset-0 w-full h-full object-cover group-hover/navbtn:scale-110 transition-transform duration-300" alt="" />
+            ) : (
+              <div className="absolute inset-0 bg-white" />
+            )}
+            <div className={`absolute inset-0 flex items-center justify-center transition-colors ${onPrevProduct ? "bg-black/25 group-hover/navbtn:bg-black/35 text-white" : "bg-gray-50 text-gray-400"
+              }`}>
+              <ChevronLeft size={28} />
+            </div>
           </button>
 
           {/* Product Switching - Floating on Modal Right Edge */}
@@ -771,15 +792,22 @@ export default function ProductModal({
               if (onNextProduct) onNextProduct();
             }}
             disabled={!onNextProduct}
-            className={`absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-50 p-3 md:p-4 rounded-full bg-white/95 backdrop-blur-md shadow-2xl transition-all border border-gray-200 group text-gray-800 ${
-              onNextProduct
-                ? "hover:bg-blue-600 hover:text-white hover:scale-110 active:scale-95 cursor-pointer"
-                : "opacity-40 cursor-not-allowed text-gray-400"
-            }`}
+            className={`absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-50 w-12 h-12 md:w-14 md:h-14 rounded-full border shadow-2xl transition-all relative overflow-hidden group/navbtn ${onNextProduct
+              ? "border-white/60 hover:scale-110 active:scale-95 cursor-pointer"
+              : "opacity-40 border-gray-200 cursor-not-allowed text-gray-400"
+              }`}
             aria-label="Next Product"
             title="Next Product"
           >
-            <ChevronRight size={28} />
+            {onNextProduct && nextImageUrl ? (
+              <img src={nextImageUrl} className="absolute inset-0 w-full h-full object-cover group-hover/navbtn:scale-110 transition-transform duration-300" alt="" />
+            ) : (
+              <div className="absolute inset-0 bg-white" />
+            )}
+            <div className={`absolute inset-0 flex items-center justify-center transition-colors ${onNextProduct ? "bg-black/25 group-hover/navbtn:bg-black/35 text-white" : "bg-gray-50 text-gray-400"
+              }`}>
+              <ChevronRight size={28} />
+            </div>
           </button>
 
           {/* Scrollable Content */}
@@ -890,7 +918,7 @@ export default function ProductModal({
                     <span className="font-bold text-gray-800 text-xs block mb-2">
                       Color: {color?.name}
                     </span>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2.5">
                       {colorData.map((c: any) => (
                         <button
                           key={c.id}
@@ -901,13 +929,29 @@ export default function ProductModal({
                               setHasImageError(false);
                             }
                           }}
-                          className={`px-2.5 py-1 text-xs font-semibold rounded-lg border transition ${
-                            c.id === color?.id
-                              ? "bg-[#FFAC1C] text-white border-[#FFAC1C] shadow-sm"
-                              : "bg-gray-50 text-gray-600 border-gray-200 hover:border-gray-300"
-                          }`}
+                          className={`flex items-center gap-2 p-1.5 rounded-xl border-2 transition cursor-pointer ${color?.id === c.id
+                            ? "border-blue-600 ring-2 ring-blue-100 bg-blue-50/10"
+                            : "border-gray-200 hover:border-gray-300 bg-white"
+                            }`}
                         >
-                          {c.name}
+                          <div className="relative w-8 h-8 rounded-lg overflow-hidden bg-gray-50 border border-gray-100 shrink-0">
+                            {c.img ? (
+                              <Image
+                                src={c.img}
+                                alt={c.name}
+                                fill
+                                className="object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-[10px] text-gray-400 bg-gray-100 font-bold uppercase">
+                                {c.name.substring(0, 2)}
+                              </div>
+                            )}
+                          </div>
+                          <span className={`text-[11px] font-semibold pr-1 truncate ${color?.id === c.id ? "text-blue-600 font-bold" : "text-gray-700"
+                            }`}>
+                            {c.name}
+                          </span>
                         </button>
                       ))}
                     </div>
@@ -969,13 +1013,35 @@ export default function ProductModal({
                   )}
                 </div>
 
+                {/* Bulk Discount Offers Banner */}
+                {product.bulk_discount_rules && product.bulk_discount_rules.length > 0 && (
+                  <div className="mb-4 p-4 bg-gradient-to-r from-orange-50 to-amber-50 border border-amber-200/60 rounded-2xl">
+                    <span className="text-xs font-bold text-amber-700 uppercase tracking-wider block mb-2">🎁 Bulk Discount Offers</span>
+                    <div className="space-y-1.5">
+                      {product.bulk_discount_rules.map((rule: any, idx: number) => (
+                        <div key={idx} className="flex justify-between items-center text-sm text-gray-700">
+                          <span>Buy <strong className="text-amber-800">{rule.min_qty} or more</strong>:</span>
+                          <span className="font-semibold text-green-600">Save ৳{formatAmount(rule.discount_amount)} per item</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Total Price */}
-                <div className="flex items-center gap-2 mb-4 bg-blue-50 border border-blue-100 rounded-2xl px-4 py-3">
-                  <span className="text-sm font-semibold text-gray-600">Total Price:</span>
-                  <span className="text-xl font-bold text-blue-600">
-                    ৳{formatAmount(displayPrice * quantity)}
-                  </span>
-                  <span className="text-xs text-gray-400">(Tax incl.)</span>
+                <div className="flex flex-col gap-1.5 mb-4 bg-blue-50 border border-blue-100 rounded-2xl px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold text-gray-600">Total Price:</span>
+                    <span className="text-xl font-bold text-blue-600">
+                      ৳{formatAmount(previewTotalPrice)}
+                    </span>
+                    <span className="text-xs text-gray-400">(Tax incl.)</span>
+                  </div>
+                  {activeBulkDiscountPerItem > 0 && (
+                    <span className="text-xs text-green-600 font-bold">
+                      🎉 Bulk discount of ৳{formatAmount(activeBulkDiscountPerItem * quantity)} applied (৳{formatAmount(activeBulkDiscountPerItem)} off per item)!
+                    </span>
+                  )}
                 </div>
 
 
@@ -989,7 +1055,7 @@ export default function ProductModal({
                 {colorData.length > 0 && (
                   <div className="hidden md:block mb-6">
                     <h3 className="font-semibold mb-3">Color: {color?.name}</h3>
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="flex flex-wrap gap-3">
                       {colorData.map((c: any) => (
                         <button
                           key={c.id}
@@ -1000,12 +1066,29 @@ export default function ProductModal({
                               setHasImageError(false);
                             }
                           }}
-                          className={`p-3 rounded-xl cursor-pointer transition hover:scale-105 ${c.id === color?.id
-                            ? "bg-[#FFAC1C] text-white shadow-lg"
-                            : "bg-gray-100"
+                          className={`flex flex-col items-center p-2 rounded-xl border-2 transition gap-1.5 min-w-[72px] cursor-pointer hover:scale-105 ${color?.id === c.id
+                            ? "border-blue-600 ring-2 ring-blue-100 bg-blue-50/10"
+                            : "border-gray-200 hover:border-gray-300 bg-white"
                             }`}
                         >
-                          <span className="block text-center">{c.name}</span>
+                          <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-50 border border-gray-100 shrink-0">
+                            {c.img ? (
+                              <Image
+                                src={c.img}
+                                alt={c.name}
+                                fill
+                                className="object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-xs text-gray-400 bg-gray-100 font-bold uppercase">
+                                {c.name.substring(0, 2)}
+                              </div>
+                            )}
+                          </div>
+                          <span className={`text-xs font-semibold px-1 text-center truncate w-full ${color?.id === c.id ? "text-blue-600 font-bold" : "text-gray-700"
+                            }`}>
+                            {c.name}
+                          </span>
                         </button>
                       ))}
                     </div>

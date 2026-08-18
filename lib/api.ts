@@ -50,6 +50,10 @@ export interface Product {
   gallery_image_urls?: string[];
   colors?: { id: number; name: string; image?: string | null; color_class?: string; priority?: number }[];
   bulk_discount_rules?: { min_qty: number; discount_amount: number }[];
+  prev_slug?: string | null;
+  next_slug?: string | null;
+  prev_image?: string | null;
+  next_image?: string | null;
   variations?: {
     id: number;
     color?: string;

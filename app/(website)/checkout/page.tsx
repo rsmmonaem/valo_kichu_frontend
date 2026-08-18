@@ -653,7 +653,7 @@ const CheckoutPage = () => {
               <h3 className="text-lg font-bold text-gray-900 mb-4">
                 Your Order
               </h3>
-              <div className="space-y-3 max-h-60 overflow-y-auto pr-2 mb-6">
+              <div className="space-y-3 mb-6">
                 {/* {cart.map((item) => (
                   <div
                     key={`${item.id}-${item.variant?.id}`}
