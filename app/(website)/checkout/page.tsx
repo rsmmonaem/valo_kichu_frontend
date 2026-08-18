@@ -201,9 +201,6 @@ const CheckoutPage = () => {
     fetchShippingMethods();
   }, []);
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
-
   // Load user data into form when user is available
   useEffect(() => {
     if (user) {
