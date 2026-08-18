@@ -13,7 +13,7 @@ export interface CartItem {
     image: string;
     quantity: number;
     variant?: {
-        id?: number;
+        id?: string | number;
         size?: string;
         color?: string;
         [key: string]: any;
@@ -24,8 +24,8 @@ export interface CartItem {
 interface CartContextType {
     cart: CartItem[];
     addToCart: (item: CartItem) => void;
-    removeFromCart: (id: number, variantId?: number) => void;
-    updateQuantity: (id: number, quantity: number, variantId?: number) => void;
+    removeFromCart: (id: number, variantId?: string | number) => void;
+    updateQuantity: (id: number, quantity: number, variantId?: string | number) => void;
     clearCart: () => void;
     cartTotal: number;
     cartCount: number;
@@ -83,11 +83,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
     };
 
-    const removeFromCart = (id: number, variantId?: number) => {
+    const removeFromCart = (id: number, variantId?: string | number) => {
         setCart((prevCart) => prevCart.filter((item) => !(item.id === id && item.variant?.id === variantId)));
     };
 
-    const updateQuantity = (id: number, quantity: number, variantId?: number) => {
+    const updateQuantity = (id: number, quantity: number, variantId?: string | number) => {
         if (quantity < 1) return;
         setCart((prevCart) =>
             prevCart.map((item) =>

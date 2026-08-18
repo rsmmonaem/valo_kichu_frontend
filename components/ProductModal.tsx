@@ -404,6 +404,23 @@ export default function ProductModal({
       : (rawImage.startsWith('http')
         ? rawImage
         : rawImage ? `${baseUrl}/storage/products/${rawImage.replace(/^\/?storage\/products\/?/, '')}` : '');
+
+    const matchedVariation = parsedVariations.find((v: any) => {
+      const variationColorName = (v.color || '').toLowerCase();
+      const colorMatch = !variationColorName || variationColorName === (typeof color === 'string' ? color : color?.name || '').toLowerCase();
+      const variationSize = (v.size || '').toLowerCase();
+      const sizeMatch = !variationSize || variationSize === (size || '').toLowerCase();
+      const variationWeight = (v.weight || '').toLowerCase();
+      const weightMatch = !variationWeight || variationWeight === (typeof weight === 'string' ? weight : weight?.name || '').toLowerCase();
+      return colorMatch && sizeMatch && weightMatch;
+    });
+
+    const variantId = matchedVariation?.id || [
+      typeof color === 'string' ? color : color?.name || '',
+      size || '',
+      typeof weight === 'string' ? weight : weight?.name || ''
+    ].filter(Boolean).join('-');
+
     const cartItem = {
       id: product.id,
       name: product.name,
@@ -412,8 +429,9 @@ export default function ProductModal({
       image: resolvedImage,
       quantity: quantity,
       variant: {
+        id: variantId,
         size: typeof size === "string" ? size : "",
-        color: color?.name,
+        color: typeof color === 'string' ? color : color?.name,
         weight: typeof weight === "string" ? weight : weight?.name,
       },
     };
@@ -441,6 +459,23 @@ export default function ProductModal({
       : (rawImage.startsWith('http')
         ? rawImage
         : rawImage ? `${baseUrl}/storage/products/${rawImage.replace(/^\/?storage\/products\/?/, '')}` : '');
+
+    const matchedVariation = parsedVariations.find((v: any) => {
+      const variationColorName = (v.color || '').toLowerCase();
+      const colorMatch = !variationColorName || variationColorName === (typeof color === 'string' ? color : color?.name || '').toLowerCase();
+      const variationSize = (v.size || '').toLowerCase();
+      const sizeMatch = !variationSize || variationSize === (size || '').toLowerCase();
+      const variationWeight = (v.weight || '').toLowerCase();
+      const weightMatch = !variationWeight || variationWeight === (typeof weight === 'string' ? weight : weight?.name || '').toLowerCase();
+      return colorMatch && sizeMatch && weightMatch;
+    });
+
+    const variantId = matchedVariation?.id || [
+      typeof color === 'string' ? color : color?.name || '',
+      size || '',
+      typeof weight === 'string' ? weight : weight?.name || ''
+    ].filter(Boolean).join('-');
+
     const cartItem = {
       id: product.id,
       name: product.name,
@@ -449,8 +484,9 @@ export default function ProductModal({
       image: resolvedImage,
       quantity: quantity,
       variant: {
+        id: variantId,
         size: typeof size === "string" ? size : "",
-        color: color?.name,
+        color: typeof color === 'string' ? color : color?.name,
         weight: typeof weight === "string" ? weight : weight?.name,
       },
     };

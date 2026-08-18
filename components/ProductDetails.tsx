@@ -248,14 +248,14 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
   const salePrice = product.sale_price ? parseFloat(product.sale_price) : null;
   const hasDiscount = salePrice && salePrice > 0 && salePrice < basePrice;
 
-  // --- Variation-wise price logic ---
-  const getVariationPrice = (): number | null => {
+  // --- Find matched variation based on current selections ---
+  const getMatchedVariation = () => {
     if (parsedVariations.length === 0) return null;
     const selectedColorName = (typeof selectedColor === 'string' ? selectedColor : selectedColor?.name || '').toLowerCase();
     const selectedSizeName = (typeof selectedSize === 'string' ? selectedSize : selectedSize?.name || '').toLowerCase();
     const selectedWeightName = (typeof selectedWeight === 'string' ? selectedWeight : selectedWeight?.name || '').toLowerCase();
 
-    const matchedVariation = parsedVariations.find((v: any) => {
+    return parsedVariations.find((v: any) => {
       // Color matching: support direct v.color or nested color
       const variationColorName = (v.color || getVariationAttr(v, 'color') || '').toLowerCase();
       const colorMatch = !variationColorName || variationColorName === selectedColorName;
@@ -270,7 +270,11 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
 
       return colorMatch && sizeMatch && weightMatch;
     });
+  };
 
+  // --- Variation-wise price logic ---
+  const getVariationPrice = (): number | null => {
+    const matchedVariation = getMatchedVariation();
     if (matchedVariation) {
       const finalPrice = matchedVariation.price !== undefined ? parseFloat(matchedVariation.price) : null;
       if (finalPrice !== null && finalPrice > 0) {
@@ -299,15 +303,23 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
 
 
   const handleAddToCart = (redirect = false) => {
+    const matchedVariation = getMatchedVariation();
+    const variantId = matchedVariation?.id || [
+      typeof selectedColor === 'string' ? selectedColor : selectedColor?.name || '',
+      selectedSize || '',
+      typeof selectedWeight === 'string' ? selectedWeight : selectedWeight?.name || ''
+    ].filter(Boolean).join('-');
+
     const itemToAdd = {
       id: product.id,
       name: product.name,
       slug: product.slug,
       price: displayPrice,
 
-      image: mainImage,
+      image: mainImageOverride || mainImage,
       quantity: quantity,
       variant: {
+        id: variantId,
         color: selectedColor?.name,
         size: selectedSize,
         weight: typeof selectedWeight === "string" ? selectedWeight : selectedWeight?.name || "",
@@ -358,7 +370,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
               </div>
             )}
           </div>
-          <div className="hidden md:flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+          <div className="flex gap-2 md:gap-4 overflow-x-auto pb-2 scrollbar-hide">
             {allImages.map((img, idx) => (
               <button
                 key={idx}
@@ -367,7 +379,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
                   setMainImageOverride(null);
                 }}
                 className={clsx(
-                  "w-20 h-20 flex shrink-0 rounded-lg overflow-hidden border-2 transition",
+                  "w-16 h-16 md:w-20 md:h-20 flex shrink-0 rounded-lg overflow-hidden border-2 transition",
                   selectedImage === idx && !mainImageOverride
                     ? "border-blue-600 ring-2 ring-blue-100"
                     : "border-gray-200 hover:border-gray-300"
@@ -402,13 +414,29 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
                       }
                     }}
                     className={clsx(
-                      "px-2.5 py-1 text-xs font-semibold rounded-lg border transition",
+                      "flex flex-col items-center p-1.5 rounded-xl border-2 transition gap-1 min-w-[60px]",
                       selectedColor?.id === c.id
-                        ? "bg-blue-600 text-white border-blue-600 shadow-sm"
-                        : "bg-gray-50 text-gray-600 border-gray-200 hover:border-gray-300"
+                        ? "border-blue-600 bg-blue-50/20 shadow-sm"
+                        : "border-gray-200 hover:border-gray-300 bg-white"
                     )}
                   >
-                    {c.name}
+                    <div className="relative w-10 h-10 rounded-lg overflow-hidden bg-gray-50 border border-gray-100 shrink-0">
+                      {c.img ? (
+                        <Image
+                          src={c.img}
+                          alt={c.name}
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-[10px] text-gray-400 bg-gray-100 font-bold uppercase">
+                          {c.name.substring(0, 2)}
+                        </div>
+                      )}
+                    </div>
+                    <span className="text-[10px] font-semibold text-gray-700 truncate w-full text-center">
+                      {c.name}
+                    </span>
                   </button>
                 ))}
               </div>
@@ -494,13 +522,32 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
                           }
                         }}
                         className={clsx(
-                          "px-4 py-2 text-sm font-medium rounded-lg border transition",
+                          "flex flex-col items-center p-2 rounded-xl border-2 transition gap-1.5 min-w-[72px]",
                           selectedColor?.id === c.id
-                            ? "bg-blue-600 text-white border-blue-600"
-                            : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
+                            ? "border-blue-600 ring-2 ring-blue-100 bg-blue-50/10"
+                            : "border-gray-200 hover:border-gray-300 bg-white"
                         )}
                       >
-                        {c.name}
+                        <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-50 border border-gray-100 shrink-0">
+                          {c.img ? (
+                            <Image
+                              src={c.img}
+                              alt={c.name}
+                              fill
+                              className="object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-xs text-gray-400 bg-gray-100 font-bold uppercase">
+                              {c.name.substring(0, 2)}
+                            </div>
+                          )}
+                        </div>
+                        <span className={clsx(
+                          "text-xs font-semibold px-1 text-center truncate w-full",
+                          selectedColor?.id === c.id ? "text-blue-600 font-bold" : "text-gray-700"
+                        )}>
+                          {c.name}
+                        </span>
                       </button>
                     ))}
                   </div>

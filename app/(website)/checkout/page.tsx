@@ -301,9 +301,10 @@ const CheckoutPage = () => {
           const variationSnapshot =
             varDetails.length > 0 ? varDetails.join(", ") : null;
 
+          const parsedVarId = Number(item.variant?.id);
           return {
             product_id: item.id,
-            product_variation_id: item.variant?.id || null,
+            product_variation_id: !isNaN(parsedVarId) && Number.isInteger(parsedVarId) && parsedVarId > 0 ? parsedVarId : null,
             variation_snapshot: variationSnapshot,
             quantity: item.quantity,
             price: item.price, // Send the actual displayed price (sale/variation price) to backend
