@@ -4,6 +4,7 @@ import Footer from '@/components/Footer';
 import MobileBottomNav from '@/components/MobileBottomNav';
 import FloatingContact from '@/components/FloatingContact';
 import { getCategoryList, getSettings } from '@/lib/api';
+import Script from 'next/script';
 
 export async function generateMetadata(): Promise<Metadata> {
     let settings = {
@@ -26,7 +27,7 @@ export async function generateMetadata(): Promise<Metadata> {
     }
 
     const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
-    
+
     // Prefer site_share_image, fall back to site_logo
     const rawImage = settings.site_share_image || settings.site_logo;
     let shareImageUrl = '';
@@ -36,7 +37,7 @@ export async function generateMetadata(): Promise<Metadata> {
         } else {
             shareImageUrl = `${baseUrl}/storage/${rawImage.replace(/^\/?storage\/?/, '')}`;
         }
-        
+
         if (shareImageUrl.includes('localhost:8000') || shareImageUrl.includes('127.0.0.1')) {
             const filename = shareImageUrl.split('/').pop() || '';
             if (filename.startsWith('ss')) {
@@ -70,9 +71,28 @@ export default async function WebsiteLayout({
     children: React.ReactNode;
 }>) {
     const { data: categories } = await getCategoryList();
+    const settingsMap = await getSettings({ next: { revalidate: 60 } } as any);
+    const googleAnalyticsId = settingsMap.google_analytics_id;
 
     return (
         <>
+            {googleAnalyticsId && (
+                <>
+                    <Script
+                        strategy="afterInteractive"
+                        src={`https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsId}`}
+                    />
+                    <Script id="google-analytics" strategy="afterInteractive">
+                        {`
+                            window.dataLayer = window.dataLayer || [];
+                            function gtag(){dataLayer.push(arguments);}
+                            gtag('js', new Date());
+
+                            gtag('config', '${googleAnalyticsId}');
+                        `}
+                    </Script>
+                </>
+            )}
             <Header categories={categories || []} />
             <main className="flex-grow">
                 {children}
