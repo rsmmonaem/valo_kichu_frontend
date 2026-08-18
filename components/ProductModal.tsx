@@ -760,63 +760,13 @@ export default function ProductModal({
             <X size={20} className="text-gray-800" />
           </button>
 
-          {/* Product Switching - Floating on Modal Left Edge */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              if (onPrevProduct) onPrevProduct();
-            }}
-            disabled={!onPrevProduct}
-            className={`absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-50 w-12 h-12 md:w-14 md:h-14 rounded-full border shadow-2xl transition-all relative overflow-hidden group/navbtn ${onPrevProduct
-              ? "border-white/60 hover:scale-110 active:scale-95 cursor-pointer"
-              : "opacity-40 border-gray-200 cursor-not-allowed text-gray-400"
-              }`}
-            aria-label="Previous Product"
-            title="Previous Product"
-          >
-            {onPrevProduct && prevImageUrl ? (
-              <img src={prevImageUrl} className="absolute inset-0 w-full h-full object-cover group-hover/navbtn:scale-110 transition-transform duration-300" alt="" />
-            ) : (
-              <div className="absolute inset-0 bg-white" />
-            )}
-            <div className={`absolute inset-0 flex items-center justify-center transition-colors ${onPrevProduct ? "bg-black/25 group-hover/navbtn:bg-black/35 text-white" : "bg-gray-50 text-gray-400"
-              }`}>
-              <ChevronLeft size={28} />
-            </div>
-          </button>
-
-          {/* Product Switching - Floating on Modal Right Edge */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              if (onNextProduct) onNextProduct();
-            }}
-            disabled={!onNextProduct}
-            className={`absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-50 w-12 h-12 md:w-14 md:h-14 rounded-full border shadow-2xl transition-all relative overflow-hidden group/navbtn ${onNextProduct
-              ? "border-white/60 hover:scale-110 active:scale-95 cursor-pointer"
-              : "opacity-40 border-gray-200 cursor-not-allowed text-gray-400"
-              }`}
-            aria-label="Next Product"
-            title="Next Product"
-          >
-            {onNextProduct && nextImageUrl ? (
-              <img src={nextImageUrl} className="absolute inset-0 w-full h-full object-cover group-hover/navbtn:scale-110 transition-transform duration-300" alt="" />
-            ) : (
-              <div className="absolute inset-0 bg-white" />
-            )}
-            <div className={`absolute inset-0 flex items-center justify-center transition-colors ${onNextProduct ? "bg-black/25 group-hover/navbtn:bg-black/35 text-white" : "bg-gray-50 text-gray-400"
-              }`}>
-              <ChevronRight size={28} />
-            </div>
-          </button>
-
           {/* Scrollable Content */}
           <div className="overflow-y-auto flex-1 custom-scrollbar">
             <div className="p-6 md:p-8 grid lg:grid-cols-2 gap-8 md:gap-10">
               {/* LEFT COLUMN - Images & Gallery */}
               <div>
                 {/* Main Image */}
-                <div className="relative rounded-2xl overflow-hidden bg-gray-100 group">
+                <div className="relative rounded-2xl overflow-hidden bg-gray-100 group/gallery border border-gray-100">
                   <div className="w-full aspect-square relative">
                     <Image
                       src={
@@ -827,12 +777,46 @@ export default function ProductModal({
                       alt={product.name}
                       fill
                       priority
-                      className="object-cover transition-transform duration-500 group-hover:scale-110"
+                      className="object-cover transition-transform duration-500 group-hover/gallery:scale-110"
                       onLoadingComplete={(result) => {
                         if (result.naturalWidth === 0) setHasImageError(true);
                       }}
                       onError={() => setHasImageError(true)}
                     />
+                  </div>
+
+                  {/* Prev/Next Product Navigation Arrows inside Modal Image */}
+                  <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 pointer-events-none flex justify-between px-3 z-10">
+                    {onPrevProduct ? (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onPrevProduct();
+                        }}
+                        className="pointer-events-auto flex items-center justify-center w-9 h-9 md:w-11 md:h-11 bg-white/95 hover:bg-white text-gray-800 hover:text-blue-600 rounded-full border border-gray-150 shadow-md transition-all hover:scale-110 active:scale-95 cursor-pointer"
+                        title="Previous Product"
+                        aria-label="Previous Product"
+                      >
+                        <ChevronLeft size={22} className="mr-0.5" />
+                      </button>
+                    ) : (
+                      <div />
+                    )}
+                    {onNextProduct ? (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onNextProduct();
+                        }}
+                        className="pointer-events-auto flex items-center justify-center w-9 h-9 md:w-11 md:h-11 bg-white/95 hover:bg-white text-gray-800 hover:text-blue-600 rounded-full border border-gray-150 shadow-md transition-all hover:scale-110 active:scale-95 cursor-pointer"
+                        title="Next Product"
+                        aria-label="Next Product"
+                      >
+                        <ChevronRight size={22} className="ml-0.5" />
+                      </button>
+                    ) : (
+                      <div />
+                    )}
                   </div>
 
                   {/* Image Navigation - Floating inside Product Image */}
