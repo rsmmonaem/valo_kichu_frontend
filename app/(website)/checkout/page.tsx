@@ -31,7 +31,7 @@ interface ShippingMethod {
 }
 
 const CheckoutPage = () => {
-  const { cart, cartTotal, clearCart, updateQuantity, removeFromCart } =
+  const { cart, cartTotal, cartSubtotal, cartDiscount, clearCart, updateQuantity, removeFromCart } =
     useCart();
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -88,6 +88,7 @@ const CheckoutPage = () => {
   const [shippingCost, setShippingCost] = useState(0);
   const [shippingMethods, setShippingMethods] = useState<ShippingMethod[]>([]);
   const [sessionToken, setSessionToken] = useState<string | null>(null);
+  const [phoneError, setPhoneError] = useState("");
 
   // Initialize session token for checkout lead capture
   useEffect(() => {
@@ -223,12 +224,31 @@ const CheckoutPage = () => {
     >
   ) => {
     const { name, value } = e.target;
+    let updatedValue = value;
+
+    if (name === "phone") {
+      updatedValue = value.replace(/[^\d+]/g, "");
+      if (updatedValue.startsWith("+88")) {
+        updatedValue = updatedValue.substring(3);
+      } else if (updatedValue.startsWith("88")) {
+        updatedValue = updatedValue.substring(2);
+      }
+      updatedValue = updatedValue.replace(/\D/g, ""); // Keep only digits
+      if (updatedValue.length > 11) {
+        updatedValue = updatedValue.substring(0, 11);
+      }
+      
+      // Clear error as user types valid number
+      if (updatedValue.length === 11 && updatedValue.startsWith("01")) {
+        setPhoneError("");
+      }
+    }
+
     setCheckoutData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: updatedValue,
     }));
 
-    // Calculate shipping
     // Calculate shipping
     if (name === "area") {
       const method = shippingMethods.find((m) => m.name === value);
@@ -243,6 +263,25 @@ const CheckoutPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate phone number
+    const cleanPhone = checkoutData.phone.trim();
+    if (!cleanPhone) {
+      setPhoneError("Phone number is required");
+      return;
+    }
+    if (cleanPhone.length !== 11 || !cleanPhone.startsWith("01")) {
+      setPhoneError("Phone number must be exactly 11 digits (starting with 01)");
+      setTimeout(() => {
+        const el = document.getElementsByName("phone")[0];
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+          el.focus();
+        }
+      }, 100);
+      return;
+    }
+    setPhoneError("");
 
     if (!checkoutData.area) {
       console.log("No delivery area selected");
@@ -302,9 +341,10 @@ const CheckoutPage = () => {
             varDetails.length > 0 ? varDetails.join(", ") : null;
 
           const parsedVarId = Number(item.variant?.id);
+          const hasValidVar = !isNaN(parsedVarId) && Number.isInteger(parsedVarId) && parsedVarId > 0;
           return {
             product_id: item.id,
-            product_variation_id: !isNaN(parsedVarId) && Number.isInteger(parsedVarId) && parsedVarId > 0 ? parsedVarId : null,
+            ...(hasValidVar ? { product_variation_id: parsedVarId } : {}),
             variation_snapshot: variationSnapshot,
             quantity: item.quantity,
             price: item.price, // Send the actual displayed price (sale/variation price) to backend
@@ -464,8 +504,18 @@ const CheckoutPage = () => {
                     value={checkoutData.phone}
                     onChange={handleChange}
                     required
-                    className="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-600/20 outline-none"
+                    className={clsx(
+                      "w-full p-2.5 border rounded-lg focus:ring-2 outline-none",
+                      phoneError
+                        ? "border-red-500 focus:ring-red-500/20 focus:border-red-500"
+                        : "border-gray-200 focus:ring-blue-600/20"
+                    )}
                   />
+                  {phoneError && (
+                    <p className="mt-1 text-xs text-red-500 font-semibold">
+                      {phoneError}
+                    </p>
+                  )}
                 </div>
                 <div className="md:col-span-1">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -771,8 +821,14 @@ const CheckoutPage = () => {
               <div className="border-t border-gray-100 pt-3 space-y-2 text-sm">
                 <div className="flex justify-between text-gray-600">
                   <span>Subtotal</span>
-                  <span>৳{formatAmount(cartTotal)}</span>
+                  <span>৳{formatAmount(cartSubtotal)}</span>
                 </div>
+                {cartDiscount > 0 && (
+                  <div className="flex justify-between text-green-600 font-semibold">
+                    <span>Bulk Discount</span>
+                    <span>-৳{formatAmount(cartDiscount)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-gray-600">
                   <span>Delivery</span>
                   <span>৳{formatAmount(shippingCost)}</span>

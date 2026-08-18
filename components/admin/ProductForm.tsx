@@ -78,6 +78,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
     const [selectedColors, setSelectedColors] = useState<any[]>([]);
     const [attributes, setAttributes] = useState<any[]>([]);
     const [variations, setVariations] = useState<any[]>([]);
+    const [bulkDiscountRules, setBulkDiscountRules] = useState<any[]>([]);
 
     // Available Options State
     const [availableColors, setAvailableColors] = useState<any[]>([
@@ -234,6 +235,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
         }
         if (data.variations) setVariations(Array.isArray(data.variations) ? data.variations : []);
         if (data.attributes) setAttributes(Array.isArray(data.attributes) ? data.attributes : []);
+        if (data.bulk_discount_rules) setBulkDiscountRules(Array.isArray(data.bulk_discount_rules) ? data.bulk_discount_rules : []);
     };
 
     const fetchCategories = async () => {
@@ -736,6 +738,9 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
             meta_title: formData.meta_title,
             meta_description: formData.meta_description,
             meta_keywords: formData.meta_keywords,
+
+            // Bulk discount rules
+            bulk_discount_rules: bulkDiscountRules,
 
             // Additional metadata
             status: formData.status,
@@ -1308,6 +1313,83 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
                                 </div>
                             </div>
                         </div>
+                    </div>
+ 
+                    {/* Bulk Discount Rules */}
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <div className="flex justify-between items-center mb-6">
+                            <h1 className="text-xl font-bold text-gray-800">
+                                Bulk Discount Rules (Tiers)
+                            </h1>
+                            <button
+                                type="button"
+                                onClick={() => setBulkDiscountRules([...bulkDiscountRules, { min_qty: 2, discount_amount: 0 }])}
+                                className="text-sm text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1 focus:outline-none bg-blue-50 px-3 py-1.5 rounded-lg transition"
+                            >
+                                <Plus size={16} /> Add Rule
+                            </button>
+                        </div>
+
+                        {bulkDiscountRules.length === 0 ? (
+                            <p className="text-sm text-gray-500 italic">No bulk discount rules defined yet. Click "+ Add Rule" to set discount tiers based on quantity purchased.</p>
+                        ) : (
+                            <div className="space-y-4">
+                                {bulkDiscountRules.map((rule, idx) => (
+                                    <div key={idx} className="flex flex-wrap items-center gap-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
+                                        <div className="flex-1 min-w-[150px] space-y-1">
+                                            <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                Min Quantity
+                                            </label>
+                                            <input
+                                                type="number"
+                                                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                placeholder="e.g. 2"
+                                                value={rule.min_qty}
+                                                min="1"
+                                                onChange={(e) => {
+                                                    const updated = [...bulkDiscountRules];
+                                                    updated[idx].min_qty = parseInt(e.target.value) || 0;
+                                                    setBulkDiscountRules(updated);
+                                                }}
+                                            />
+                                        </div>
+                                        <div className="flex-1 min-w-[150px] space-y-1">
+                                            <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                Discount Amount (৳ per item)
+                                            </label>
+                                            <input
+                                                type="number"
+                                                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                placeholder="e.g. 100"
+                                                value={rule.discount_amount}
+                                                min="0"
+                                                step="0.01"
+                                                onChange={(e) => {
+                                                    const updated = [...bulkDiscountRules];
+                                                    updated[idx].discount_amount = parseFloat(e.target.value) || 0;
+                                                    setBulkDiscountRules(updated);
+                                                }}
+                                            />
+                                        </div>
+                                        <div className="flex-1 min-w-[150px] space-y-1">
+                                            <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                Total Discount (৳)
+                                            </label>
+                                            <div className="w-full px-3 py-2.5 bg-gray-100 border border-gray-200 rounded-lg text-gray-700 font-bold select-none h-[42px] flex items-center">
+                                                ৳{((rule.min_qty || 0) * (rule.discount_amount || 0)).toFixed(2)}
+                                            </div>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => setBulkDiscountRules(bulkDiscountRules.filter((_, i) => i !== idx))}
+                                            className="mt-6 text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 p-2 rounded-lg transition"
+                                        >
+                                            Delete
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
                     {/* Product Variation Setup */}

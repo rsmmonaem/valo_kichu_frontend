@@ -315,7 +315,6 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
       name: product.name,
       slug: product.slug,
       price: displayPrice,
-
       image: mainImageOverride || mainImage,
       quantity: quantity,
       variant: {
@@ -324,6 +323,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
         size: selectedSize,
         weight: typeof selectedWeight === "string" ? selectedWeight : selectedWeight?.name || "",
       },
+      bulk_discount_rules: product.bulk_discount_rules,
     };
 
     addToCart(itemToAdd);
@@ -344,6 +344,20 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
       // toggleCart(); // If we had a drawer
     }
   };
+
+  // Calculate dynamic bulk discount preview for quantity selector
+  let activeBulkDiscountPerItem = 0;
+  if (product.bulk_discount_rules && Array.isArray(product.bulk_discount_rules)) {
+    for (const rule of product.bulk_discount_rules) {
+      const minQty = Number(rule.min_qty) || 0;
+      const discAmt = Number(rule.discount_amount) || 0;
+      if (minQty > 0 && quantity >= minQty) {
+        activeBulkDiscountPerItem = Math.max(activeBulkDiscountPerItem, discAmt);
+      }
+    }
+  }
+  const previewUnitPrice = Math.max(0, displayPrice - activeBulkDiscountPerItem);
+  const previewTotalPrice = previewUnitPrice * quantity;
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -487,13 +501,35 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
             )}
           </div>
 
+          {/* Bulk Discount Offers Banner */}
+          {product.bulk_discount_rules && product.bulk_discount_rules.length > 0 && (
+            <div className="mb-6 p-4 bg-gradient-to-r from-orange-50 to-amber-50 border border-amber-200/60 rounded-xl">
+              <span className="text-xs font-bold text-amber-700 uppercase tracking-wider block mb-2">🎁 Bulk Discount Offers</span>
+              <div className="space-y-1.5">
+                {product.bulk_discount_rules.map((rule: any, idx: number) => (
+                  <div key={idx} className="flex justify-between items-center text-sm text-gray-700">
+                    <span>Buy <strong className="text-amber-800">{rule.min_qty} or more</strong>:</span>
+                    <span className="font-semibold text-green-600">Save ৳{formatAmount(rule.discount_amount)} per item</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Total Price */}
-          <div className="flex items-center gap-2 mb-8 bg-blue-50 border border-blue-100 rounded-xl px-4 py-3">
-            <span className="text-sm font-semibold text-gray-600">Total Price:</span>
-            <span className="text-xl font-bold text-blue-600">
-              ৳{formatAmount(displayPrice * quantity)}
-            </span>
-            <span className="text-xs text-gray-400">(Tax incl.)</span>
+          <div className="flex flex-col gap-1.5 mb-8 bg-blue-50 border border-blue-100 rounded-xl px-4 py-3">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-semibold text-gray-600">Total Price:</span>
+              <span className="text-xl font-bold text-blue-600">
+                ৳{formatAmount(previewTotalPrice)}
+              </span>
+              <span className="text-xs text-gray-400">(Tax incl.)</span>
+            </div>
+            {activeBulkDiscountPerItem > 0 && (
+              <span className="text-xs text-green-600 font-bold">
+                🎉 Bulk discount of ৳{formatAmount(activeBulkDiscountPerItem * quantity)} applied (৳{formatAmount(activeBulkDiscountPerItem)} off per item)!
+              </span>
+            )}
           </div>
 
 

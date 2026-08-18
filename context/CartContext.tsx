@@ -18,6 +18,7 @@ export interface CartItem {
         color?: string;
         [key: string]: any;
     };
+    bulk_discount_rules?: { min_qty: number; discount_amount: number }[];
     [key: string]: any;
 }
 
@@ -28,9 +29,12 @@ interface CartContextType {
     updateQuantity: (id: number, quantity: number, variantId?: string | number) => void;
     clearCart: () => void;
     cartTotal: number;
+    cartSubtotal: number;
+    cartDiscount: number;
     cartCount: number;
     isCartOpen: boolean;
     toggleCart: () => void;
+    getDiscountedPrice: (item: CartItem) => number;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -104,10 +108,35 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsCartOpen(!isCartOpen);
     };
 
+    const getDiscountedPrice = (item: CartItem) => {
+        const basePrice = item.price || 0;
+        const cumulativeQty = cart
+            .filter((i) => i.id === item.id)
+            .reduce((sum, i) => sum + i.quantity, 0);
+
+        let bulkDiscountPerItem = 0;
+        if (item.bulk_discount_rules && Array.isArray(item.bulk_discount_rules)) {
+            for (const rule of item.bulk_discount_rules) {
+                const minQty = Number(rule.min_qty) || 0;
+                const discAmt = Number(rule.discount_amount) || 0;
+                if (minQty > 0 && cumulativeQty >= minQty) {
+                    bulkDiscountPerItem = Math.max(bulkDiscountPerItem, discAmt);
+                }
+            }
+        }
+        return Math.max(0, basePrice - bulkDiscountPerItem);
+    };
+
     const cartTotal = cart.reduce((total, item) => {
-        const price = item.price || 0;
-        return total + price * item.quantity;
+        const finalPrice = getDiscountedPrice(item);
+        return total + finalPrice * item.quantity;
     }, 0);
+
+    const cartSubtotal = cart.reduce((total, item) => {
+        return total + (item.price || 0) * item.quantity;
+    }, 0);
+
+    const cartDiscount = Math.max(0, cartSubtotal - cartTotal);
 
     const cartCount = cart.reduce((count, item) => count + item.quantity, 0);
 
@@ -120,9 +149,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 updateQuantity,
                 clearCart,
                 cartTotal,
+                cartSubtotal,
+                cartDiscount,
                 cartCount,
                 isCartOpen,
                 toggleCart,
+                getDiscountedPrice,
             }}
         >
             {children}

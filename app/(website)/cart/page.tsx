@@ -10,7 +10,7 @@ import { formatAmount } from '@/lib/utils/formatAmount';
 
 
 const CartPage = () => {
-    const { cart, removeFromCart, updateQuantity, cartTotal, clearCart } = useCart();
+    const { cart, removeFromCart, updateQuantity, cartTotal, cartSubtotal, cartDiscount, clearCart } = useCart();
     const router = useRouter();
 
     useEffect(() => {
@@ -181,8 +181,14 @@ const CartPage = () => {
                         <div className="space-y-3 mb-6">
                             <div className="flex justify-between text-gray-600">
                                 <span>Subtotal</span>
-                                <span>৳{formatAmount(cartTotal)}</span>
+                                <span>৳{formatAmount(cartSubtotal)}</span>
                             </div>
+                            {cartDiscount > 0 && (
+                                <div className="flex justify-between text-green-600 font-semibold">
+                                    <span>Bulk Discount</span>
+                                    <span>-৳{formatAmount(cartDiscount)}</span>
+                                </div>
+                            )}
                             <div className="flex justify-between text-gray-600">
                                 <span>Delivery</span>
                                 <span className="text-xs text-gray-400">(Calculated at checkout)</span>

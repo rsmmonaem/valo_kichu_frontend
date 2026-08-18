@@ -434,6 +434,7 @@ export default function ProductModal({
         color: typeof color === 'string' ? color : color?.name,
         weight: typeof weight === "string" ? weight : weight?.name,
       },
+      bulk_discount_rules: product.bulk_discount_rules,
     };
     // @ts-ignore
     addToCart(cartItem);
@@ -489,6 +490,7 @@ export default function ProductModal({
         color: typeof color === 'string' ? color : color?.name,
         weight: typeof weight === "string" ? weight : weight?.name,
       },
+      bulk_discount_rules: product.bulk_discount_rules,
     };
     // @ts-ignore
     addToCart(cartItem);
