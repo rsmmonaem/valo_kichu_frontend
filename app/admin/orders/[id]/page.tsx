@@ -104,6 +104,49 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
   const [showAddCustomPage, setShowAddCustomPage] = useState(false);
   const [updatingPageName, setUpdatingPageName] = useState(false);
 
+  const getProductImage = (item: any) => {
+    // 1. Try to parse color name from variation_snapshot
+    let selectedColorName = "";
+    if (item.variation_snapshot) {
+      const match = item.variation_snapshot.match(/Color:\s*([^,]+)/i);
+      if (match) {
+        selectedColorName = match[1].trim().toLowerCase();
+      }
+    }
+
+    // 2. Try to match color image in product.colors
+    if (selectedColorName && item.product && Array.isArray(item.product.colors)) {
+      const matchedColor = item.product.colors.find(
+        (c: any) => c.name && c.name.trim().toLowerCase() === selectedColorName
+      );
+      if (matchedColor) {
+        const imgPath = matchedColor.image || matchedColor.color_image;
+        if (imgPath) {
+          if (imgPath.startsWith('http://') || imgPath.startsWith('https://')) {
+            return imgPath;
+          }
+          // Resolve storage prefix using base product's image_url
+          const productImageUrl = item.product.image_url || "";
+          if (productImageUrl && (productImageUrl.includes('http://') || productImageUrl.includes('https://'))) {
+            try {
+              const url = new URL(productImageUrl);
+              const cleanPath = imgPath.replace(/^\/?(storage\/)?(products\/)?/, '');
+              return `${url.origin}/storage/products/${cleanPath}`;
+            } catch (e) {
+              // Fallback
+            }
+          }
+          const cleanPath = imgPath.replace(/^\/?(storage\/)?(products\/)?/, '');
+          const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+          const baseUrl = API_URL.endsWith('/api') ? API_URL.slice(0, -4) : API_URL;
+          return `${baseUrl}/storage/products/${cleanPath}`;
+        }
+      }
+    }
+
+    return item.product?.image_url || item.product?.image || "";
+  };
+
   const fetchSourcePages = async () => {
     setLoadingSourcePages(true);
     try {
@@ -748,24 +791,24 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
 
   const getVariationSku = (item: any) => {
     if (item.variation?.sku) return item.variation.sku;
-    
+
     if (item.product?.variations && item.variation_snapshot) {
       try {
         const vars = typeof item.product.variations === 'string' ? JSON.parse(item.product.variations) : item.product.variations;
         const variationsArr = Array.isArray(vars) ? vars : Object.values(vars);
-        
+
         const snapshot = item.variation_snapshot.toLowerCase();
-        
+
         for (const v of variationsArr as any[]) {
           if (!v.sku) continue;
-          
+
           const size = String(v.size || v.attributes?.Weight || v.attributes?.Size || "").toLowerCase();
           const color = String(v.color || "").toLowerCase();
-          
+
           let matches = true;
           if (size && !snapshot.includes(size)) matches = false;
           if (color && !snapshot.includes(color)) matches = false;
-          
+
           if (matches && (size || color)) {
             return v.sku;
           }
@@ -774,7 +817,7 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
         return null;
       }
     }
-    
+
     return null;
   };
 
@@ -1019,10 +1062,10 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-4">
                             <div className="w-16 h-16 bg-gray-50 rounded-xl overflow-hidden shadow-sm shrink-0 border border-gray-100">
-                              {item.product?.image_url || item.product?.image ? (
+                              {getProductImage(item) ? (
                                 <img
-                                  src={item.product.image_url || item.product.image}
-                                  alt={item.product_name}
+                                  src={getProductImage(item)}
+                                  alt={item.product_name || item.product?.name}
                                   className="w-full h-full object-cover"
                                 />
                               ) : (
@@ -1165,10 +1208,10 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-4">
                             <div className="w-16 h-16 bg-gray-50 rounded-xl overflow-hidden shadow-sm shrink-0 border border-gray-100">
-                              {item.product?.image_url ? (
+                              {getProductImage(item) ? (
                                 <img
-                                  src={item.product.image_url}
-                                  alt={item.product.name}
+                                  src={getProductImage(item)}
+                                  alt={item.product_name || item.product?.name}
                                   className="w-full h-full object-cover"
                                 />
                               ) : (
@@ -2353,11 +2396,10 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
                 </label>
                 <div className="space-y-2">
                   <label
-                    className={`flex items-center justify-between p-3.5 border rounded-xl cursor-pointer transition ${
-                      selectedCourier === "steadfast"
+                    className={`flex items-center justify-between p-3.5 border rounded-xl cursor-pointer transition ${selectedCourier === "steadfast"
                         ? "border-emerald-500 bg-emerald-50/40 shadow-sm"
                         : "border-gray-200 hover:bg-gray-50"
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center gap-3">
                       <input
@@ -2379,11 +2421,10 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
                   </label>
 
                   <label
-                    className={`flex items-center justify-between p-3.5 border rounded-xl cursor-pointer transition ${
-                      selectedCourier === "self"
+                    className={`flex items-center justify-between p-3.5 border rounded-xl cursor-pointer transition ${selectedCourier === "self"
                         ? "border-blue-500 bg-blue-50/40 shadow-sm"
                         : "border-gray-200 hover:bg-gray-50"
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center gap-3">
                       <input
