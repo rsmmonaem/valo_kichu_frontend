@@ -114,11 +114,7 @@ const Header: React.FC<HeaderProps> = ({ categories }) => {
                       if (logo.startsWith('http')) {
                         return logo.replace(/(\/api)(\/storage\/)/, '$2');
                       }
-                      // settings/ assets only exist on production server
                       const cleanPath = logo.replace(/^\/?storage\//, '');
-                      if (cleanPath.startsWith('settings/')) {
-                        return `https://backend.valokichu.com/storage/${cleanPath}`;
-                      }
                       const base = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
                       return `${base}/storage/${cleanPath}`;
                     })()}

@@ -177,7 +177,14 @@ const CheckoutPage = () => {
           process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
         const baseUrl = API_URL.endsWith("/api") ? API_URL : `${API_URL}/api`;
 
-        const res = await fetch(`${baseUrl}/v1/shipping-methods`);
+        const res = await fetch(`${baseUrl}/v1/shipping-methods?t=${Date.now()}`, {
+          cache: "no-store",
+          headers: {
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0",
+          },
+        });
 
         if (res.ok) {
           const data = await res.json();
@@ -193,6 +200,9 @@ const CheckoutPage = () => {
     };
     fetchShippingMethods();
   }, []);
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
   // Load user data into form when user is available
   useEffect(() => {
