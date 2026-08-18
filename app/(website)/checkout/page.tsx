@@ -181,9 +181,9 @@ const CheckoutPage = () => {
 
         if (res.ok) {
           const data = await res.json();
-
-          setShippingMethods(data);
-          alert(data);
+          if (Array.isArray(data) && data.length > 0) {
+            setShippingMethods(data);
+          }
         } else {
           console.error("Failed to fetch shipping methods:", await res.text());
         }
