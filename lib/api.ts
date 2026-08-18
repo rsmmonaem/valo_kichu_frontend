@@ -49,6 +49,7 @@ export interface Product {
   image_url?: string;
   gallery_image_urls?: string[];
   colors?: { id: number; name: string; image?: string | null; color_class?: string; priority?: number }[];
+  bulk_discount_rules?: { min_qty: number; discount_amount: number }[];
   variations?: {
     id: number;
     color?: string;
