@@ -183,6 +183,7 @@ const CheckoutPage = () => {
           const data = await res.json();
 
           setShippingMethods(data);
+          alert(data);
         } else {
           console.error("Failed to fetch shipping methods:", await res.text());
         }
