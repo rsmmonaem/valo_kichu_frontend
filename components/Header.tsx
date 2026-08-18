@@ -136,15 +136,7 @@ const Header: React.FC<HeaderProps> = ({ categories }) => {
                   </div>
                 )}
               </Link>
-              {referralCode && (
-                <div className="hidden lg:flex items-center gap-2 bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full border border-emerald-100 shadow-sm">
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                  </span>
-                  <span className="text-[10px] font-bold uppercase tracking-tight">Partner: {referralCode}</span>
-                </div>
-              )}
+
             </div>
 
             {/* Search Bar */}
