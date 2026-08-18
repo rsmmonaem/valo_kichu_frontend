@@ -34,7 +34,7 @@ export default function Footer() {
               {/* <div className="bg-blue-600 text-white p-1.5 rounded font-bold text-lg">V</div> */}
               <span className="text-xl font-bold text-gray-800">
                 {/* {settings.footer_about_title || 'Valokichu'} */}
-              {settings.site_logo && (
+                {settings.site_logo && (
                   <img
                     src={(() => {
                       const logo = settings.site_logo;
@@ -42,7 +42,11 @@ export default function Footer() {
                       if (logo.startsWith('http')) {
                         return logo.replace(/(\/api)(\/storage\/)/, '$2');
                       }
+                      // settings/ assets only exist on production server
                       const cleanPath = logo.replace(/^\/?storage\//, '');
+                      if (cleanPath.startsWith('settings/')) {
+                        return `https://backend.valokichu.com/storage/${cleanPath}`;
+                      }
                       const base = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
                       return `${base}/storage/${cleanPath}`;
                     })()}
