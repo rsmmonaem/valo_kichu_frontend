@@ -406,28 +406,55 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
               />
             </button>
             
-            {/* Prev/Next Product Navigation Arrows inside Image */}
-            <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 pointer-events-none flex justify-between px-3 z-10">
-              {product.prev_slug && (
-                <Link
-                  href={`/products/${product.prev_slug}`}
-                  className="pointer-events-auto flex items-center justify-center w-9 h-9 md:w-11 md:h-11 bg-white/95 hover:bg-white text-gray-800 hover:text-blue-600 rounded-full border border-gray-150 shadow-md transition-all hover:scale-110 active:scale-95"
-                  title="Previous Product"
+            {/* Prev/Next Navigation Arrows inside Image */}
+            {(colorData.length > 1 || allImages.length > 1) && (
+              <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 pointer-events-none flex justify-between px-3 z-10">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (colorData.length > 1) {
+                      const curName = (selectedColor?.name || selectedColor || '').toString().toLowerCase();
+                      const currentIndex = colorData.findIndex((c: any) => c.name.toLowerCase() === curName);
+                      const nextIndex = currentIndex <= 0 ? colorData.length - 1 : currentIndex - 1;
+                      const newColor = colorData[nextIndex];
+                      setSelectedColor(newColor);
+                      if (newColor.img) setMainImageOverride(newColor.img);
+                    } else {
+                      setMainImageOverride(null);
+                      setSelectedImage((prev) => (prev <= 0 ? allImages.length - 1 : prev - 1));
+                    }
+                  }}
+                  className="pointer-events-auto flex items-center justify-center w-9 h-9 md:w-11 md:h-11 bg-white/95 hover:bg-white text-gray-800 hover:text-blue-600 rounded-full border border-gray-150 shadow-md transition-all hover:scale-110 active:scale-95 cursor-pointer"
+                  title="Previous"
                 >
                   <ChevronLeft size={22} className="mr-0.5" />
-                </Link>
-              )}
-              {!product.prev_slug && <div />}
-              {product.next_slug && (
-                <Link
-                  href={`/products/${product.next_slug}`}
-                  className="pointer-events-auto flex items-center justify-center w-9 h-9 md:w-11 md:h-11 bg-white/95 hover:bg-white text-gray-800 hover:text-blue-600 rounded-full border border-gray-150 shadow-md transition-all hover:scale-110 active:scale-95"
-                  title="Next Product"
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (colorData.length > 1) {
+                      const curName = (selectedColor?.name || selectedColor || '').toString().toLowerCase();
+                      const currentIndex = colorData.findIndex((c: any) => c.name.toLowerCase() === curName);
+                      const nextIndex = currentIndex === -1 || currentIndex >= colorData.length - 1 ? 0 : currentIndex + 1;
+                      const newColor = colorData[nextIndex];
+                      setSelectedColor(newColor);
+                      if (newColor.img) setMainImageOverride(newColor.img);
+                    } else {
+                      setMainImageOverride(null);
+                      setSelectedImage((prev) => (prev >= allImages.length - 1 ? 0 : prev + 1));
+                    }
+                  }}
+                  className="pointer-events-auto flex items-center justify-center w-9 h-9 md:w-11 md:h-11 bg-white/95 hover:bg-white text-gray-800 hover:text-blue-600 rounded-full border border-gray-150 shadow-md transition-all hover:scale-110 active:scale-95 cursor-pointer"
+                  title="Next"
                 >
                   <ChevronRight size={22} className="ml-0.5" />
-                </Link>
-              )}
-            </div>
+                </button>
+              </div>
+            )}
 
             {hasDiscount && salePrice && (
               <div className="absolute top-4 left-4 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">

@@ -1076,7 +1076,18 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
                             </div>
                             <div>
                               <p className="font-bold text-gray-900">
-                                {item.product_name}
+                                {item.product?.slug ? (
+                                  <Link 
+                                    href={`/products/${item.product.slug}`} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="hover:text-blue-600 transition"
+                                  >
+                                    {item.product_name}
+                                  </Link>
+                                ) : (
+                                  item.product_name
+                                )}
                               </p>
                               <p className="text-xs text-gray-500 mt-1">
                                 {item.variation_snapshot || "No variation"}
@@ -1221,8 +1232,19 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
                               )}
                             </div>
                             <div>
-                              <p className="font-bold text-gray-900 group-hover:text-blue-600 transition">
-                                {item.product_name || item.product?.name}
+                              <p className="font-bold text-gray-900">
+                                {item.product?.slug ? (
+                                  <Link 
+                                    href={`/products/${item.product.slug}`} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="hover:text-blue-600 transition"
+                                  >
+                                    {item.product_name || item.product?.name}
+                                  </Link>
+                                ) : (
+                                  item.product_name || item.product?.name
+                                )}
                               </p>
                               <div>
                                 <p className="text-xs text-gray-500 mt-1">

@@ -13,7 +13,9 @@ async function getPageData() {
 
 export default async function ContactPage() {
   const pageData = await getPageData();
-  const content = pageData?.data?.content || '<p class="text-gray-500">Contact Us content coming soon...</p>';
+  let content = pageData?.data?.content || '<p class="text-gray-500">Contact Us content coming soon...</p>';
+  // Replace non-breaking spaces with normal spaces to fix mobile responsiveness / wrapping
+  content = content.replace(/&nbsp;|\u00a0/g, " ");
   const title = pageData?.data?.title || 'Contact Us';
 
   return (

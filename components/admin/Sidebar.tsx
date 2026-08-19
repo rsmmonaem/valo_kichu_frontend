@@ -23,7 +23,8 @@ import {
     FileText,
     ShieldAlert,
     Activity,
-    BarChart3
+    BarChart3,
+    User
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import clsx from 'clsx';
@@ -90,6 +91,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, setIsOpen }) => {
         { path: '/admin/shipping', label: 'Shipping', icon: Truck },
         { path: '/admin/dropshippers', label: 'Dropshippers', icon: Users },
         { path: '/admin/ip-logs', label: 'IP Logs & Limits', icon: ShieldAlert },
+        { path: '/admin/profile', label: 'Profile Settings', icon: User },
         { path: '/admin/settings', label: 'Global Settings', icon: Settings },
         { path: '/admin/home-settings', label: 'Home Settings', icon: LayoutDashboard },
         { path: '/admin/page-settings', label: 'Page Settings', icon: FileText },

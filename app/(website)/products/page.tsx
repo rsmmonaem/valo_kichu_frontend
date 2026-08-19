@@ -1,11 +1,8 @@
 import { getProducts, getSettings, getCategory, getCategoryList } from '@/lib/api';
 import ProductCard from '@/components/ProductCard';
-import ProductSort from '@/components/ProductSort';
 import ProductCatalog from '@/components/ProductCatalog';
 import { Metadata } from 'next';
-import { Filter } from 'lucide-react';
-import ClientSidebarWrapper from '@/components/ClientSidebarWrapper';
-import ClientFilterButton from '@/components/ClientFilterButton';
+import CollapsibleFilterBar from '@/components/CollapsibleFilterBar';
 
 type Props = {
     searchParams: Promise<{ [key: string]: string | string[] | undefined }>
@@ -114,31 +111,26 @@ export default async function ProductsPage({ searchParams }: Props) {
     }
 
     return (
-        <div className="container mx-auto px-4 pt-4 pb-8 md:py-8">
-            <div className="flex flex-col lg:flex-row gap-0 lg:gap-8">
-
-                {/* Sidebar — takes no layout space on mobile (display:contents), full column on desktop */}
-                <ClientSidebarWrapper categories={categories} />
-
-                {/* Main Content */}
-                <div className="flex-1 min-w-0">
-                    {/* Row 1 (mobile): Category Title | Filter Button */}
-                    <div className="flex items-center justify-between mb-2">
-                        <h1 className="text-xl md:text-2xl font-bold text-gray-900 leading-tight">{pageTitle}</h1>
-                        {/* Mobile-only filter trigger — rendered here so it sits beside the title */}
-                        <div className="lg:hidden">
-                            <ClientFilterButton categories={categories} />
-                        </div>
+        <div className="container mx-auto px-4 py-8">
+            <div className="flex flex-col gap-6">
+                
+                {/* Header Section */}
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-100 pb-4">
+                    <div>
+                        <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">{pageTitle}</h1>
+                        {meta?.total !== undefined && (
+                            <p className="text-sm text-gray-500 mt-1">{meta.total} products found</p>
+                        )}
                     </div>
-
-                    {/* Row 2: Sort Dropdown */}
-                    <div className="mb-5">
-                        <ProductSort />
+                    
+                    {/* Collapsible Filter Bar */}
+                    <div className="w-full md:w-auto flex justify-end">
+                        <CollapsibleFilterBar categories={categories} />
                     </div>
-
-                    {/* Products Grid with Infinite Scroll */}
-                    <ProductCatalog initialProducts={products} initialMeta={meta} />
                 </div>
+
+                {/* Products Grid with Infinite Scroll */}
+                <ProductCatalog initialProducts={products} initialMeta={meta} />
             </div>
         </div>
     );

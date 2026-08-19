@@ -128,25 +128,13 @@ const OrderSuccessContent = () => {
                     </div>
                 )}
 
-                {/* Invoice Preview */}
+                {/* Invoice Download */}
                 {orderId && (
-                    <div className="mt-10 mb-8 overflow-hidden rounded-2xl border border-gray-100 shadow-inner bg-gray-50 flex flex-col">
-                        <div className="bg-gray-100/50 p-4 border-bottom border-gray-100 text-left">
-                            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                                <Package size={16} /> Invoice Preview
-                            </h3>
-                        </div>
-                        <div className="h-[500px] w-full bg-white relative">
-                            <iframe
-                                src={`${(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '')}/api/v1/invoice/${orderId}/preview`}
-                                className="w-full h-full border-0"
-                                title="Invoice Preview"
-                            />
-                        </div>
-                        <div className="p-6 bg-white border-t border-gray-100">
+                    <div className="mt-10 mb-8 overflow-hidden rounded-2xl border border-gray-100 bg-white">
+                        <div className="p-6 bg-white">
                             <button
                                 onClick={handleDownload}
-                                className="w-full flex items-center justify-center gap-3 bg-gray-900 text-white px-6 py-4 rounded-2xl font-bold hover:bg-gray-800 transition-all active:scale-95 shadow-lg shadow-gray-200"
+                                className="w-full flex items-center justify-center gap-3 bg-gray-900 text-white px-6 py-4 rounded-2xl font-bold hover:bg-gray-800 transition-all active:scale-95 shadow-lg shadow-gray-200 cursor-pointer"
                             >
                                 <Download size={20} /> Download PDF Invoice
                             </button>
