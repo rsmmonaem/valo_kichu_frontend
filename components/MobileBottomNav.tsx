@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, Grid, ShoppingCart, Heart, User } from "lucide-react";
 import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";
 
 import { useUI } from "@/context/UIContext";
 
@@ -14,6 +15,7 @@ export default function MobileBottomNav() {
     // Safe access to cart context
     const cartContext = useCart ? useCart() : { cartCount: 0 };
     const cartCount = cartContext?.cartCount || 0;
+    const { wishlistCount } = useWishlist();
 
     const handleNavClick = (e: React.MouseEvent, item: any) => {
         if (item.label === "Category") {
@@ -26,7 +28,7 @@ export default function MobileBottomNav() {
         { label: "Home", href: "/", icon: Home },
         { label: "Category", href: "/categories", icon: Grid }, // Assuming /categories page exists or similar
         { label: "Cart", href: "/cart", icon: ShoppingCart, count: cartCount },
-        { label: "Wishlist", href: "/wishlist", icon: Heart },
+        { label: "Wishlist", href: "/wishlist", icon: Heart, count: wishlistCount },
         { label: "Account", href: "/login", icon: User },
     ];
 

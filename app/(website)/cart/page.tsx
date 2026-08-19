@@ -13,11 +13,7 @@ const CartPage = () => {
     const { cart, removeFromCart, updateQuantity, cartTotal, cartSubtotal, cartDiscount, clearCart } = useCart();
     const router = useRouter();
 
-    useEffect(() => {
-        if (cart.length === 0) {
-            router.replace('/');
-        }
-    }, [cart.length, router]);
+
 
     if (cart.length === 0) {
         return (

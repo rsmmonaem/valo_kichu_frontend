@@ -23,6 +23,7 @@ import CategoryBar from "./CategoryBar";
 import AuthMenu from "./AuthMenu";
 import { authFetch } from '@/lib/api';
 import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";
 
 interface HeaderProps {
   categories: Category[];
@@ -59,6 +60,7 @@ const Header: React.FC<HeaderProps> = ({ categories }) => {
   // Safe access to cart context
   const cartContext = useCart ? useCart() : { cartCount: 0 };
   const cartCount = cartContext?.cartCount || 0;
+  const { wishlistCount } = useWishlist();
 
   // ... (keep handleSearch etc)
 
@@ -185,7 +187,7 @@ const Header: React.FC<HeaderProps> = ({ categories }) => {
                     className="group-hover:fill-blue-600/10 transition-colors"
                   />
                   <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">
-                    0
+                    {wishlistCount}
                   </span>
                 </div>
                 <span className="text-[10px] font-medium">Wishlist</span>

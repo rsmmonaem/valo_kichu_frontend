@@ -35,10 +35,10 @@ export default async function ReturnsPage() {
       </div>
 
       {/* Content Section */}
-      <div className="container mx-auto px-4 -mt-10 relative z-20">
-        <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl shadow-gray-200/50 p-8 md:p-12 border border-gray-100">
+      <div className="container mx-auto px-4 -mt-6 md:-mt-10 relative z-20">
+        <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl shadow-gray-200/50 p-5 sm:p-8 md:p-12 border border-gray-100">
           <div 
-            className="prose prose-lg md:prose-xl prose-orange max-w-none text-gray-700 leading-relaxed marker:text-orange-500 prose-headings:text-gray-900 prose-a:text-orange-600 hover:prose-a:text-orange-500"
+            className="prose prose-sm sm:prose-base md:prose-lg lg:prose-xl prose-orange max-w-none text-gray-700 leading-relaxed marker:text-orange-500 prose-headings:text-gray-900 prose-a:text-orange-600 hover:prose-a:text-orange-500 overflow-x-auto w-full"
             dangerouslySetInnerHTML={{ __html: content }}
           />
         </div>

@@ -3,7 +3,8 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Star } from 'lucide-react';
+import { Star, Heart } from 'lucide-react';
+import { useWishlist } from '@/context/WishlistContext';
 import { Product } from '@/lib/api';
 import ProductModal from './ProductModal'; // Make sure this path is correct
 import { formatAmount } from '@/lib/utils/formatAmount';
@@ -18,6 +19,8 @@ interface ProductCardProps {
 
 const ProductCard: React.FC<ProductCardProps> = ({ product, onNextProduct, onPrevProduct, onOpenModal }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const { toggleWishlist, isInWishlist } = useWishlist();
+    const isWishlisted = isInWishlist(product.id);
 
     // if (!product.image) {
     //     console.log('No image found for product:', product.name);
@@ -163,6 +166,21 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onNextProduct, onPre
                             -{Math.round(((basePrice - salePrice) / basePrice) * 100)}%
                         </div>
                     )}
+
+                    <button
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            toggleWishlist(product);
+                        }}
+                        className="absolute top-2 right-2 p-2 bg-white/95 hover:bg-white text-gray-600 hover:text-red-500 rounded-full shadow-md z-20 transition duration-300 backdrop-blur-sm cursor-pointer hover:scale-105"
+                        title={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
+                    >
+                        <Heart
+                            size={16}
+                            className={`transition-all duration-300 ${isWishlisted ? "fill-red-500 text-red-500 scale-110" : "text-gray-600"}`}
+                        />
+                    </button>
                 </div>
 
                 <div className="p-3 flex flex-col flex-grow relative z-0 pointer-events-none">

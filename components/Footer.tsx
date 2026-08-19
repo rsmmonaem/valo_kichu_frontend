@@ -223,7 +223,7 @@ export default function Footer() {
                   </li>
                   <li>
                     <Link
-                      href="/sitemap"
+                      href="/sitemap.xml"
                       className="hover:text-blue-600 transition-colors"
                       prefetch={false}
                     >

@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
 import { CartProvider } from '@/context/CartContext';
+import { WishlistProvider } from '@/context/WishlistContext';
 
 export const metadata: Metadata = {
   title: 'Valokichu - Premium Wholesale Marketplace',
@@ -71,11 +72,13 @@ export default function RootLayout({
           <AuthProvider>
             <VisitorTracker />
             <CartProvider>
-              <UIProvider>
-                <div suppressHydrationWarning={true}>
-                  {children}
-                </div>
-              </UIProvider>
+              <WishlistProvider>
+                <UIProvider>
+                  <div suppressHydrationWarning={true}>
+                    {children}
+                  </div>
+                </UIProvider>
+              </WishlistProvider>
             </CartProvider>
           </AuthProvider>
         </SettingsProvider>

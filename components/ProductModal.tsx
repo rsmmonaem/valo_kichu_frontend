@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { X, Minus, Plus, ShoppingCart, Star, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, Minus, Plus, ShoppingCart, Star, ChevronLeft, ChevronRight, Heart } from "lucide-react";
 import Image from "next/image";
 import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";
 // import points from "@/public/coin.png";
 import { parseGalleryImages } from "@/lib/utils/parseGalleryImages";
 import { parseAttributes } from "@/lib/utils/parseAttributes";
@@ -53,6 +54,8 @@ export default function ProductModal({
 
   // Use Cart Context
   const { addToCart } = useCart?.() || { addToCart: () => { } };
+  const { toggleWishlist, isInWishlist } = useWishlist();
+  const isWishlisted = product ? isInWishlist(product.id) : false;
 
   // Safe parsing of product.variations and product.colors (handling potential JSON string or array or object)
   const parsedVariations = useMemo(() => {
@@ -767,6 +770,22 @@ export default function ProductModal({
               <div>
                 {/* Main Image */}
                 <div className="relative rounded-2xl overflow-hidden bg-gray-100 group/gallery border border-gray-100">
+                  {product && (
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        toggleWishlist(product);
+                      }}
+                      className="absolute top-4 right-4 p-3 bg-white/95 hover:bg-white text-gray-600 hover:text-red-500 rounded-full shadow-md z-20 transition duration-300 backdrop-blur-sm cursor-pointer hover:scale-105"
+                      title={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
+                    >
+                      <Heart
+                        size={20}
+                        className={`transition-all duration-300 ${isWishlisted ? "fill-red-500 text-red-500 scale-110" : "text-gray-600"}`}
+                      />
+                    </button>
+                  )}
                   <div className="w-full aspect-square relative">
                     <Image
                       src={

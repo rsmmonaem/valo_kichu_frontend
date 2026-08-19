@@ -13,11 +13,13 @@ import {
   ArrowLeftRight,
   ChevronLeft,
   ChevronRight,
+  Heart,
 } from "lucide-react";
 import { Product } from "@/lib/api";
 import { parseAttributes, parseGalleryImages } from "@/lib/utils";
 import clsx from "clsx";
 import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -33,6 +35,8 @@ interface ProductDetailsProps {
 
 const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
   const { addToCart, toggleCart } = useCart();
+  const { toggleWishlist, isInWishlist } = useWishlist();
+  const isWishlisted = isInWishlist(product.id);
   const router = useRouter();
   // console.log("Product in Details:", product);
   // Parse Images
@@ -390,6 +394,17 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
                 No Image
               </div>
             )}
+
+            <button
+              onClick={() => toggleWishlist(product)}
+              className="absolute top-4 right-4 p-3 bg-white/95 hover:bg-white text-gray-600 hover:text-red-500 rounded-full shadow-md z-20 transition duration-300 backdrop-blur-sm cursor-pointer hover:scale-105"
+              title={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
+            >
+              <Heart
+                size={20}
+                className={`transition-all duration-300 ${isWishlisted ? "fill-red-500 text-red-500 scale-110" : "text-gray-600"}`}
+              />
+            </button>
             
             {/* Prev/Next Product Navigation Arrows inside Image */}
             <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 pointer-events-none flex justify-between px-3 z-10">
