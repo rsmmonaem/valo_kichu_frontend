@@ -127,9 +127,9 @@ function TrackOrderContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center pt-10 pb-20 px-4">
-      <div className="w-full max-w-5xl bg-white rounded-lg shadow-sm border border-gray-100 p-8">
-        
+    <div className="min-h-[55vh] bg-gray-50 flex flex-col items-center pt-[50px] pb-10 px-4">
+      <div className="w-full max-w-5xl bg-white rounded-lg shadow-sm border border-gray-100 p-6 md:p-8">
+
         <div className="text-center mb-8">
           <h1 className="text-3xl font-semibold text-gray-800">Track Order</h1>
         </div>
@@ -197,7 +197,7 @@ function TrackOrderContent() {
             <div className="relative max-w-4xl mx-auto">
               {/* Progress Line */}
               <div className="hidden md:block absolute top-6 left-10 right-10 h-1 bg-gray-100 rounded-full -z-10">
-                <div 
+                <div
                   className="h-full bg-blue-500 rounded-full transition-all duration-500"
                   style={{ width: `${Math.max(0, (currentStep - 1) * 25)}%` }}
                 ></div>
@@ -205,7 +205,7 @@ function TrackOrderContent() {
 
               {/* Progress Steps */}
               <div className="flex flex-col md:flex-row justify-between items-start gap-6 md:gap-0">
-                
+
                 {/* Step 1: Order Placed */}
                 <div className="flex flex-row md:flex-col items-center text-center w-full md:w-1/5 gap-4 md:gap-2">
                   <div className={`w-12 h-12 rounded-lg flex items-center justify-center shrink-0 ${currentStep >= 1 ? 'bg-blue-50 text-blue-600' : 'bg-gray-50 text-gray-400'}`}>

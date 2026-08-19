@@ -146,34 +146,7 @@ export default function OurTeamsPage() {
         </div>
       )}
 
-      {/* Mission & Vision */}
-      <div className="container mx-auto px-4 pb-20">
-        <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-          {/* Mission */}
-          <div className="bg-white/70 backdrop-blur-xl p-10 rounded-3xl shadow-xl shadow-blue-900/5 border border-white/50 relative overflow-hidden group hover:-translate-y-1 transition-all duration-300">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-100 rounded-bl-full -z-10 transition-transform group-hover:scale-110 duration-500"></div>
-            <div className="w-14 h-14 bg-blue-600 text-white rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-blue-600/30">
-              <Target size={28} />
-            </div>
-            <h2 className="text-2xl font-bold text-slate-900 mb-4">Our Mission</h2>
-            <p className="text-slate-600 leading-relaxed font-medium whitespace-pre-wrap">
-              {mission}
-            </p>
-          </div>
-          
-          {/* Vision */}
-          <div className="bg-white/70 backdrop-blur-xl p-10 rounded-3xl shadow-xl shadow-purple-900/5 border border-white/50 relative overflow-hidden group hover:-translate-y-1 transition-all duration-300">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-purple-100 rounded-bl-full -z-10 transition-transform group-hover:scale-110 duration-500"></div>
-            <div className="w-14 h-14 bg-purple-600 text-white rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-purple-600/30">
-              <Eye size={28} />
-            </div>
-            <h2 className="text-2xl font-bold text-slate-900 mb-4">Our Vision</h2>
-            <p className="text-slate-600 leading-relaxed font-medium whitespace-pre-wrap">
-              {vision}
-            </p>
-          </div>
-        </div>
-      </div>
+
 
       {/* Team Section */}
       <div className="bg-white/50 backdrop-blur-sm py-20 border-t border-slate-200/50">
