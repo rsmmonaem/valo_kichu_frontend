@@ -10,6 +10,17 @@ const PaymentSuccessContent = () => {
     const transactionId = searchParams.get('MerchantTransactionId') || searchParams.get('merchant_transaction_id');
     const status = searchParams.get('Status') || searchParams.get('status');
 
+    React.useEffect(() => {
+        if (transactionId) {
+            const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+            fetch(`${apiBase}/v1/payment/verify-eps`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ merchant_transaction_id: transactionId }),
+            }).catch(err => console.error('Verification error:', err));
+        }
+    }, [transactionId]);
+
     const isPending = status === 'pending';
 
     return (
@@ -27,7 +38,7 @@ const PaymentSuccessContent = () => {
                     {isPending ? 'Payment Verification Pending' : 'Payment Successful!'}
                 </h1>
                 <p className="text-gray-500 mb-8 text-lg">
-                    {isPending 
+                    {isPending
                         ? "Your payment was received but is still being verified by the gateway. This usually takes just a few moments."
                         : "Thank you! Your payment has been processed successfully."
                     }
