@@ -83,13 +83,18 @@ export function getImageUrl(url: string | null | undefined): string {
         return `${baseUrl}${url}`;
     }
 
-    // Replace hardcoded localhost from backend
-    if (url.includes('https://backend.valokichu.com')) {
-         return url.replace('https://backend.valokichu.com', baseUrl);
+    // Replace hardcoded development URLs from backend database
+    if (url.includes('http://localhost:8000')) {
+         return url.replace('http://localhost:8000', baseUrl);
     }
     
     if (url.includes('http://127.0.0.1:8000')) {
          return url.replace('http://127.0.0.1:8000', baseUrl);
+    }
+
+    // Replace production URL with current baseUrl (useful for local testing with prod db)
+    if (url.includes('https://backend.valokichu.com')) {
+         return url.replace('https://backend.valokichu.com', baseUrl);
     }
 
     // If it's a relative path that doesn't start with http or /
