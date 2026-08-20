@@ -42,6 +42,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [cart, setCart] = useState<CartItem[]>([]);
     const [isCartOpen, setIsCartOpen] = useState(false);
+    const [isInitialized, setIsInitialized] = useState(false);
 
     // Load from local storage on mount
     useEffect(() => {
@@ -53,12 +54,15 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 console.error("Failed to parse cart", e);
             }
         }
+        setIsInitialized(true);
     }, []);
 
     // Save to local storage on change
     useEffect(() => {
-        localStorage.setItem('cart', JSON.stringify(cart));
-    }, [cart]);
+        if (isInitialized) {
+            localStorage.setItem('cart', JSON.stringify(cart));
+        }
+    }, [cart, isInitialized]);
 
     const addToCart = (newItem: CartItem) => {
         setCart((prevCart) => {

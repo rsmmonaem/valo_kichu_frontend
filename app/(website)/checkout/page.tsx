@@ -407,12 +407,23 @@ const CheckoutPage = () => {
           externalId: user?.id ? String(user.id) : undefined,
         });
 
-        // Hande success
-        clearCart();
-        router.push(
-          `/order-success?order=${data.order ? data.order.id : data.id || data.order_id
-          }`
-        );
+        // Handle success and possible payment gateway redirect
+        const redirectUrl = data.payment_result?.data?.redirect_url || data.payment_result?.redirect_url;
+        
+        if (checkoutData.payment_method === 'eps') {
+          if (redirectUrl) {
+            clearCart();
+            window.location.href = redirectUrl;
+          } else {
+            const errorMsg = data.payment_result?.data?.message || "Unable to connect to EPS Payment Gateway. Please try again.";
+            alert(errorMsg);
+          }
+        } else {
+          clearCart();
+          router.push(
+            `/order-success?order=${data.order ? data.order.id : data.id || data.order_id}`
+          );
+        }
         // toast.success("Order placed successfully!");
       } else {
         // toast.error(data.message || "Failed to place order");
@@ -874,7 +885,7 @@ const CheckoutPage = () => {
                   <label
                     className={clsx(
                       "flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-colors",
-                      checkoutData.payment_method === "online"
+                      checkoutData.payment_method === "eps"
                         ? "bg-blue-600 border-blue-600 text-white"
                         : "hover:bg-gray-50"
                     )}
@@ -882,17 +893,17 @@ const CheckoutPage = () => {
                     <input
                       type="radio"
                       name="payment_method"
-                      value="online"
-                      checked={checkoutData.payment_method === "online"}
+                      value="eps"
+                      checked={checkoutData.payment_method === "eps"}
                       onChange={handleChange}
                       className="text-blue-600"
                     />
                     <div>
-                      <span className={clsx("font-medium block", checkoutData.payment_method === "online" ? "text-white" : "text-gray-900")}>
+                      <span className={clsx("font-medium block", checkoutData.payment_method === "eps" ? "text-white" : "text-gray-900")}>
                         Online Payment
                       </span>
-                      <span className={clsx("text-xs", checkoutData.payment_method === "online" ? "text-blue-100" : "text-gray-500")}>
-                        Pay securely via bKash/Nagad/Card
+                      <span className={clsx("text-xs", checkoutData.payment_method === "eps" ? "text-blue-100" : "text-gray-500")}>
+                        Pay securely via bKash/Nagad/Card (EPS Gateway)
                       </span>
                     </div>
                   </label>
