@@ -94,9 +94,8 @@ export default function ProductModal({
     }
 
     if (cleanUrl.includes('localhost:8000') || cleanUrl.includes('127.0.0.1')) {
-      const filename = cleanUrl.split('/').pop() || '';
-      if (filename.startsWith('ss')) {
-        return cleanUrl.replace(/^https?:\/\/[^/]+/, 'https://backend.valokichu.com');
+      if (!baseUrl.includes('localhost') && !baseUrl.includes('127.0.0.1')) {
+        return cleanUrl.replace(/^https?:\/\/[^/]+/, baseUrl);
       }
     }
     return cleanUrl;

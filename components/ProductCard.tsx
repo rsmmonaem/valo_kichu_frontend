@@ -66,11 +66,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onNextProduct, onPre
             cleanUrl = `${baseUrl}/storage/products/${filename}`;
         }
 
-        // If still pointing at localhost with an ss-prefixed filename → fall back to production
+        // If image URL from database contains localhost or 127.0.0.1, replace host with current baseUrl in production
         if (cleanUrl.includes('localhost:8000') || cleanUrl.includes('127.0.0.1')) {
-            const filename = cleanUrl.split('/').pop() || '';
-            if (filename.startsWith('ss')) {
-                return cleanUrl.replace(/^https?:\/\/[^/]+/, 'https://backend.valokichu.com');
+            if (!baseUrl.includes('localhost') && !baseUrl.includes('127.0.0.1')) {
+                return cleanUrl.replace(/^https?:\/\/[^/]+/, baseUrl);
             }
         }
         return cleanUrl;
