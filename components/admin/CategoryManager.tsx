@@ -7,14 +7,14 @@ import clsx from 'clsx';
 import { toast } from 'react-hot-toast';
 
 const getBaseUrl = () => {
-    const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://backend.valokichu.com';
     return apiBase.replace(/\/api\/?$/, '');
 };
 
 // const getCategoryImageUrl = (cat: Category) => {
 //     if (cat.image_url) {
 //         const baseUrl = getBaseUrl();
-//         let cleanUrl = cat.image_url.replace('http://localhost:8000', baseUrl);
+//         let cleanUrl = cat.image_url.replace('https://backend.valokichu.com', baseUrl);
 //         if (cleanUrl.includes('localhost:8000') || cleanUrl.includes('127.0.0.1')) {
 //             const filename = cleanUrl.split('/').pop() || '';
 //             if (filename.startsWith('ss')) {
@@ -29,7 +29,7 @@ const getCategoryImageUrl = (cat: Category) => {
     if (!cat.image_url) return null;
 
     const baseUrl = getBaseUrl();
-    let cleanUrl = cat.image_url.replace('http://localhost:8000', baseUrl);
+    let cleanUrl = cat.image_url.replace('https://backend.valokichu.com', baseUrl);
 
     // Relative URL হলে full URL বানাও
     if (!cleanUrl.startsWith('http')) {
@@ -48,7 +48,7 @@ const getCategoryImageUrl = (cat: Category) => {
 const getCustomIconImageUrl = (cat: Category) => {
     if (cat.custom_icon_url) {
         const baseUrl = getBaseUrl();
-        let cleanUrl = cat.custom_icon_url.replace('http://localhost:8000', baseUrl);
+        let cleanUrl = cat.custom_icon_url.replace('https://backend.valokichu.com', baseUrl);
         if (cleanUrl.includes('localhost:8000') || cleanUrl.includes('127.0.0.1')) {
             const filename = cleanUrl.split('/').pop() || '';
             if (filename.startsWith('ss')) {

@@ -512,7 +512,7 @@ const CheckoutLeadsPage = () => {
                                     src={
                                       item.image.startsWith("http")
                                         ? item.image
-                                        : `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/${item.image}`
+                                        : `${process.env.NEXT_PUBLIC_API_URL || "https://backend.valokichu.com"}/${item.image}`
                                     }
                                     alt={item.name}
                                     className="w-10 h-10 rounded object-cover border"

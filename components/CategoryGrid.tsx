@@ -13,7 +13,7 @@ const CategoryGrid: React.FC<CategoryGridProps> = ({ categories }) => {
 
   const getImageUrl = (url?: string) => {
     if (!url) return '';
-    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
+    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://backend.valokichu.com').replace(/\/api\/?$/, '');
     let cleanUrl = url;
     // If relative path, build full URL
     if (!url.startsWith('http')) {

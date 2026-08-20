@@ -63,3 +63,39 @@ export function parseGalleryImages(rawArray: string | any[] | null | undefined):
         return [];
     }
 }
+
+/**
+ * Returns a correct image URL by replacing backend localhost defaults with the actual API URL.
+ */
+export function getImageUrl(url: string | null | undefined): string {
+    if (!url) return "";
+    
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://backend.valokichu.com';
+    const baseUrl = apiUrl.replace(/\/api\/?$/, '').replace(/\/$/, '');
+
+    // If the URL already contains the current baseUrl, just return it
+    if (url.startsWith(baseUrl)) {
+        return url;
+    }
+
+    // If it's a relative path starting with /storage
+    if (url.startsWith('/storage/')) {
+        return `${baseUrl}${url}`;
+    }
+
+    // Replace hardcoded localhost from backend
+    if (url.includes('https://backend.valokichu.com')) {
+         return url.replace('https://backend.valokichu.com', baseUrl);
+    }
+    
+    if (url.includes('http://127.0.0.1:8000')) {
+         return url.replace('http://127.0.0.1:8000', baseUrl);
+    }
+
+    // If it's a relative path that doesn't start with http or /
+    if (!url.startsWith('http') && !url.startsWith('/')) {
+        return `${baseUrl}/${url}`;
+    }
+
+    return url;
+}

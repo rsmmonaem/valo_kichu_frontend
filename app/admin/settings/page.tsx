@@ -400,7 +400,7 @@ const SettingsPage = () => {
 
         const resolveSettingImageUrl = (imgNameOrUrl: string) => {
             if (!imgNameOrUrl) return '';
-            const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
+            const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://backend.valokichu.com').replace(/\/api\/?$/, '');
             let cleanUrl = imgNameOrUrl;
             if (!imgNameOrUrl.startsWith('http')) {
                 cleanUrl = `${baseUrl}/storage/${imgNameOrUrl.replace(/^\/?storage\/?/, '')}`;

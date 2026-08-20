@@ -87,7 +87,7 @@ export default function ProductModal({
   // ---------------- PARSE DATA ----------------
   const resolveImageUrl = (url: string) => {
     if (!url) return '';
-    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
+    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://backend.valokichu.com').replace(/\/api\/?$/, '');
     let cleanUrl = url;
     if (!url.startsWith('http')) {
       cleanUrl = `${baseUrl}/storage/products/${url.replace(/^\/?(storage\/products|products)\/?/, "")}`;
@@ -399,7 +399,7 @@ export default function ProductModal({
   // ---------------- HANDLERS ----------------
   const handleAddToCart = () => {
     if (!product) return;
-    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
+    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://backend.valokichu.com').replace(/\/api\/?$/, '');
     const rawImage = product.image || product.thumbnail || "";
     const resolvedImage = product.image_url
       ? product.image_url
@@ -455,7 +455,7 @@ export default function ProductModal({
 
   const handleBuyNow = () => {
     if (!product) return;
-    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
+    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://backend.valokichu.com').replace(/\/api\/?$/, '');
     const rawImage = product.image || product.thumbnail || "";
     const resolvedImage = product.image_url
       ? product.image_url

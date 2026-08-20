@@ -43,7 +43,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
   const galleryArray = parseGalleryImages(product.gallery_images) || [];
 
   // Standardize the API base URL to remove /api for storage links
-  const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
+  const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://backend.valokichu.com').replace(/\/api\/?$/, '');
 
   // Use backend provided full URLs if available, else construct manually
   const resolveImageUrl = (url: string) => {
@@ -354,7 +354,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
   const resolveProductImageUrl = (rawImage: string | null | undefined) => {
     if (!rawImage) return "";
     if (rawImage.startsWith("http")) return rawImage;
-    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
+    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://backend.valokichu.com').replace(/\/api\/?$/, '');
     return `${baseUrl}/storage/products/${rawImage.replace(/^\/?(storage\/products|products)\/?/, '')}`;
   };
   const prevImageUrl = resolveProductImageUrl(product.prev_image);

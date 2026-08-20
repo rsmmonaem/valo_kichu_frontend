@@ -12,7 +12,7 @@ const PaymentSuccessContent = () => {
 
     React.useEffect(() => {
         if (transactionId) {
-            const rawBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+            const rawBase = process.env.NEXT_PUBLIC_API_URL || 'https://backend.valokichu.com';
             const apiBase = rawBase.endsWith('/api') ? rawBase : `${rawBase.replace(/\/$/, '')}/api`;
             fetch(`${apiBase}/v1/payment/verify-eps`, {
                 method: 'POST',

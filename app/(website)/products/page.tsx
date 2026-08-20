@@ -16,7 +16,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
     if (categorySlug) {
         const { data: category } = await getCategory(categorySlug);
         if (category && category.id) {
-            const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
+            const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://backend.valokichu.com').replace(/\/api\/?$/, '');
             const rawImage = category.image_url || category.image;
             let imageUrl = '';
             if (rawImage) {

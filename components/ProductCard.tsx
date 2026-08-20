@@ -48,7 +48,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onNextProduct, onPre
     // Fallback for gallery_images parsing if needed, but simplistic for now
 
     // Standardize the API base URL to remove /api for storage links
-    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
+    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://backend.valokichu.com').replace(/\/api\/?$/, '');
 
     const resolveImageUrl = (url: string) => {
         if (!url) return null;

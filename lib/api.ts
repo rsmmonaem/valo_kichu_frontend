@@ -1,12 +1,12 @@
 const getApiUrl = () => {
-  const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+  const base = process.env.NEXT_PUBLIC_API_URL || 'https://backend.valokichu.com';
   return base.endsWith('/api') ? base : `${base}/api`;
 };
 
 const API_URL = getApiUrl();
 
 
-// const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v2';
+// const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://backend.valokichu.com/api/v2';
 
 export interface Product {
   id: number;

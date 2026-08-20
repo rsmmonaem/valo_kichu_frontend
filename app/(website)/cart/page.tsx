@@ -51,7 +51,7 @@ const CartPage = () => {
                                             src={(() => {
                                                 const imgUrl = item.image || '';
                                                 if (!imgUrl) return '/placeholder.png';
-                                                const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
+                                                const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://backend.valokichu.com').replace(/\/api\/?$/, '');
                                                 let cleanUrl = imgUrl;
                                                 if (!imgUrl.startsWith('http')) {
                                                     cleanUrl = `${baseUrl}/storage/products/${imgUrl.replace(/^\/?(storage\/products|products)\/?/, '').replace(/^\/?storage\/?/, '')}`;

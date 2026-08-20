@@ -39,7 +39,7 @@ const OrderSuccessContent = () => {
 
     const handleDownload = () => {
         if (!orderId) return;
-        const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
+        const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://backend.valokichu.com').replace(/\/api\/?$/, '');
         window.open(`${baseUrl}/api/v1/invoice/${orderId}`, '_blank');
     };
 

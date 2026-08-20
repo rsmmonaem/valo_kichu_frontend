@@ -68,7 +68,7 @@ const AdminDashboard = () => {
 
         // For now, let's use the URL from valid code: `/admin/v1/dashboard/stats`
         // But `authFetch` prepends `NEXT_PUBLIC_API_URL`.
-        // If `NEXT_PUBLIC_API_URL` is `http://localhost:8000/api`, then we need `admin/dashboard/stats` maybe?
+        // If `NEXT_PUBLIC_API_URL` is `https://backend.valokichu.com/api`, then we need `admin/dashboard/stats` maybe?
         // Let's stick with what was in `Dashboard.jsx`: `/admin/v1/dashboard/stats`. 
         // Wait, `Dashboard.jsx` used `api.get('/admin/v1/dashboard/stats')`.
         fetchStats();
@@ -158,7 +158,7 @@ const AdminDashboard = () => {
                                                 console.log('Item:', item);
                                                 if (!imgUrl) return '/placeholder.png';
                                                 const liveBase = 'https://backend.valokichu.com';
-                                                const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
+                                                const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://backend.valokichu.com').replace(/\/api\/?$/, '');
                                                 let cleanUrl = imgUrl;
                                                 // If it's a relative path, prepend the base storage URL
                                                 if (!imgUrl.startsWith('http')) {

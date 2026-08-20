@@ -35,7 +35,7 @@ import clsx from "clsx";
 import toast from "react-hot-toast";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-
+import { getImageUrl } from "@/lib/utils";
 const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
   const resolvedParams = use(params);
   const orderId = resolvedParams.id;
@@ -123,28 +123,16 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
         const imgPath = matchedColor.image || matchedColor.color_image;
         if (imgPath) {
           if (imgPath.startsWith('http://') || imgPath.startsWith('https://')) {
-            return imgPath;
+            return getImageUrl(imgPath);
           }
-          // Resolve storage prefix using base product's image_url
-          const productImageUrl = item.product.image_url || "";
-          if (productImageUrl && (productImageUrl.includes('http://') || productImageUrl.includes('https://'))) {
-            try {
-              const url = new URL(productImageUrl);
-              const cleanPath = imgPath.replace(/^\/?(storage\/)?(products\/)?/, '');
-              return `${url.origin}/storage/products/${cleanPath}`;
-            } catch (e) {
-              // Fallback
-            }
-          }
+          
           const cleanPath = imgPath.replace(/^\/?(storage\/)?(products\/)?/, '');
-          const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-          const baseUrl = API_URL.endsWith('/api') ? API_URL.slice(0, -4) : API_URL;
-          return `${baseUrl}/storage/products/${cleanPath}`;
+          return getImageUrl(`/storage/products/${cleanPath}`);
         }
       }
     }
 
-    return item.product?.image_url || item.product?.image || "";
+    return getImageUrl(item.product?.image_url || item.product?.image || "");
   };
 
   const fetchSourcePages = async () => {
@@ -889,7 +877,7 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
             <>
               <button
                 onClick={() => {
-                  const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
+                  const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://backend.valokichu.com').replace(/\/api\/?$/, '');
                   window.open(`${baseUrl}/api/v1/invoice/${order.order_number || order.id}/preview`, '_blank');
                 }}
                 className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition flex items-center gap-2 font-bold shadow-sm"
@@ -1360,7 +1348,7 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
                             <div className="w-10 h-10 bg-gray-100 rounded overflow-hidden shrink-0">
                               {product.image_url || product.image ? (
                                 <img
-                                  src={product.image_url || product.image}
+                                  src={getImageUrl(product.image_url || product.image)}
                                   alt={product.name}
                                   className="w-full h-full object-cover"
                                 />
@@ -2269,7 +2257,7 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
                       >
                         {page.logo ? (
                           <img
-                            src={page.logo}
+                            src={getImageUrl(page.logo)}
                             alt={page.name}
                             className="w-10 h-10 rounded-xl object-cover border border-gray-200 bg-white shrink-0 shadow-xs"
                           />

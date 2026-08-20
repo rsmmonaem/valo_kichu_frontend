@@ -26,7 +26,7 @@ export async function generateMetadata(): Promise<Metadata> {
         console.error('Metadata fetch failed', e);
     }
 
-    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
+    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://backend.valokichu.com').replace(/\/api\/?$/, '');
 
     // Prefer site_share_image, fall back to site_logo
     const rawImage = settings.site_share_image || settings.site_logo;

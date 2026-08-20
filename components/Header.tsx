@@ -121,7 +121,7 @@ const Header: React.FC<HeaderProps> = ({ categories }) => {
                       if (cleanPath.startsWith('settings/')) {
                         return `https://backend.valokichu.com/storage/${cleanPath}`;
                       }
-                      const base = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
+                      const base = (process.env.NEXT_PUBLIC_API_URL || 'https://backend.valokichu.com').replace(/\/api\/?$/, '');
                       return `${base}/storage/${cleanPath}`;
                     })()}
                     alt={settings.site_name || "Logo"}

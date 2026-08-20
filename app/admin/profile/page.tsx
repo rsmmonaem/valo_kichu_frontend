@@ -49,7 +49,7 @@ const AdminProfilePage = () => {
                 });
                 
                 if (data.image) {
-                    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
+                    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://backend.valokichu.com').replace(/\/api\/?$/, '');
                     setPreviewUrl(data.image.startsWith('http') ? data.image : `${baseUrl}/storage/${data.image}`);
                 }
             }

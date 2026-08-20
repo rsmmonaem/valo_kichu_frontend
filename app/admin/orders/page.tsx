@@ -870,7 +870,7 @@ const AdminOrdersPage = () => {
                 <button
                   type="button"
                   onClick={() => {
-                    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
+                    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://backend.valokichu.com').replace(/\/api\/?$/, '');
                     window.open(`${baseUrl}/api/v1/invoice/${selectedOrder.order_number || selectedOrder.id}/preview`, '_blank');
                   }}
                   className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-sm"

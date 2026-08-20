@@ -173,7 +173,7 @@ const CheckoutPage = () => {
     const fetchShippingMethods = async () => {
       try {
         // Use env var, or fallback to sensible default.
-        // Note: authFetch in api.ts uses 'http://localhost:8000' as default base.
+        // Note: authFetch in api.ts uses 'https://backend.valokichu.com' as default base.
         const API_URL =
           process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
         const baseUrl = API_URL.endsWith("/api") ? API_URL : `${API_URL}/api`;
@@ -296,7 +296,7 @@ const CheckoutPage = () => {
     }
     setLoading(true);
 
-    // const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    // const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://backend.valokichu.com";
 
     try {
       // Meta Pixel: Track AddPaymentInfo
