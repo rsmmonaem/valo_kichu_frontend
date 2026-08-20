@@ -10,6 +10,7 @@ interface Order {
     id: number;
     order_number: string;
     status: string;
+    payment_status?: string;
     total_price: string;
     created_at: string;
     products: Array<{
