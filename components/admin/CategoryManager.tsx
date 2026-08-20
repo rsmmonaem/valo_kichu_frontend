@@ -5,6 +5,8 @@ import { Plus, Edit, Trash2, Folder, FolderOpen } from 'lucide-react';
 import { authFetch } from '@/lib/api';
 import clsx from 'clsx';
 import { toast } from 'react-hot-toast';
+import Image from 'next/image';
+import { getImageUrl } from '@/lib/utils';
 
 const getBaseUrl = () => {
     const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://backend.valokichu.com';
@@ -352,11 +354,15 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ title, level }) => {
                                             <td className="p-4">
                                                 <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden border border-gray-200">
                                                     {getCategoryImageUrl(cat) ? (
-                                                        <img
-                                                            src={getCategoryImageUrl(cat) || ''}
-                                                            alt={cat.name}
-                                                            className="w-full h-full object-cover"
-                                                        />
+                                                        <div className="w-full h-full relative">
+                                                            <Image
+                                                                src={getCategoryImageUrl(cat) || ''}
+                                                                alt={cat.name}
+                                                                fill
+                                                                sizes="40px"
+                                                                className="object-cover"
+                                                            />
+                                                        </div>
                                                     ) : (
                                                         <FolderOpen size={20} className="text-gray-400" />
                                                     )}
@@ -495,25 +501,13 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ title, level }) => {
                                         </div>
                                     </label>
                                     {formData.image && (
-                                        <div className="w-16 h-16 rounded-lg border border-gray-200 overflow-hidden shrink-0">
-                                            <img
-                                                src={(() => {
-                                                    const imgUrl = formData.image;
-                                                    if (!imgUrl) return '';
-                                                    const baseUrl = getBaseUrl();
-                                                    let cleanUrl = imgUrl;
-                                                    if (!imgUrl.startsWith('http')) {
-                                                        cleanUrl = `${baseUrl}/storage/categories/${imgUrl.replace(/^\/?(storage\/categories|categories)\/?/, '')}`;
-                                                    }
-                                                    if (cleanUrl.includes('localhost:8000') || cleanUrl.includes('127.0.0.1')) {
-                                                        const filename = cleanUrl.split('/').pop() || '';
-                                                        if (filename.startsWith('ss')) {
-                                                            return cleanUrl.replace(/^https?:\/\/[^/]+/, 'https://backend.valokichu.com');
-                                                        }
-                                                    }
-                                                    return cleanUrl;
-                                                })()}
-                                                className="w-full h-full object-cover"
+                                        <div className="w-16 h-16 rounded-xl border border-gray-200 overflow-hidden bg-gray-50 flex-shrink-0 relative">
+                                            <Image
+                                                src={getImageUrl(formData.image) || '/placeholder.png'}
+                                                alt="Preview"
+                                                fill
+                                                sizes="64px"
+                                                className="object-cover"
                                             />
                                         </div>
                                     )}
@@ -560,25 +554,13 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ title, level }) => {
                                                     </div>
                                                 </label>
                                                 {formData.custom_icon && (
-                                                    <div className="w-12 h-12 rounded-lg border border-gray-200 overflow-hidden shrink-0 bg-white p-1">
-                                                        <img
-                                                            src={(() => {
-                                                                const imgUrl = formData.custom_icon;
-                                                                if (!imgUrl) return '';
-                                                                const baseUrl = getBaseUrl();
-                                                                let cleanUrl = imgUrl;
-                                                                if (!imgUrl.startsWith('http')) {
-                                                                    cleanUrl = `${baseUrl}/storage/categories/${imgUrl.replace(/^\/?(storage\/categories|categories)\/?/, '')}`;
-                                                                }
-                                                                if (cleanUrl.includes('localhost:8000') || cleanUrl.includes('127.0.0.1')) {
-                                                                    const filename = cleanUrl.split('/').pop() || '';
-                                                                    if (filename.startsWith('ss')) {
-                                                                        return cleanUrl.replace(/^https?:\/\/[^/]+/, 'https://backend.valokichu.com');
-                                                                    }
-                                                                }
-                                                                return cleanUrl;
-                                                            })()}
-                                                            className="w-full h-full object-contain"
+                                                    <div className="w-12 h-12 rounded-lg border border-gray-200 overflow-hidden shrink-0 bg-white p-1 relative">
+                                                        <Image
+                                                            src={getImageUrl(formData.custom_icon) || '/placeholder.png'}
+                                                            alt="Icon Preview"
+                                                            fill
+                                                            sizes="48px"
+                                                            className="object-contain"
                                                         />
                                                     </div>
                                                 )}

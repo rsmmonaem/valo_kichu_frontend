@@ -6,6 +6,8 @@ import { authFetch } from '@/lib/api';
 import clsx from 'clsx';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
+import Image from 'next/image';
+import { getImageUrl } from '@/lib/utils';
 
 const AdminProductsPage = () => {
     const [products, setProducts] = useState<any[]>([]);
@@ -149,26 +151,13 @@ const AdminProductsPage = () => {
                                         <td className="p-4 text-gray-500">#{product.id}</td>
                                         <td className="p-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 bg-gray-100 rounded shrink-0 overflow-hidden">
-                                                    <img
-                                                        src={(() => {
-                                                            const imgUrl = product.image_url || product.image || '';
-                                                            if (!imgUrl) return '/placeholder.png';
-                                                            const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://backend.valokichu.com').replace(/\/api\/?$/, '');
-                                                            let cleanUrl = imgUrl;
-                                                            if (!imgUrl.startsWith('http')) {
-                                                                cleanUrl = `${baseUrl}/storage/products/${imgUrl.replace(/^\/?(storage\/products|products)\/?/, '')}`;
-                                                            }
-                                                            if (cleanUrl.includes('localhost:8000') || cleanUrl.includes('127.0.0.1')) {
-                                                                const filename = cleanUrl.split('/').pop() || '';
-                                                                if (filename.startsWith('ss')) {
-                                                                    return cleanUrl.replace(/^https?:\/\/[^/]+/, 'https://backend.valokichu.com');
-                                                                }
-                                                            }
-                                                            return cleanUrl;
-                                                        })()}
-                                                        alt={product.name}
-                                                        className="w-full h-full object-cover"
+                                                <div className="w-10 h-10 bg-gray-100 rounded shrink-0 overflow-hidden relative">
+                                                    <Image
+                                                        src={getImageUrl(product.image_url || product.image || '/placeholder.png')}
+                                                        alt={product.name || 'Product Image'}
+                                                        fill
+                                                        sizes="40px"
+                                                        className="object-cover"
                                                     />
                                                 </div>
                                                 <span className="font-medium text-gray-900 line-clamp-1 max-w-xs">{product.name}</span>

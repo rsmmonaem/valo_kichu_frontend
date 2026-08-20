@@ -35,6 +35,7 @@ import clsx from "clsx";
 import toast from "react-hot-toast";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { getImageUrl } from "@/lib/utils";
 const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
   const resolvedParams = use(params);
@@ -1049,12 +1050,14 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
                       <tr key={idx} className="hover:bg-gray-50/50 transition">
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-4">
-                            <div className="w-16 h-16 bg-gray-50 rounded-xl overflow-hidden shadow-sm shrink-0 border border-gray-100">
+                            <div className="w-16 h-16 bg-gray-50 rounded-xl overflow-hidden shadow-sm shrink-0 border border-gray-100 relative">
                               {getProductImage(item) ? (
-                                <img
+                                <Image
                                   src={getProductImage(item)}
-                                  alt={item.product_name || item.product?.name}
-                                  className="w-full h-full object-cover"
+                                  alt={item.product_name || item.product?.name || "Product image"}
+                                  fill
+                                  sizes="64px"
+                                  className="object-cover"
                                 />
                               ) : (
                                 <div className="w-full h-full flex items-center justify-center text-gray-300">
@@ -1206,12 +1209,14 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
                       <tr key={idx} className="hover:bg-gray-50/50 transition">
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-4">
-                            <div className="w-16 h-16 bg-gray-50 rounded-xl overflow-hidden shadow-sm shrink-0 border border-gray-100">
+                            <div className="w-16 h-16 bg-gray-50 rounded-xl overflow-hidden shadow-sm border border-gray-100 shrink-0 relative">
                               {getProductImage(item) ? (
-                                <img
+                                <Image
                                   src={getProductImage(item)}
-                                  alt={item.product_name || item.product?.name}
-                                  className="w-full h-full object-cover"
+                                  alt={item.product_name || item.product?.name || "Product image"}
+                                  fill
+                                  sizes="64px"
+                                  className="object-cover"
                                 />
                               ) : (
                                 <div className="w-full h-full flex items-center justify-center text-gray-300">
@@ -1345,12 +1350,14 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
                       return (
                         <div key={product.id} className="p-3 hover:bg-gray-50 flex items-center justify-between gap-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-gray-100 rounded overflow-hidden shrink-0">
+                            <div className="w-10 h-10 bg-gray-100 rounded overflow-hidden shrink-0 relative">
                               {product.image_url || product.image ? (
-                                <img
+                                <Image
                                   src={getImageUrl(product.image_url || product.image)}
-                                  alt={product.name}
-                                  className="w-full h-full object-cover"
+                                  alt={product.name || "Product image"}
+                                  fill
+                                  sizes="40px"
+                                  className="object-cover"
                                 />
                               ) : (
                                 <div className="w-full h-full flex items-center justify-center text-gray-300">
@@ -2256,11 +2263,15 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
                         )}
                       >
                         {page.logo ? (
-                          <img
-                            src={getImageUrl(page.logo)}
-                            alt={page.name}
-                            className="w-10 h-10 rounded-xl object-cover border border-gray-200 bg-white shrink-0 shadow-xs"
-                          />
+                          <div className="w-10 h-10 shrink-0 relative rounded-xl overflow-hidden border border-gray-200 bg-white shadow-xs">
+                            <Image
+                              src={getImageUrl(page.logo)}
+                              alt={page.name || "Logo"}
+                              fill
+                              sizes="40px"
+                              className="object-cover"
+                            />
+                          </div>
                         ) : (
                           <div className={clsx("p-2 rounded-xl shrink-0", isSelected ? "bg-indigo-600 text-white" : "bg-indigo-100 text-indigo-600")}>
                             <Globe size={18} />
@@ -2313,7 +2324,9 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
                     <div className="flex items-center gap-3">
                       {customPageLogo ? (
                         <div className="relative w-12 h-12 rounded-xl overflow-hidden border border-gray-300 bg-white flex-shrink-0 shadow-xs">
-                          <img src={customPageLogo} alt="Logo" className="w-full h-full object-cover" />
+                          <div className="w-full h-full relative">
+                            <Image src={getImageUrl(customPageLogo)} alt="Logo" fill sizes="64px" className="object-cover" />
+                          </div>
                           <button
                             type="button"
                             onClick={() => setCustomPageLogo("")}
