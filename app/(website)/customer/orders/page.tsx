@@ -81,16 +81,26 @@ const OrdersPage = () => {
                                 onClick={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}
                             >
                                 <div>
-                                    <div className="flex items-center gap-3 mb-1">
+                                    <div className="flex items-center gap-2 flex-wrap mb-1">
                                         <h3 className="font-bold text-gray-900">{order.order_number}</h3>
                                         <span className={clsx(
                                             "px-2 py-0.5 rounded-full text-xs font-semibold uppercase",
-                                            order.status === 'pending' && "bg-yellow-100 text-yellow-700",
-                                            order.status === 'confirmed' && "bg-blue-100 text-blue-700",
-                                            order.status === 'delivered' && "bg-green-100 text-green-700",
-                                            order.status === 'cancelled' && "bg-red-100 text-red-700",
+                                            (order.status?.toLowerCase() === 'pending') && "bg-yellow-100 text-yellow-700",
+                                            (order.status?.toLowerCase() === 'confirmed' || order.status?.toLowerCase() === 'processing') && "bg-blue-100 text-blue-700",
+                                            (order.status?.toLowerCase() === 'delivered') && "bg-green-100 text-green-700",
+                                            (order.status?.toLowerCase() === 'cancelled') && "bg-red-100 text-red-700",
                                         )}>
                                             {order.status}
+                                        </span>
+
+                                        {/* Payment Status Badge */}
+                                        <span className={clsx(
+                                            "px-2 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider",
+                                            (order.payment_status?.toLowerCase() === 'complete' || order.payment_status?.toLowerCase() === 'paid')
+                                                ? "bg-green-600 text-white"
+                                                : "bg-red-100 text-red-600 border border-red-200"
+                                        )}>
+                                            {(order.payment_status?.toLowerCase() === 'complete' || order.payment_status?.toLowerCase() === 'paid') ? 'Paid' : 'Unpaid'}
                                         </span>
                                     </div>
                                     <div className="flex items-center gap-4 text-sm text-gray-500">
