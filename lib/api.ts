@@ -69,6 +69,9 @@ export const authFetch = async (endpoint: string, options: RequestInit = {}) => 
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
   const headers = {
     'Accept': 'application/json',
+    'Cache-Control': 'no-cache, no-store, must-revalidate',
+    'Pragma': 'no-cache',
+    'Expires': '0',
     ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
     ...options.headers,
   } as Record<string, string>;
@@ -78,6 +81,7 @@ export const authFetch = async (endpoint: string, options: RequestInit = {}) => 
   }
   console.log(`${API_URL}${endpoint}`);
   const res = await fetch(`${API_URL}${endpoint}`, {
+    cache: 'no-store',
     ...options,
     headers,
   });
