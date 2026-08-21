@@ -53,13 +53,20 @@ const CartPage = () => {
                                                 if (!imgUrl) return '/placeholder.png';
                                                 const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://backend.valokichu.com').replace(/\/api\/?$/, '');
                                                 let cleanUrl = imgUrl;
-                                                if (!imgUrl.startsWith('http')) {
-                                                    cleanUrl = `${baseUrl}/storage/products/${imgUrl.replace(/^\/?(storage\/products|products)\/?/, '').replace(/^\/?storage\/?/, '')}`;
+                                                
+                                                if (imgUrl.startsWith('http')) {
+                                                    cleanUrl = imgUrl.replace(/(\api)(\/storage\/)/, '$2');
+                                                } else {
+                                                    const filename = imgUrl
+                                                        .replace(/^\/?storage\/products\//, '')
+                                                        .replace(/^\/?products\//, '')
+                                                        .replace(/^\/?storage\//, '');
+                                                    cleanUrl = `${baseUrl}/storage/products/${filename}`;
                                                 }
+
                                                 if (cleanUrl.includes('localhost:8000') || cleanUrl.includes('127.0.0.1')) {
-                                                    const filename = cleanUrl.split('/').pop() || '';
-                                                    if (filename.startsWith('ss')) {
-                                                        return cleanUrl.replace(/^https?:\/\/[^/]+/, 'https://backend.valokichu.com');
+                                                    if (!baseUrl.includes('localhost') && !baseUrl.includes('127.0.0.1')) {
+                                                        return cleanUrl.replace(/^https?:\/\/[^/]+/, baseUrl);
                                                     }
                                                 }
                                                 return cleanUrl;
