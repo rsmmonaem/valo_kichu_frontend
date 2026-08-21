@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import clsx from "clsx";
 import Link from "next/link";
+import Image from "next/image";
 // import toast from "react-hot-toast";
 import toast, { Toaster } from "react-hot-toast";
 import { formatAmount } from "@/lib/utils/formatAmount";
@@ -736,8 +737,8 @@ const CheckoutPage = () => {
                     className="flex gap-3 text-sm border-b border-gray-100 pb-3 last:border-0"
                   >
                     {/* Product Image */}
-                    <div className="w-16 h-16 bg-gray-100 rounded shrink-0 overflow-hidden">
-                      <img
+                    <div className="w-16 h-16 relative bg-gray-100 rounded shrink-0 overflow-hidden">
+                      <Image
                         src={(() => {
                           const imgUrl = item.image || '';
                           if (!imgUrl) return '/placeholder.png';
@@ -762,6 +763,8 @@ const CheckoutPage = () => {
                           return cleanUrl;
                         })()}
                         alt={item.name}
+                        fill
+                        sizes="64px"
                         className="w-full h-full object-cover"
                       />
                     </div>

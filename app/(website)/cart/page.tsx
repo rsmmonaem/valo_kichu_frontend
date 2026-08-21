@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useCart } from '@/context/CartContext';
 import { Trash2, Plus, Minus, ShoppingBag } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -46,8 +47,8 @@ const CartPage = () => {
                         {cart.map((item) => (
                             <div key={`${item.id}-${item.variant?.id || 'base'}`} className="grid grid-cols-12 gap-4 p-4 items-center">
                                 <div className="col-span-12 md:col-span-6 flex gap-4">
-                                    <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden shrink-0">
-                                        <img
+                                    <div className="w-20 h-20 relative bg-gray-100 rounded-lg overflow-hidden shrink-0">
+                                        <Image
                                             src={(() => {
                                                 const imgUrl = item.image || '';
                                                 if (!imgUrl) return '/placeholder.png';
@@ -72,6 +73,8 @@ const CartPage = () => {
                                                 return cleanUrl;
                                             })()}
                                             alt={item.name}
+                                            fill
+                                            sizes="80px"
                                             className="w-full h-full object-cover"
                                         />
                                     </div>
