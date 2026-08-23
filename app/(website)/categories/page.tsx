@@ -15,7 +15,11 @@ export default async function CategoriesPage() {
 
             {/* Main Categories Grid */}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {categories && categories.map((cat) => (
+                {categories && (function flatten(cats: any[]): any[] {
+                    return cats.reduce((acc, cat) => {
+                        return [...acc, cat, ...(cat.subcategories ? flatten(cat.subcategories) : [])];
+                    }, []);
+                })(categories).map((cat) => (
                     <Link
                         key={cat.id}
                         href={`/products?category=${cat.slug || cat.id}`}

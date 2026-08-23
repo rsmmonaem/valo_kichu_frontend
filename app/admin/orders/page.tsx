@@ -13,6 +13,8 @@ import {
   RefreshCcw,
   ChevronDown,
   Download,
+  Trash2,
+  RotateCcw,
 } from "lucide-react";
 import { authFetch } from "@/lib/api";
 import clsx from "clsx";
@@ -54,6 +56,7 @@ const AdminOrdersPage = () => {
     refunded: 0,
     transfer_to_courier: 0,
     returned: 0,
+    trashed: 0,
   });
   const [statusUpdating, setStatusUpdating] = useState(false);
   const [paymentStatusUpdating, setPaymentStatusUpdating] = useState(false);
@@ -140,6 +143,7 @@ const AdminOrdersPage = () => {
     { key: "cancelled", label: "Cancelled", color: "red" },
     { key: "refunded", label: "Refunded", color: "pink" },
     { key: "returned", label: "Returned", color: "rose" },
+    { key: "trashed", label: "Trash Bin", color: "red" },
   ];
 
   // Close dropdown on outside click
@@ -209,7 +213,7 @@ const AdminOrdersPage = () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
-      if (activeStatus !== "all") params.append("status", activeStatus);
+      if (activeStatus !== "all" && activeStatus !== "trashed") params.append("status", activeStatus);
       if (typeFilter) params.append("order_type", typeFilter);
       if (startDate) params.append("start_date", startDate);
       if (endDate) params.append("end_date", endDate);
@@ -218,7 +222,8 @@ const AdminOrdersPage = () => {
       params.append("page", String(page));
       params.append("limit", String(perPage));
 
-      const res = await authFetch(`/admin/v1/orders?${params.toString()}`);
+      const endpoint = activeStatus === "trashed" ? `/admin/v1/orders/trashed` : `/admin/v1/orders`;
+      const res = await authFetch(`${endpoint}?${params.toString()}`);
       if (res.ok) {
         const data = await res.json();
         setOrders(data.data || []);
@@ -484,6 +489,54 @@ const AdminOrdersPage = () => {
     );
   };
 
+  const deleteOrder = async (id: number) => {
+    if (!window.confirm("Are you sure you want to move this order to the trash bin?")) return;
+    try {
+      const res = await authFetch(`/admin/v1/orders/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        toast.success("Order moved to trash bin");
+        fetchOrders();
+        fetchStats();
+      } else {
+        toast.error("Failed to delete order");
+      }
+    } catch (err) {
+      toast.error("An error occurred");
+    }
+  };
+
+  const restoreOrder = async (id: number) => {
+    if (!window.confirm("Are you sure you want to restore this order?")) return;
+    try {
+      const res = await authFetch(`/admin/v1/orders/${id}/restore`, { method: "PUT" });
+      if (res.ok) {
+        toast.success("Order restored successfully");
+        fetchOrders();
+        fetchStats();
+      } else {
+        toast.error("Failed to restore order");
+      }
+    } catch (err) {
+      toast.error("An error occurred");
+    }
+  };
+
+  const forceDeleteOrder = async (id: number) => {
+    if (!window.confirm("Are you sure you want to PERMANENTLY delete this order? This action cannot be undone!")) return;
+    try {
+      const res = await authFetch(`/admin/v1/orders/${id}/force`, { method: "DELETE" });
+      if (res.ok) {
+        toast.success("Order permanently deleted");
+        fetchOrders();
+        fetchStats();
+      } else {
+        toast.error("Failed to permanently delete order");
+      }
+    } catch (err) {
+      toast.error("An error occurred");
+    }
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -637,6 +690,7 @@ const AdminOrdersPage = () => {
               refunded: { activeBtn: "bg-pink-50 text-pink-800 border-pink-300 font-bold", activeBadge: "bg-pink-200/80 text-pink-900" },
               transfer_to_courier: { activeBtn: "bg-sky-50 text-sky-800 border-sky-300 font-bold", activeBadge: "bg-sky-200/80 text-sky-900" },
               returned: { activeBtn: "bg-rose-50 text-rose-800 border-rose-300 font-bold", activeBadge: "bg-rose-200/80 text-rose-900" },
+              trashed: { activeBtn: "bg-gray-100 text-gray-800 border-gray-400 font-bold", activeBadge: "bg-gray-300/80 text-gray-900" },
             };
 
             const styles = tabStyleMap[tab.key] || tabStyleMap.all;
@@ -685,12 +739,13 @@ const AdminOrdersPage = () => {
                 <th className="p-4">Status</th>
                 <th className="p-4">Page Source</th>
                 <th className="p-4">Payment Status</th>
+                <th className="p-4 text-center">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 text-sm">
               {loading ? (
                 <tr>
-                  <td colSpan={typeFilter === "dropshipper" ? 9 : 8} className="p-8 text-center text-gray-500">
+                  <td colSpan={typeFilter === "dropshipper" ? 10 : 9} className="p-8 text-center text-gray-500">
                     Loading orders...
                   </td>
                 </tr>
@@ -782,11 +837,29 @@ const AdminOrdersPage = () => {
                         <option value="partial" className="bg-white text-amber-700 font-semibold">Partial</option>
                       </select>
                     </td>
+                    <td className="p-4 text-center">
+                      {activeStatus === "trashed" ? (
+                        <div className="flex gap-2 justify-center">
+                          <button onClick={() => restoreOrder(order.id)} title="Restore" className="p-2 text-green-600 hover:bg-green-50 rounded-lg">
+                            <RotateCcw size={16} />
+                          </button>
+                          <button onClick={() => forceDeleteOrder(order.id)} title="Permanently Delete" className="p-2 text-red-600 hover:bg-red-50 rounded-lg">
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex justify-center">
+                          <button onClick={() => deleteOrder(order.id)} title="Move to Trash" className="p-2 text-red-600 hover:bg-red-50 rounded-lg">
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      )}
+                    </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={typeFilter === "dropshipper" ? 9 : 8} className="p-8 text-center text-gray-500">
+                  <td colSpan={typeFilter === "dropshipper" ? 10 : 9} className="p-8 text-center text-gray-500">
                     No orders found.
                   </td>
                 </tr>
