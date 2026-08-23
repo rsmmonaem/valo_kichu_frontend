@@ -115,18 +115,12 @@ export default async function ProductsPage({ searchParams }: Props) {
             <div className="flex flex-col gap-6">
                 
                 {/* Header Section */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-100 pb-4">
-                    <div>
-                        <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">{pageTitle}</h1>
-                        {meta?.total !== undefined && (
-                            <p className="text-sm text-gray-500 mt-1">{meta.total} products found</p>
-                        )}
-                    </div>
-                    
-                    {/* Collapsible Filter Bar */}
-                    <div className="w-full md:w-auto flex justify-end">
-                        <CollapsibleFilterBar categories={categories} />
-                    </div>
+                <div className="border-b border-gray-100 pb-4">
+                    <CollapsibleFilterBar 
+                        categories={categories} 
+                        title={pageTitle}
+                        subtitle={meta?.total !== undefined ? `${meta.total} products found` : undefined}
+                    />
                 </div>
 
                 {/* Products Grid with Infinite Scroll */}

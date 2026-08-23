@@ -7,9 +7,11 @@ import { Category } from '@/lib/api';
 
 interface CollapsibleFilterBarProps {
     categories: Category[];
+    title?: string;
+    subtitle?: string;
 }
 
-const CollapsibleFilterBar: React.FC<CollapsibleFilterBarProps> = ({ categories }) => {
+const CollapsibleFilterBar: React.FC<CollapsibleFilterBarProps> = ({ categories, title, subtitle }) => {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [isOpen, setIsOpen] = useState(false);
@@ -64,30 +66,39 @@ const CollapsibleFilterBar: React.FC<CollapsibleFilterBarProps> = ({ categories 
 
     return (
         <div className="w-full">
-            {/* Filter Toggle Button */}
-            <div className="flex items-center gap-3">
-                <button
-                    onClick={() => setIsOpen(!isOpen)}
-                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-semibold transition-all duration-300 shadow-sm cursor-pointer select-none ${
-                        isOpen 
-                            ? 'bg-blue-600 border-blue-600 text-white shadow-blue-100 hover:bg-blue-700' 
-                            : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
-                    }`}
-                >
-                    <Filter size={16} />
-                    <span>Filters</span>
-                    <ChevronDown size={14} className={`transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
-                </button>
+            {/* Title and Filter Toggle Button Row */}
+            <div className="flex items-center justify-between gap-4">
+                {title ? (
+                    <div className="flex flex-col overflow-hidden whitespace-nowrap">
+                        <h1 className="text-xl md:text-3xl font-extrabold text-gray-900 tracking-tight truncate">{title}</h1>
+                        {subtitle && <p className="text-xs md:text-sm text-gray-500 mt-1">{subtitle}</p>}
+                    </div>
+                ) : <div />}
 
-                {hasActiveFilters && (
+                <div className="flex items-center gap-3">
+                    {hasActiveFilters && (
+                        <button
+                            onClick={handleClearFilters}
+                            className="flex-shrink-0 flex items-center gap-1.5 px-3 py-2 bg-gray-50 hover:bg-gray-100 text-gray-600 hover:text-red-500 rounded-xl text-xs font-semibold border border-gray-200/50 transition cursor-pointer"
+                        >
+                            <RefreshCw size={12} />
+                            <span className="hidden sm:inline">Reset Filters</span>
+                        </button>
+                    )}
+
                     <button
-                        onClick={handleClearFilters}
-                        className="flex items-center gap-1.5 px-3 py-2 bg-gray-50 hover:bg-gray-100 text-gray-600 hover:text-red-500 rounded-xl text-xs font-semibold border border-gray-200/50 transition cursor-pointer"
+                        onClick={() => setIsOpen(!isOpen)}
+                        className={`flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-semibold transition-all duration-300 shadow-sm cursor-pointer select-none ${
+                            isOpen 
+                                ? 'bg-blue-600 border-blue-600 text-white shadow-blue-100 hover:bg-blue-700' 
+                                : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
+                        }`}
                     >
-                        <RefreshCw size={12} />
-                        <span>Reset Filters</span>
+                        <Filter size={16} />
+                        <span>Filters</span>
+                        <ChevronDown size={14} className={`transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
                     </button>
-                )}
+                </div>
             </div>
 
             {/* Collapsible Filter Panel */}
