@@ -69,6 +69,7 @@ const AdminOrdersPage = () => {
 
   const [previousOrders, setPreviousOrders] = useState<any[]>([]);
   const [loadingPreviousOrders, setLoadingPreviousOrders] = useState(false);
+  const [selectedOrders, setSelectedOrders] = useState<number[]>([]);
 
   // Courier Modal States for Orders List Quick Modal
   const [courierTargetOrder, setCourierTargetOrder] = useState<any>(null);
@@ -227,6 +228,7 @@ const AdminOrdersPage = () => {
       if (res.ok) {
         const data = await res.json();
         setOrders(data.data || []);
+        setSelectedOrders([]);
         setCurrentPage(data.current_page || 1);
         setLastPage(data.last_page || 1);
         setTotalOrders(data.total || 0);
@@ -489,6 +491,54 @@ const AdminOrdersPage = () => {
     );
   };
 
+  const handleBulkDelete = async () => {
+    if (!window.confirm(`Are you sure you want to move ${selectedOrders.length} orders to trash?`)) return;
+    try {
+      const res = await authFetch(`/admin/v1/orders/bulk-delete`, {
+        method: "POST",
+        body: JSON.stringify({ ids: selectedOrders }),
+      });
+      if (res.ok) {
+        toast.success("Orders moved to trash");
+        setSelectedOrders([]);
+        fetchOrders();
+        fetchStats();
+      } else toast.error("Failed to delete orders");
+    } catch { toast.error("An error occurred"); }
+  };
+
+  const handleBulkRestore = async () => {
+    if (!window.confirm(`Are you sure you want to restore ${selectedOrders.length} orders?`)) return;
+    try {
+      const res = await authFetch(`/admin/v1/orders/bulk-restore`, {
+        method: "POST",
+        body: JSON.stringify({ ids: selectedOrders }),
+      });
+      if (res.ok) {
+        toast.success("Orders restored successfully");
+        setSelectedOrders([]);
+        fetchOrders();
+        fetchStats();
+      } else toast.error("Failed to restore orders");
+    } catch { toast.error("An error occurred"); }
+  };
+
+  const handleBulkForceDelete = async () => {
+    if (!window.confirm(`Are you sure you want to PERMANENTLY delete ${selectedOrders.length} orders? This action cannot be undone!`)) return;
+    try {
+      const res = await authFetch(`/admin/v1/orders/bulk-force-delete`, {
+        method: "POST",
+        body: JSON.stringify({ ids: selectedOrders }),
+      });
+      if (res.ok) {
+        toast.success("Orders permanently deleted");
+        setSelectedOrders([]);
+        fetchOrders();
+        fetchStats();
+      } else toast.error("Failed to permanently delete orders");
+    } catch { toast.error("An error occurred"); }
+  };
+
   const deleteOrder = async (id: number) => {
     if (!window.confirm("Are you sure you want to move this order to the trash bin?")) return;
     try {
@@ -723,11 +773,44 @@ const AdminOrdersPage = () => {
         </div>
       </div>
 
+      {selectedOrders.length > 0 && (
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 flex items-center justify-between shadow-sm">
+          <span className="text-blue-800 font-semibold">{selectedOrders.length} order(s) selected</span>
+          <div className="flex gap-3">
+            {activeStatus === "trashed" ? (
+              <>
+                <button onClick={handleBulkRestore} className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded-lg transition shadow-sm flex items-center gap-2">
+                  <RotateCcw size={16} /> Restore Selected
+                </button>
+                <button onClick={handleBulkForceDelete} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-bold rounded-lg transition shadow-sm flex items-center gap-2">
+                  <Trash2 size={16} /> Permanently Delete
+                </button>
+              </>
+            ) : (
+              <button onClick={handleBulkDelete} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-bold rounded-lg transition shadow-sm flex items-center gap-2">
+                <Trash2 size={16} /> Move to Trash
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead className="bg-gray-50 text-gray-600 font-medium border-b border-gray-200">
               <tr>
+                <th className="p-4 w-12">
+                  <input
+                    type="checkbox"
+                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                    checked={orders.length > 0 && selectedOrders.length === orders.length}
+                    onChange={(e) => {
+                      if (e.target.checked) setSelectedOrders(orders.map(o => o.id));
+                      else setSelectedOrders([]);
+                    }}
+                  />
+                </th>
                 <th className="p-4">SL</th>
                 <th className="p-4">Order ID</th>
                 <th className="p-4 text-blue-700">{typeFilter === "dropshipper" ? "Dropshipper" : "Customer"}</th>
@@ -745,13 +828,24 @@ const AdminOrdersPage = () => {
             <tbody className="divide-y divide-gray-100 text-sm">
               {loading ? (
                 <tr>
-                  <td colSpan={typeFilter === "dropshipper" ? 10 : 9} className="p-8 text-center text-gray-500">
+                  <td colSpan={typeFilter === "dropshipper" ? 11 : 10} className="p-8 text-center text-gray-500">
                     Loading orders...
                   </td>
                 </tr>
               ) : orders.length > 0 ? (
                 orders.map((order, idx) => (
-                  <tr key={order.id} className="hover:bg-gray-50 transition">
+                  <tr key={order.id} className="hover:bg-gray-50 transition border-b border-gray-100 last:border-0">
+                    <td className="p-4">
+                      <input
+                        type="checkbox"
+                        className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                        checked={selectedOrders.includes(order.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) setSelectedOrders([...selectedOrders, order.id]);
+                          else setSelectedOrders(selectedOrders.filter(id => id !== order.id));
+                        }}
+                      />
+                    </td>
                     <td className="p-4 font-bold text-gray-500 text-xs">
                       {(currentPage - 1) * perPage + idx + 1}
                     </td>
@@ -859,7 +953,7 @@ const AdminOrdersPage = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={typeFilter === "dropshipper" ? 10 : 9} className="p-8 text-center text-gray-500">
+                  <td colSpan={typeFilter === "dropshipper" ? 11 : 10} className="p-8 text-center text-gray-500">
                     No orders found.
                   </td>
                 </tr>
