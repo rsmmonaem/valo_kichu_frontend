@@ -424,13 +424,14 @@ export default function ProductModal({
       name: product.name,
       slug: product.slug,
       price: displayPrice,
-      image: resolvedImage,
+      image: color?.img || resolvedImage,
       quantity: quantity,
       variant: {
         id: variantId,
         size: typeof size === "string" ? size : "",
         color: typeof color === 'string' ? color : color?.name,
         weight: typeof weight === "string" ? weight : weight?.name,
+        image: color?.img || undefined,
       },
       bulk_discount_rules: product.bulk_discount_rules,
     };
@@ -480,13 +481,14 @@ export default function ProductModal({
       name: product.name,
       slug: product.slug,
       price: displayPrice,
-      image: resolvedImage,
+      image: color?.img || resolvedImage,
       quantity: quantity,
       variant: {
         id: variantId,
         size: typeof size === "string" ? size : "",
         color: typeof color === 'string' ? color : color?.name,
         weight: typeof weight === "string" ? weight : weight?.name,
+        image: color?.img || undefined,
       },
       bulk_discount_rules: product.bulk_discount_rules,
     };
