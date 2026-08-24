@@ -175,6 +175,24 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
     ? attrWeights
     : variationWeightNames.map((w: any, idx: number) => ({ id: idx + 1, name: w, img: "" }));
 
+  
+  // Track recently viewed products
+  useEffect(() => {
+    if (product && product.slug) {
+      try {
+        let history = JSON.parse(localStorage.getItem('valo_kichu_history') || '[]');
+        // Remove current if exists to push to top
+        history = history.filter((slug: string) => slug !== product.slug);
+        history.unshift(product.slug);
+        // Keep only last 10
+        if (history.length > 10) history = history.slice(0, 10);
+        localStorage.setItem('valo_kichu_history', JSON.stringify(history));
+      } catch (e) {
+        console.error('Error tracking history', e);
+      }
+    }
+  }, [product]);
+
   useEffect(() => {
     // Parse and set Initial Attributes
     const parsedAttrs = parseAttributes(product.attributes) || [];
@@ -380,7 +398,8 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
                 src={mainImageOverride || allImages[selectedImage]}
                 alt={product.name}
                 fill
-                priority
+                sizes="(max-width: 768px) 100vw, 50vw"
+priority
                 className="object-cover"
               />
             ) : (
@@ -476,71 +495,15 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
                     src={img}
                     alt=""
                     fill
-                    className="object-cover"
+                    sizes="(max-width: 768px) 100vw, 50vw"
+className="object-cover"
                   />
                 </div>
               </button>
             ))}
           </div>
 
-          {/* Mobile-only Color Selector */}
-          {colorData.length > 0 && (
-            <div className="block md:hidden mt-4 pt-4 border-t border-gray-100">
-              <span className="font-bold text-gray-800 text-xs block mb-2">
-                Color: {selectedColor?.name}
-              </span>
-              <div className="flex flex-wrap gap-2">
-                {colorData.map((c: any, idx: number) => {
-                  const cartCountForColor = cart.filter(item => item.id === product.id && item.variant?.color === c.name).reduce((sum, item) => sum + item.quantity, 0);
-                  return (
-                  <button
-                    key={idx}
-                    onClick={() => {
-                      setSelectedColor(c);
-                      setQuantity(1);
-                      if (c.img) {
-                        setMainImageOverride(c.img);
-                      }
-                    }}
-                    className={clsx(
-                      "relative flex flex-col items-center p-2 rounded-xl border-2 transition gap-1.5 min-w-[72px]",
-                      selectedColor?.id === c.id
-                        ? "border-blue-600 bg-blue-600 shadow-md ring-2 ring-blue-200"
-                        : cartCountForColor > 0
-                        ? "border-blue-600 bg-white ring-1 ring-blue-100"
-                        : "border-gray-200 hover:border-gray-300 bg-white"
-                    )}
-                  >
-                    {cartCountForColor > 0 && (
-                      <span className="absolute -top-2 -right-2 bg-blue-600 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-sm z-10">
-                        {cartCountForColor}
-                      </span>
-                    )}
-                    <div className="relative w-10 h-10 rounded-lg overflow-hidden bg-gray-50 border border-gray-100 shrink-0">
-                      {c.img ? (
-                        <Image
-                          src={c.img}
-                          alt={c.name}
-                          fill
-                          className="object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-[10px] text-gray-400 bg-gray-100 font-bold uppercase">
-                          {c.name.substring(0, 2)}
-                        </div>
-                      )}
-                    </div>
-                        <span className={clsx(
-                          "text-[10px] font-semibold px-1 text-center truncate w-full",
-                          selectedColor?.id === c.id ? "text-white font-bold" : cartCountForColor > 0 ? "text-blue-600 font-bold" : "text-gray-700"
-                        )}>
-                          {c.name}
-                        </span>
-                  </button>
-                )})}
-              </div>
-            </div>
-          )}
+
         </div>
 
         {/* Product Info */}
@@ -602,7 +565,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
           )}
 
           {/* Total Price */}
-          <div className="flex flex-col gap-1.5 mb-8 bg-blue-50 border border-blue-100 rounded-xl px-4 py-3">
+          <div className="flex flex-col gap-1.5 mb-4 bg-blue-50 border border-blue-100 rounded-xl px-4 py-3">
             <div className="flex items-center gap-2">
               <span className="text-sm font-semibold text-gray-600">Total Price:</span>
               <span className="text-xl font-bold text-blue-600">
@@ -618,7 +581,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
           </div>
 
 
-          <div className="mb-8 border-t border-b border-gray-100 py-6 space-y-4">
+          <div className="mb-4 border-t border-b border-gray-100 py-4 space-y-4">
             <div
               className={`text-gray-600 text-sm md:text-base leading-relaxed ${!product.short_description ? "hidden" : ""}
                 [&_p]:mb-2 [&_ul]:list-disc [&_ul]:ml-4 [&_strong]:font-bold [&_b]:font-bold [&_a]:text-blue-600`}
@@ -626,9 +589,9 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
             />
 
             <div className="flex flex-col gap-4 mt-2">
-              {/* Color Selector — hidden on mobile (shown under image instead) */}
+              {/* Color Selector */}
               {colorData.length > 0 && (
-                <div className="hidden md:block mb-2">
+                <div className="mb-2">
                   <span className="font-bold text-gray-800 text-sm block mb-2">
                     Color: {selectedColor?.name}
                   </span>
@@ -665,7 +628,8 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
                               src={c.img}
                               alt={c.name}
                               fill
-                              className="object-cover"
+                              sizes="(max-width: 768px) 100vw, 50vw"
+className="object-cover"
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center text-xs text-gray-400 bg-gray-100 font-bold uppercase">
@@ -816,7 +780,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
           </div>
 
           {/* Trust Signals */}
-          <div className="grid grid-cols-3 gap-4 mt-8 pt-6 border-t border-gray-100">
+          <div className="grid grid-cols-3 gap-4 mt-4 pt-4 border-t border-gray-100">
             <div className="text-center group">
               <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition">
                 <Truck size={20} />
@@ -844,7 +808,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
           </div>
         </div>
       </div>
-      <div className="p-6 md:p-8 bg-white mt-8 rounded-lg border border-gray-100">
+      <div className="p-4 md:p-6 bg-white mt-4 rounded-lg border border-gray-100">
         {(() => {
           // Resolve specs content: handle HTML string, legacy array, or JSON array
           let specsHtml = "";
@@ -874,8 +838,8 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
           if (!specsHtml) return null;
 
           return (
-            <div className="mb-8">
-              <h2 className="text-2xl font-medium mb-3">Specification</h2>
+            <div className="mb-4">
+              <h2 className="text-xl font-medium mb-2">Specification</h2>
               <div
                 className="rich-content-lg"
                 dangerouslySetInnerHTML={{ __html: specsHtml }}

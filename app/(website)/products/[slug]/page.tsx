@@ -1,5 +1,6 @@
 import { getProduct } from '@/lib/api';
 import ProductDetails from '@/components/ProductDetails';
+import RecommendedProducts from '@/components/RecommendedProducts';
 import { notFound } from 'next/navigation';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
@@ -57,8 +58,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     }
 
     return (
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-4 md:py-6">
             <ProductDetails product={product} />
+            <RecommendedProducts currentProduct={product} />
         </div>
     );
 }

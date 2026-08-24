@@ -109,9 +109,19 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
             setTimeout(function() {
               if (window.EnterpriseChatWidget) {
                 EnterpriseChatWidget.init({
-                  widgetKey: "wgt_d14f331341854644be",
-                  apiUrl: "https://aichat-backend.npms.pro/api/v1"
-                });
+              widgetKey: "wgt_d14f331341854644be",
+              apiUrl: "https://aichat-backend.npms.pro/api/v1"
+            });
+
+            // Adjust chatbot position on mobile to avoid bottom nav bar
+            setTimeout(() => {
+              const host = document.getElementById("aiaas-widget-host");
+              if (host && host.shadowRoot) {
+                const style = document.createElement("style");
+                style.textContent = "@media (max-width: 768px) { .aiaas-launcher { bottom: 85px !important; } .aiaas-window { bottom: 85px !important; } }";
+                host.shadowRoot.appendChild(style);
+              }
+            }, 2000);
               }
             }, 1000);
           `}

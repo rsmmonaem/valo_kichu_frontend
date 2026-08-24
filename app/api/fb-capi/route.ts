@@ -43,7 +43,8 @@ export async function POST(req: Request) {
     const ACCESS_TOKEN = process.env.FACEBOOK_ACCESS_TOKEN;
 
     if (!PIXEL_ID || !ACCESS_TOKEN) {
-      return NextResponse.json({ error: 'Missing Pixel ID or Access Token' }, { status: 500 });
+      // Returning 202 (Accepted) instead of 500 to prevent console error spam on localhost
+      return NextResponse.json({ success: false, message: 'Missing Pixel ID or Access Token. Event ignored.' }, { status: 202 });
     }
 
     // Retrieve cookies
@@ -131,7 +132,8 @@ export async function POST(req: Request) {
 
     if (!response.ok) {
       console.error('Meta CAPI Error:', data);
-      return NextResponse.json({ error: data }, { status: response.status });
+      // Return 202 to avoid client-side console spam for non-critical analytics tracking
+      return NextResponse.json({ error: data }, { status: 202 });
     }
 
     // Create the NextResponse object
@@ -161,6 +163,7 @@ export async function POST(req: Request) {
     return nextResponse;
   } catch (error: any) {
     console.error('CAPI Request Error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    // Return 202 instead of 500 to avoid client-side console spam
+    return NextResponse.json({ error: error.message }, { status: 202 });
   }
 }

@@ -792,9 +792,10 @@ export default function ProductModal({
                       }
                       alt={product.name}
                       fill
-                      priority
+                      sizes="(max-width: 768px) 100vw, 50vw"
+priority
                       className="object-cover transition-transform duration-500 group-hover/gallery:scale-110"
-                      onLoadingComplete={(result) => {
+                      onLoad={(result) => {
                         if (result.naturalWidth === 0) setHasImageError(true);
                       }}
                       onError={() => setHasImageError(true)}
@@ -900,7 +901,8 @@ export default function ProductModal({
                             src={g.img || "https://placehold.co/60x60?text=..."}
                             alt={`Gallery ${g.id}`}
                             fill
-                            className="object-cover"
+                            sizes="(max-width: 768px) 100vw, 50vw"
+className="object-cover"
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
                               target.style.display = "none";
@@ -945,7 +947,8 @@ export default function ProductModal({
                                 src={c.img}
                                 alt={c.name}
                                 fill
-                                className="object-cover"
+                                sizes="(max-width: 768px) 100vw, 50vw"
+className="object-cover"
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center text-[10px] text-gray-400 bg-gray-100 font-bold uppercase">
@@ -1086,7 +1089,8 @@ export default function ProductModal({
                                 src={c.img}
                                 alt={c.name}
                                 fill
-                                className="object-cover"
+                                sizes="(max-width: 768px) 100vw, 50vw"
+className="object-cover"
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center text-xs text-gray-400 bg-gray-100 font-bold uppercase">

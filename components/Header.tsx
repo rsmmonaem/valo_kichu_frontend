@@ -14,7 +14,7 @@ import {
   LayoutDashboard,
   ShoppingBag,
 } from "lucide-react";
-import { Truck } from "lucide-react";
+import { Truck, MapPin } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { Category } from "@/lib/api";
 import CategoryDropdown from "./CategoryDropdown";
@@ -145,10 +145,22 @@ const Header: React.FC<HeaderProps> = ({ categories }) => {
             </div>
 
             {/* Actions */}
-            <div className="flex items-center gap-6 flex-shrink-0">
+            <div className="flex items-center gap-3 md:gap-6 flex-shrink-0">
+              <Link
+                href="/track-order"
+                className="relative text-gray-600 hover:text-blue-600 transition-colors flex flex-col items-center gap-0.5 group cursor-pointer"
+                prefetch={false}
+              >
+                <div className="relative">
+                  <MapPin
+                    size={24}
+                    className="group-hover:fill-blue-600/10 transition-colors"
+                  />
+                </div>
+                <span className="text-[10px] font-medium hidden md:block">Track Order</span>
+              </Link>
               <div
-
-                className="relative text-gray-600 hover:text-green-600 transition-colors flex flex-col items-center gap-0.5 group hidden md:block md:flex cursor-pointer"
+                className="relative text-gray-600 hover:text-green-600 transition-colors flex flex-col items-center gap-0.5 group cursor-pointer"
               >
                 <div className="relative" onClick={() => dropShiperHandler()}>
                   <Truck
@@ -157,7 +169,7 @@ const Header: React.FC<HeaderProps> = ({ categories }) => {
                   />
                   {/* <span className="absolute -top-1 -right-1 bg-green-600 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">0</span> */}
                 </div>
-                <span className="text-[10px] font-medium">Dropshipper</span>
+                <span className="text-[10px] font-medium hidden md:block">Dropshipper</span>
               </div>
               <Link
                 href="/wishlist"
@@ -173,7 +185,7 @@ const Header: React.FC<HeaderProps> = ({ categories }) => {
                     {wishlistCount}
                   </span>
                 </div>
-                <span className="text-[10px] font-medium">Wishlist</span>
+                <span className="text-[10px] font-medium hidden md:block">Wishlist</span>
               </Link>
 
               <Link
@@ -196,7 +208,7 @@ const Header: React.FC<HeaderProps> = ({ categories }) => {
                     </span>
                   )}
                 </div>
-                <span className="text-[10px] font-medium">Cart</span>
+                <span className="text-[10px] font-medium hidden md:block">Cart</span>
               </Link>
 
               <AuthMenu />
