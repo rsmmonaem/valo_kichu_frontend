@@ -33,6 +33,7 @@ interface HeaderProps {
 import { useSettings } from "@/context/SettingsContext";
 
 import { useUI } from "@/context/UIContext";
+import { getImageUrl } from "@/lib/utils";
 // ... imports
 
 const Header: React.FC<HeaderProps> = ({ categories }) => {
