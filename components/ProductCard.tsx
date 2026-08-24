@@ -9,6 +9,7 @@ import { Product } from '@/lib/api';
 import ProductModal from './ProductModal'; // Make sure this path is correct
 import { formatAmount } from '@/lib/utils/formatAmount';
 import { getDefaultColor } from '@/lib/utils/getDefaultColorImage';
+import { getImageUrl } from '@/lib/utils';
 
 interface ProductCardProps {
     product: Product;
@@ -66,13 +67,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onNextProduct, onPre
             cleanUrl = `${baseUrl}/storage/products/${filename}`;
         }
 
-        // If image URL from database contains localhost or 127.0.0.1, replace host with current baseUrl in production
-        if (cleanUrl.includes('localhost:8000') || cleanUrl.includes('127.0.0.1')) {
-            if (!baseUrl.includes('localhost') && !baseUrl.includes('127.0.0.1')) {
-                return cleanUrl.replace(/^https?:\/\/[^/]+/, baseUrl);
-            }
-        }
-        return cleanUrl;
+        return getImageUrl(cleanUrl);
     };
 
     // --- Priority color image logic ---

@@ -16,7 +16,7 @@ import {
   Heart,
 } from "lucide-react";
 import { Product } from "@/lib/api";
-import { parseAttributes, parseGalleryImages } from "@/lib/utils";
+import { parseAttributes, parseGalleryImages, getImageUrl } from "@/lib/utils";
 import clsx from "clsx";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
@@ -53,12 +53,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
       cleanUrl = `${baseUrl}/storage/products/${url.replace(/^\/?(storage\/products|products)\/?/, '')}`;
     }
 
-    if (cleanUrl.includes('localhost:8000') || cleanUrl.includes('127.0.0.1')) {
-      if (!baseUrl.includes('localhost') && !baseUrl.includes('127.0.0.1')) {
-        return cleanUrl.replace(/^https?:\/\/[^/]+/, baseUrl);
-      }
-    }
-    return cleanUrl;
+    return getImageUrl(cleanUrl);
   };
 
   const getVariationAttr = (v: any, attrName: string): string => {

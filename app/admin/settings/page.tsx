@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { authFetch } from '@/lib/api';
 import { toast } from 'react-hot-toast';
 import { Save, Loader2, Image as ImageIcon } from 'lucide-react';
+import { getImageUrl } from '@/lib/utils';
 
 interface Setting {
     key: string;
@@ -405,13 +406,7 @@ const SettingsPage = () => {
             if (!imgNameOrUrl.startsWith('http')) {
                 cleanUrl = `${baseUrl}/storage/${imgNameOrUrl.replace(/^\/?storage\/?/, '')}`;
             }
-            if (cleanUrl.includes('localhost:8000') || cleanUrl.includes('127.0.0.1')) {
-                const filename = cleanUrl.split('/').pop() || '';
-                if (filename.startsWith('ss')) {
-                    return cleanUrl.replace(/^https?:\/\/[^/]+/, 'https://backend.valokichu.com');
-                }
-            }
-            return cleanUrl;
+            return getImageUrl(cleanUrl);
         };
 
         return (

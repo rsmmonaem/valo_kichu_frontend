@@ -6,6 +6,7 @@ import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { authFetch } from "@/lib/api"; // Using authFetch for potential authenticated calls
 import * as fpixel from "@/lib/fpixel";
+import { getImageUrl } from "@/lib/utils";
 import {
   MapPin,
   Phone,
@@ -674,13 +675,7 @@ const CheckoutPage = () => {
                     <div className="flex gap-3 flex-1">
                       <div className="w-12 h-12 bg-gray-100 rounded shrink-0 overflow-hidden">
                         <img
-                          src={
-                            item.image && item.image.startsWith("http")
-                              ? item.image
-                              : item.image
-                                ? `${process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000"}/${item.image}`
-                                : "/placeholder.png"
-                          }
+                          src={getImageUrl(item.image) || "/placeholder.png"}
                           alt={item.name}
                           className="w-full h-full object-cover"
                         />
@@ -739,29 +734,7 @@ const CheckoutPage = () => {
                     {/* Product Image */}
                     <div className="w-16 h-16 relative bg-gray-100 rounded shrink-0 overflow-hidden">
                       <Image
-                        src={(() => {
-                          const imgUrl = item.image || '';
-                          if (!imgUrl) return '/placeholder.png';
-                          const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://backend.valokichu.com').replace(/\/api\/?$/, '');
-                          let cleanUrl = imgUrl;
-                          
-                          if (imgUrl.startsWith('http')) {
-                              cleanUrl = imgUrl.replace(/(\api)(\/storage\/)/, '$2');
-                          } else {
-                              const filename = imgUrl
-                                  .replace(/^\/?storage\/products\//, '')
-                                  .replace(/^\/?products\//, '')
-                                  .replace(/^\/?storage\//, '');
-                              cleanUrl = `${baseUrl}/storage/products/${filename}`;
-                          }
-
-                          if (cleanUrl.includes('localhost:8000') || cleanUrl.includes('127.0.0.1')) {
-                              if (!baseUrl.includes('localhost') && !baseUrl.includes('127.0.0.1')) {
-                                  return cleanUrl.replace(/^https?:\/\/[^/]+/, baseUrl);
-                              }
-                          }
-                          return cleanUrl;
-                        })()}
+                        src={getImageUrl(item.image) || '/placeholder.png'}
                         alt={item.name}
                         fill
                         sizes="64px"

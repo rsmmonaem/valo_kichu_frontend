@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Plus, Trash2, Image as ImageIcon } from 'lucide-react';
 import { authFetch } from '@/lib/api';
 import toast from 'react-hot-toast';
+import { getImageUrl } from '@/lib/utils';
 
 const BannersPage = () => {
     const [banners, setBanners] = useState<any[]>([]);
@@ -44,9 +45,7 @@ const BannersPage = () => {
                     const data = await uploadRes.json();
 
                     // Construct full URL for validation
-                    const fullUrl = data.url.startsWith('http')
-                        ? data.url
-                        : `${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}${data.url.startsWith('/') ? '' : '/'}${data.url}`;
+                    const fullUrl = getImageUrl(data.url);
 
                     // Create banner after upload
                     const createRes = await authFetch('/admin/v1/banners', {
@@ -109,7 +108,7 @@ const BannersPage = () => {
                     <div key={banner.id} className="relative group rounded-xl overflow-hidden shadow-sm border border-gray-100 bg-white">
                         <div className="aspect-video bg-gray-100 relative">
                             <img
-                                src={banner.image_url} // Use image_url from DB
+                                src={getImageUrl(banner.image_url)} // Use image_url from DB
                                 className="w-full h-full object-cover"
                                 alt={banner.title || "Banner"}
                                 onError={(e) => (e.currentTarget.src = '/placeholder.png')}

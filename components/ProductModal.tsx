@@ -16,6 +16,7 @@ import { formatProductDescriptionUniversal } from "@/lib/utils/formatProductDesc
 import { formatAmount } from "@/lib/utils/formatAmount";
 import * as fpixel from "@/lib/fpixel";
 import { getDefaultColor } from '@/lib/utils/getDefaultColorImage';
+import { getImageUrl } from '@/lib/utils';
 
 interface ProductModalProps {
   product: Product | null;
@@ -93,12 +94,7 @@ export default function ProductModal({
       cleanUrl = `${baseUrl}/storage/products/${url.replace(/^\/?(storage\/products|products)\/?/, "")}`;
     }
 
-    if (cleanUrl.includes('localhost:8000') || cleanUrl.includes('127.0.0.1')) {
-      if (!baseUrl.includes('localhost') && !baseUrl.includes('127.0.0.1')) {
-        return cleanUrl.replace(/^https?:\/\/[^/]+/, baseUrl);
-      }
-    }
-    return cleanUrl;
+    return getImageUrl(cleanUrl);
   };
 
   const getVariationAttr = (v: any, attrName: string): string => {

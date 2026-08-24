@@ -84,12 +84,8 @@ export function getImageUrl(url: string | null | undefined): string {
     }
 
     // Replace hardcoded development URLs from backend database
-    if (url.includes('http://localhost:8000')) {
-         return url.replace('http://localhost:8000', baseUrl);
-    }
-    
-    if (url.includes('http://127.0.0.1:8000')) {
-         return url.replace('http://127.0.0.1:8000', baseUrl);
+    if (/http:\/\/(localhost|127\.0\.0\.1)(:\d+)?/.test(url)) {
+        return url.replace(/http:\/\/(localhost|127\.0\.0\.1)(:\d+)?/, baseUrl);
     }
 
     // Replace production URL with current baseUrl (useful for local testing with prod db)

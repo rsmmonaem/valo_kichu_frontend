@@ -30,13 +30,7 @@ const getBaseUrl = () => {
 const getCategoryImageUrl = (cat: Category) => {
     if (!cat.image_url) return null;
 
-    const baseUrl = getBaseUrl();
-    let cleanUrl = cat.image_url.replace('https://backend.valokichu.com', baseUrl);
-
-    // Relative URL হলে full URL বানাও
-    if (!cleanUrl.startsWith('http')) {
-        cleanUrl = `${baseUrl}/storage/${cleanUrl.replace(/^\/?storage\/?/, '')}`;
-    }
+    let cleanUrl = getImageUrl(cat.image_url);
 
     cleanUrl = cleanUrl.replace('/storage/products/', '/storage/categories/');
     if (cleanUrl.includes('/storage/') && !cleanUrl.includes('/storage/categories/')) {
@@ -46,20 +40,9 @@ const getCategoryImageUrl = (cat: Category) => {
     return cleanUrl;
 };
 
-
 const getCustomIconImageUrl = (cat: Category) => {
-    if (cat.custom_icon_url) {
-        const baseUrl = getBaseUrl();
-        let cleanUrl = cat.custom_icon_url.replace('https://backend.valokichu.com', baseUrl);
-        if (cleanUrl.includes('localhost:8000') || cleanUrl.includes('127.0.0.1')) {
-            const filename = cleanUrl.split('/').pop() || '';
-            if (filename.startsWith('ss')) {
-                return cleanUrl.replace(/^https?:\/\/[^/]+/, 'https://backend.valokichu.com');
-            }
-        }
-        return cleanUrl;
-    }
-    return null;
+    if (!cat.custom_icon_url) return null;
+    return getImageUrl(cat.custom_icon_url);
 };
 
 // interface Category {

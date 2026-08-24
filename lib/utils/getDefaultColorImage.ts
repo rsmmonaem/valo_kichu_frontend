@@ -1,3 +1,5 @@
+import { getImageUrl } from '@/lib/utils';
+
 /**
  * Given a parsed colors array (from product.colors),
  * returns the color with the lowest priority value (priority 1 = highest).
@@ -33,10 +35,5 @@ export function resolveColorImageUrl(
   if (!url.startsWith('http')) {
     cleanUrl = `${baseUrl}/storage/products/${url.replace(/^\/?((storage\/products|products)\/)?/, '')}`;
   }
-  if (cleanUrl.includes('localhost:8000') || cleanUrl.includes('127.0.0.1')) {
-    if (!baseUrl.includes('localhost') && !baseUrl.includes('127.0.0.1')) {
-      return cleanUrl.replace(/^https?:\/\/[^/]+/, baseUrl);
-    }
-  }
-  return cleanUrl;
+  return getImageUrl(cleanUrl);
 }

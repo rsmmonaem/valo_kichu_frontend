@@ -1,5 +1,6 @@
 import { getCategoryList } from '@/lib/api';
 import Link from 'next/link';
+import { getImageUrl } from '@/lib/utils';
 
 export const metadata = {
     title: 'Categories | Valokichu',
@@ -28,7 +29,7 @@ export default async function CategoriesPage() {
                         <div className="w-24 h-24 rounded-full bg-gray-50 flex items-center justify-center overflow-hidden border-4 border-gray-50 group-hover:border-[#FFAC1C] transition-colors duration-300">
                             {cat.image ? (
                                 <img
-                                    src={cat.image.startsWith('http') ? cat.image : `${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}/${cat.image}`}
+                                    src={getImageUrl(cat.image)}
                                     alt={cat.name}
                                     className="w-full h-full object-cover"
                                 />

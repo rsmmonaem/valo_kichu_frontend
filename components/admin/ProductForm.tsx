@@ -7,6 +7,7 @@ import { authFetch } from '@/lib/api';
 import toast from 'react-hot-toast';
 import clsx from 'clsx';
 import RichTextEditor from './RichTextEditor';
+import { getImageUrl } from '@/lib/utils';
 
 interface ProductFormProps {
     initialData?: any;
@@ -21,13 +22,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
         if (!imgNameOrUrl.startsWith('http')) {
             cleanUrl = `${baseUrl}/storage/products/${imgNameOrUrl.replace(/^\/?(storage\/products|products)\/?/, '')}`;
         }
-        if (cleanUrl.includes('localhost:8000') || cleanUrl.includes('127.0.0.1')) {
-            const filename = cleanUrl.split('/').pop() || '';
-            if (filename.startsWith('ss')) {
-                return cleanUrl.replace(/^https?:\/\/[^/]+/, 'https://backend.valokichu.com');
-            }
-        }
-        return cleanUrl;
+        return getImageUrl(cleanUrl);
     };
 
     const router = useRouter();

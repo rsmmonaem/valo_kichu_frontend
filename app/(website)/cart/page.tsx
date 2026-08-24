@@ -8,6 +8,7 @@ import { Trash2, Plus, Minus, ShoppingBag } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { formatAmount } from '@/lib/utils/formatAmount';
+import { getImageUrl } from '@/lib/utils';
 
 
 const CartPage = () => {
@@ -49,29 +50,7 @@ const CartPage = () => {
                                 <div className="col-span-12 md:col-span-6 flex gap-4">
                                     <div className="w-20 h-20 relative bg-gray-100 rounded-lg overflow-hidden shrink-0">
                                         <Image
-                                            src={(() => {
-                                                const imgUrl = item.image || '';
-                                                if (!imgUrl) return '/placeholder.png';
-                                                const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://backend.valokichu.com').replace(/\/api\/?$/, '');
-                                                let cleanUrl = imgUrl;
-                                                
-                                                if (imgUrl.startsWith('http')) {
-                                                    cleanUrl = imgUrl.replace(/(\api)(\/storage\/)/, '$2');
-                                                } else {
-                                                    const filename = imgUrl
-                                                        .replace(/^\/?storage\/products\//, '')
-                                                        .replace(/^\/?products\//, '')
-                                                        .replace(/^\/?storage\//, '');
-                                                    cleanUrl = `${baseUrl}/storage/products/${filename}`;
-                                                }
-
-                                                if (cleanUrl.includes('localhost:8000') || cleanUrl.includes('127.0.0.1')) {
-                                                    if (!baseUrl.includes('localhost') && !baseUrl.includes('127.0.0.1')) {
-                                                        return cleanUrl.replace(/^https?:\/\/[^/]+/, baseUrl);
-                                                    }
-                                                }
-                                                return cleanUrl;
-                                            })()}
+                                            src={getImageUrl(item.image) || '/placeholder.png'}
                                             alt={item.name}
                                             fill
                                             sizes="80px"

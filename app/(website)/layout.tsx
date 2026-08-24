@@ -5,6 +5,7 @@ import MobileBottomNav from '@/components/MobileBottomNav';
 import FloatingContact from '@/components/FloatingContact';
 import { getCategoryList, getSettings } from '@/lib/api';
 import Script from 'next/script';
+import { getImageUrl } from '@/lib/utils';
 
 export async function generateMetadata(): Promise<Metadata> {
     let settings = {
@@ -32,18 +33,11 @@ export async function generateMetadata(): Promise<Metadata> {
     const rawImage = settings.site_share_image || settings.site_logo;
     let shareImageUrl = '';
     if (rawImage) {
-        if (rawImage.startsWith('http')) {
-            shareImageUrl = rawImage;
-        } else {
-            shareImageUrl = `${baseUrl}/storage/${rawImage.replace(/^\/?storage\/?/, '')}`;
+        let cleanUrl = rawImage;
+        if (!rawImage.startsWith('http')) {
+            cleanUrl = `${baseUrl}/storage/${rawImage.replace(/^\/?storage\/?/, '')}`;
         }
-
-        if (shareImageUrl.includes('localhost:8000') || shareImageUrl.includes('127.0.0.1')) {
-            const filename = shareImageUrl.split('/').pop() || '';
-            if (filename.startsWith('ss')) {
-                shareImageUrl = shareImageUrl.replace(/^https?:\/\/[^/]+/, 'https://backend.valokichu.com');
-            }
-        }
+        shareImageUrl = getImageUrl(cleanUrl);
     }
 
     return {

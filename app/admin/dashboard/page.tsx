@@ -5,6 +5,7 @@ import { DollarSign, ShoppingBag, Users, Package, TrendingUp } from 'lucide-reac
 import { authFetch } from '@/lib/api';
 import clsx from 'clsx';
 import Link from 'next/link';
+import { getImageUrl } from '@/lib/utils';
 
 interface DashboardData {
     stats: {
@@ -155,20 +156,14 @@ const AdminDashboard = () => {
                                         <img
                                             src={(() => {
                                                 const imgUrl = item.image_url || item.image || '';
-                                                console.log('Item:', item);
                                                 if (!imgUrl) return '/placeholder.png';
-                                                const liveBase = 'https://backend.valokichu.com';
-                                                const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://backend.valokichu.com').replace(/\/api\/?$/, '');
+                                                
                                                 let cleanUrl = imgUrl;
-                                                // If it's a relative path, prepend the base storage URL
-                                                if (!imgUrl.startsWith('http')) {
-                                                    cleanUrl = `${baseUrl}/storage/products/${imgUrl.replace(/^\/?(storage\/products|products)\/?/, '')}`;
+                                                // If it's a relative path, prepend the base storage URL if it's just a filename
+                                                if (!imgUrl.startsWith('http') && !imgUrl.startsWith('/storage/')) {
+                                                    cleanUrl = `/storage/products/${imgUrl.replace(/^\/?(storage\/products|products)\/?/, '')}`;
                                                 }
-                                                // Replace any localhost/127.0.0.1 URL with the live backend URL
-                                                if (cleanUrl.includes('localhost') || cleanUrl.includes('127.0.0.1')) {
-                                                    cleanUrl = cleanUrl.replace(/^https?:\/\/[^/]+/, liveBase);
-                                                }
-                                                return cleanUrl;
+                                                return getImageUrl(cleanUrl);
                                             })()}
                                             alt={item.name}
                                             className="w-full h-full object-cover"
