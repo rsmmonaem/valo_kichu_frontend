@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
   ShoppingCart,
@@ -33,6 +34,7 @@ interface HeaderProps {
 import { useSettings } from "@/context/SettingsContext";
 
 import { useUI } from "@/context/UIContext";
+import { getImageUrl } from "@/lib/utils";
 // ... imports
 
 const Header: React.FC<HeaderProps> = ({ categories }) => {
@@ -109,32 +111,18 @@ const Header: React.FC<HeaderProps> = ({ categories }) => {
               </button>
               <Link href="/" className="flex items-center gap-2 shrink-0 group" prefetch={false}>
                 {settings.site_logo ? (
-                  <img
-                    src={(() => {
-                      const logo = settings.site_logo;
-                      if (!logo) return '';
-                      if (logo.startsWith('http')) {
-                        return logo.replace(/(\/api)(\/storage\/)/, '$2');
-                      }
-                      // settings/ assets only exist on production server
-                      const cleanPath = logo.replace(/^\/?storage\//, '');
-                      if (cleanPath.startsWith('settings/')) {
-                        return `https://backend.valokichu.com/storage/${cleanPath}`;
-                      }
-                      const base = (process.env.NEXT_PUBLIC_API_URL || 'https://backend.valokichu.com').replace(/\/api\/?$/, '');
-                      return `${base}/storage/${cleanPath}`;
-                    })()}
-                    alt={settings.site_name || "Logo"}
-                    className="h-14 md:h-20 w-auto group-hover:scale-105 transition-transform object-contain"
-                  />
+                  <div className="relative h-14 md:h-20 w-32 group-hover:scale-105 transition-transform">
+                    <Image
+                      src={getImageUrl(settings.site_logo)}
+                      alt={settings.site_name || "Logo"}
+                      fill
+                      sizes="(max-width: 768px) 128px, 128px"
+                      className="object-contain"
+                    />
+                  </div>
                 ) : (
                   <div className="bg-blue-600 text-white p-2 rounded-lg font-bold text-xl group-hover:scale-105 transition-transform duration-200">
-                    {/* {settings.site_name ? settings.site_name.charAt(0) : "V"} */}
-                    <img
-                      src={`/fav1.png`}
-                      alt={settings.site_name || "Logo"}
-                      className="h-10 w-auto group-hover:scale-105 transition-transform object-contain"
-                    />
+                    {settings.site_name ? settings.site_name.charAt(0) : "V"}
                   </div>
                 )}
               </Link>

@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { User, LogOut, LayoutDashboard, ShoppingBag } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import Image from "next/image";
 
 const AuthMenu = () => {
     const { user, logout } = useAuth();
@@ -44,8 +45,7 @@ const AuthMenu = () => {
             >
                 <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs uppercase">
                     {user.name ? user.name.charAt(0) : (
-                        <img
-                            src='/fav1.png'
+                        <Image fill sizes="100vw"                             src='/fav1.png'
                             alt="Profile"
                             className="w-full h-full object-cover"
                         />

@@ -4,6 +4,7 @@ import { useEffect, Suspense } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import Script from 'next/script';
 import * as fpixel from '@/lib/fpixel';
+import Image from "next/image";
 
 function NavigationEvents() {
   const pathname = usePathname();
@@ -39,8 +40,7 @@ export default function FacebookPixel() {
         }}
       />
       <noscript>
-        <img
-          height="1"
+        <Image fill sizes="100vw"           height="1"
           width="1"
           style={{ display: 'none' }}
           src={`https://www.facebook.com/tr?id=${fpixel.FB_PIXEL_ID}&ev=PageView&noscript=1`}

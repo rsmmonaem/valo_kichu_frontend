@@ -118,7 +118,7 @@ const CheckoutPage = () => {
 
     const delayDebounceFn = setTimeout(async () => {
       try {
-        const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://backend.valokichu.com";
         const baseUrl = API_URL.endsWith("/api") ? API_URL : `${API_URL}/api`;
 
         const cartData = cart.map((item) => {
@@ -177,7 +177,7 @@ const CheckoutPage = () => {
         // Use env var, or fallback to sensible default.
         // Note: authFetch in api.ts uses 'https://backend.valokichu.com' as default base.
         const API_URL =
-          process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+          process.env.NEXT_PUBLIC_API_URL || "https://backend.valokichu.com";
         const baseUrl = API_URL.endsWith("/api") ? API_URL : `${API_URL}/api`;
 
         const res = await fetch(`${baseUrl}/v1/shipping-methods?t=${Date.now()}`, {
@@ -674,8 +674,7 @@ const CheckoutPage = () => {
                   >
                     <div className="flex gap-3 flex-1">
                       <div className="w-12 h-12 bg-gray-100 rounded shrink-0 overflow-hidden">
-                        <img
-                          src={getImageUrl(item.image) || "/placeholder.png"}
+                        <Image fill sizes="100vw"                           src={getImageUrl(item.image) || "/placeholder.png"}
                           alt={item.name}
                           className="w-full h-full object-cover"
                         />

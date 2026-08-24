@@ -5,6 +5,7 @@ import { User, Search, Ban, CheckCircle } from 'lucide-react';
 import { authFetch } from '@/lib/api';
 import toast from 'react-hot-toast';
 import clsx from 'clsx';
+import Image from "next/image";
 
 const CustomersPage = () => {
     const [customers, setCustomers] = useState<any[]>([]);
@@ -95,7 +96,7 @@ const CustomersPage = () => {
                                         <td className="p-4">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 overflow-hidden">
-                                                    {customer.image ? <img src={customer.image} className="w-full h-full object-cover" /> : <User size={18} />}
+                                                    {customer.image ? <Image fill sizes="100vw" src={customer.image} className="w-full h-full object-cover" /> : <User size={18} />}
                                                 </div>
                                                 <div>
                                                     <p className="font-medium text-gray-900">{customer.name}</p>

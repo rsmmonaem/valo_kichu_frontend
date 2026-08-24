@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { ShoppingCart, Package, Loader2, Search, ChevronRight, X } from 'lucide-react';
 import { authFetch } from '@/lib/api';
 import { clsx } from 'clsx';
+import { getImageUrl } from '@/lib/utils';
+import Image from 'next/image';
 
 const OrdersPage = () => {
     const [orders, setOrders] = useState<any[]>([]);
@@ -275,9 +277,9 @@ const OrdersPage = () => {
                                 <div className="space-y-3">
                                     {viewingOrder.products?.map((item: any, idx: number) => (
                                         <div key={idx} className="flex items-center gap-4 p-4 bg-white border border-gray-100 rounded-3xl hover:border-blue-200 transition-colors group">
-                                            <div className="w-16 h-16 bg-gray-50 rounded-2xl overflow-hidden flex-shrink-0 border border-gray-100 group-hover:scale-105 transition-transform">
+                                            <div className="w-16 h-16 relative bg-gray-50 rounded-2xl overflow-hidden flex-shrink-0 border border-gray-100 group-hover:scale-105 transition-transform">
                                                 {item.product?.image_url ? (
-                                                    <img src={item.product.image_url} alt={item.product_name} className="w-full h-full object-cover" />
+                                                    <Image src={getImageUrl(item.product.image_url)} alt={item.product_name} fill sizes="64px" className="w-full h-full object-cover" />
                                                 ) : (
                                                     <div className="w-full h-full flex items-center justify-center text-gray-300">
                                                         <Package size={24} />

@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Plus, Edit, Trash2, Tag, Upload, X } from 'lucide-react';
 import { authFetch } from '@/lib/api';
 import toast from 'react-hot-toast';
+import Image from "next/image";
 
 const BrandsPage = () => {
     const [brands, setBrands] = useState<any[]>([]);
@@ -170,8 +171,7 @@ const BrandsPage = () => {
                             <div className="flex items-center gap-3">
                                 <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden shrink-0 border border-gray-200">
                                     {(brand.image_url || brand.image) ? (
-                                        <img
-                                            src={brand.image_url || brand.image}
+                                        <Image fill sizes="100vw"                                             src={brand.image_url || brand.image}
                                             alt={brand.name}
                                             className="w-full h-full object-contain p-1"
                                         />
@@ -232,8 +232,7 @@ const BrandsPage = () => {
 
                                 {imagePreview ? (
                                     <div className="relative w-32 h-32 border-2 border-dashed border-gray-200 rounded-xl overflow-hidden group">
-                                        <img
-                                            src={imagePreview}
+                                        <Image fill sizes="100vw"                                             src={imagePreview}
                                             alt="preview"
                                             className="w-full h-full object-contain p-2"
                                         />

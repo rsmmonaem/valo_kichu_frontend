@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ChevronDown, X, Menu, Search } from 'lucide-react';
 import clsx from 'clsx';
 import { Category } from '@/lib/api';
+import Image from "next/image";
 
 interface MobileCategorySidebarProps {
     isOpen: boolean;
@@ -119,8 +120,7 @@ const MobileCategorySidebar: React.FC<MobileCategorySidebarProps> = ({ isOpen, o
                                     >
                                         <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden border border-gray-100 shrink-0">
                                             {cat.image_url ? (
-                                                <img
-                                                    src={getImageUrl(cat.image_url)}
+                                                <Image fill sizes="100vw"                                                     src={getImageUrl(cat.image_url)}
                                                     alt={cat.name}
                                                     className="w-full h-full object-cover"
                                                 />

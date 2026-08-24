@@ -5,6 +5,7 @@ import { authFetch } from '@/lib/api';
 import { Camera, Save, User as UserIcon, Mail, Phone, Loader2, Key, Calendar } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'react-hot-toast';
+import Image from "next/image";
 
 const AdminProfilePage = () => {
     const { user: authUser, updateUser } = useAuth();
@@ -148,7 +149,7 @@ const AdminProfilePage = () => {
                         <div className="flex flex-col sm:flex-row items-center sm:items-end gap-4 text-center sm:text-left">
                             <div className="w-32 h-32 rounded-full border-4 border-white bg-white overflow-hidden shadow-md relative group">
                                 {previewUrl ? (
-                                    <img src={previewUrl} alt="Avatar" className="w-full h-full object-cover" />
+                                    <Image fill sizes="100vw" src={previewUrl} alt="Avatar" className="w-full h-full object-cover" />
                                 ) : (
                                     <div className="w-full h-full bg-blue-50 flex items-center justify-center text-blue-500 font-bold text-4xl">
                                         {profile.first_name ? profile.first_name.charAt(0) : 'A'}
