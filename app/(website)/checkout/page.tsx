@@ -734,7 +734,7 @@ const CheckoutPage = () => {
                     {/* Product Image */}
                     <div className="w-16 h-16 relative bg-gray-100 rounded shrink-0 overflow-hidden">
                       <Image
-                        src={getImageUrl(item.image) || '/placeholder.png'}
+                        src={getImageUrl(item.variant?.image || item.image) || '/placeholder.png'}
                         alt={item.name}
                         fill
                         sizes="64px"
