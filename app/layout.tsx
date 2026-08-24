@@ -58,6 +58,8 @@ import { UIProvider } from '@/context/UIContext';
 import FacebookPixel from '@/components/FacebookPixel';
 import VisitorTracker from '@/components/VisitorTracker';
 
+import Script from 'next/script';
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -99,6 +101,21 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
             </CartProvider>
           </AuthProvider>
         </SettingsProvider>
+
+        {/* Enterprise AI Commerce Chatbot Widget */}
+        <Script src="https://aichat-backend.npms.pro/static/widget.js" strategy="lazyOnload" />
+        <Script id="enterprise-ai-chatbot" strategy="lazyOnload">
+          {`
+            setTimeout(function() {
+              if (window.EnterpriseChatWidget) {
+                EnterpriseChatWidget.init({
+                  widgetKey: "wgt_d14f331341854644be",
+                  apiUrl: "https://aichat-backend.npms.pro/api/v1"
+                });
+              }
+            }, 1000);
+          `}
+        </Script>
       </body>
     </html>
   );
