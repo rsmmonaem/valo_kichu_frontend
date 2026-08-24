@@ -34,7 +34,7 @@ interface ProductDetailsProps {
 }
 
 const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
-  const { addToCart, toggleCart } = useCart();
+  const { cart, addToCart, toggleCart } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
   const isWishlisted = isInWishlist(product.id);
   const router = useRouter();
@@ -490,22 +490,32 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
                 Color: {selectedColor?.name}
               </span>
               <div className="flex flex-wrap gap-2">
-                {colorData.map((c: any, idx: number) => (
+                {colorData.map((c: any, idx: number) => {
+                  const cartCountForColor = cart.filter(item => item.id === product.id && item.variant?.color === c.name).reduce((sum, item) => sum + item.quantity, 0);
+                  return (
                   <button
                     key={idx}
                     onClick={() => {
                       setSelectedColor(c);
+                      setQuantity(1);
                       if (c.img) {
                         setMainImageOverride(c.img);
                       }
                     }}
                     className={clsx(
-                      "flex flex-col items-center p-1.5 rounded-xl border-2 transition gap-1 min-w-[60px]",
+                      "relative flex flex-col items-center p-2 rounded-xl border-2 transition gap-1.5 min-w-[72px]",
                       selectedColor?.id === c.id
-                        ? "border-blue-600 bg-blue-50/20 shadow-sm"
+                        ? "border-blue-600 bg-blue-600 shadow-md ring-2 ring-blue-200"
+                        : cartCountForColor > 0
+                        ? "border-blue-600 bg-white ring-1 ring-blue-100"
                         : "border-gray-200 hover:border-gray-300 bg-white"
                     )}
                   >
+                    {cartCountForColor > 0 && (
+                      <span className="absolute -top-2 -right-2 bg-blue-600 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-sm z-10">
+                        {cartCountForColor}
+                      </span>
+                    )}
                     <div className="relative w-10 h-10 rounded-lg overflow-hidden bg-gray-50 border border-gray-100 shrink-0">
                       {c.img ? (
                         <Image
@@ -520,11 +530,14 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
                         </div>
                       )}
                     </div>
-                    <span className="text-[10px] font-semibold text-gray-700 truncate w-full text-center">
-                      {c.name}
-                    </span>
+                        <span className={clsx(
+                          "text-[10px] font-semibold px-1 text-center truncate w-full",
+                          selectedColor?.id === c.id ? "text-white font-bold" : cartCountForColor > 0 ? "text-blue-600 font-bold" : "text-gray-700"
+                        )}>
+                          {c.name}
+                        </span>
                   </button>
-                ))}
+                )})}
               </div>
             </div>
           )}
@@ -620,22 +633,32 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
                     Color: {selectedColor?.name}
                   </span>
                   <div className="flex flex-wrap gap-3">
-                    {colorData.map((c: any, idx: number) => (
+                    {colorData.map((c: any, idx: number) => {
+                      const cartCountForColor = cart.filter(item => item.id === product.id && item.variant?.color === c.name).reduce((sum, item) => sum + item.quantity, 0);
+                      return (
                       <button
                         key={idx}
                         onClick={() => {
-                          setSelectedColor(c);
-                          if (c.img) {
+                      setSelectedColor(c);
+                      setQuantity(1);
+                      if (c.img) {
                             setMainImageOverride(c.img);
                           }
                         }}
                         className={clsx(
-                          "flex flex-col items-center p-2 rounded-xl border-2 transition gap-1.5 min-w-[72px]",
-                          selectedColor?.id === c.id
-                            ? "border-blue-600 ring-2 ring-blue-100 bg-blue-50/10"
-                            : "border-gray-200 hover:border-gray-300 bg-white"
-                        )}
+                      "relative flex flex-col items-center p-2 rounded-xl border-2 transition gap-1.5 min-w-[72px]",
+                      selectedColor?.id === c.id
+                        ? "border-blue-600 bg-blue-600 shadow-md ring-2 ring-blue-200"
+                        : cartCountForColor > 0
+                        ? "border-blue-600 bg-white ring-1 ring-blue-100"
+                        : "border-gray-200 hover:border-gray-300 bg-white"
+                    )}
                       >
+                        {cartCountForColor > 0 && (
+                          <span className="absolute -top-2 -right-2 bg-blue-600 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-sm z-10">
+                            {cartCountForColor}
+                          </span>
+                        )}
                         <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-50 border border-gray-100 shrink-0">
                           {c.img ? (
                             <Image
@@ -652,12 +675,12 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
                         </div>
                         <span className={clsx(
                           "text-xs font-semibold px-1 text-center truncate w-full",
-                          selectedColor?.id === c.id ? "text-blue-600 font-bold" : "text-gray-700"
+                          selectedColor?.id === c.id ? "text-white font-bold" : cartCountForColor > 0 ? "text-blue-600 font-bold" : "text-gray-700"
                         )}>
                           {c.name}
                         </span>
                       </button>
-                    ))}
+                    )})}
                   </div>
                 </div>
               )}
@@ -669,20 +692,29 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
                     Size: {selectedSize}
                   </span>
                   <div className="flex flex-wrap gap-2">
-                    {sizeData.map((s: any, idx: number) => (
+                    {sizeData.map((s: any, idx: number) => {
+                      const cartCountForSize = cart.filter(item => item.id === product.id && item.variant?.size === s).reduce((sum, item) => sum + item.quantity, 0);
+                      return (
                       <button
                         key={idx}
-                        onClick={() => setSelectedSize(s)}
+                        onClick={() => { setSelectedSize(s); setQuantity(1); }}
                         className={clsx(
-                          "px-4 py-2 text-sm font-medium rounded-lg border transition",
+                          "relative px-4 py-2 text-sm font-medium rounded-lg border transition",
                           selectedSize === s
-                            ? "bg-blue-600 text-white border-blue-600"
+                            ? "bg-blue-600 text-white border-blue-600 shadow-md"
+                            : cartCountForSize > 0
+                            ? "border-blue-600 text-blue-600 bg-white ring-1 ring-blue-200"
                             : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
                         )}
                       >
+                        {cartCountForSize > 0 && (
+                          <span className="absolute -top-2 -right-2 bg-blue-600 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-sm z-10">
+                            {cartCountForSize}
+                          </span>
+                        )}
                         {s}
                       </button>
-                    ))}
+                    )})}
                   </div>
                 </div>
               )}
@@ -697,11 +729,11 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
                     {weightData.map((w: any, idx: number) => (
                       <button
                         key={idx}
-                        onClick={() => setSelectedWeight(w)}
+                        onClick={() => { setSelectedWeight(w); setQuantity(1); }}
                         className={clsx(
                           "px-4 py-2 text-sm font-medium rounded-lg border transition",
                           (selectedWeight?.id === w.id || selectedWeight === w)
-                            ? "bg-blue-600 text-white border-blue-600"
+                            ? "bg-blue-600 text-white border-blue-600 shadow-md"
                             : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
                         )}
                       >

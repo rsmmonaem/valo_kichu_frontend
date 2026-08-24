@@ -54,7 +54,7 @@ export default function ProductModal({
   const [showCartAnimation, setShowCartAnimation] = useState(false); // ADDED: Animation state
 
   // Use Cart Context
-  const { addToCart } = useCart?.() || { addToCart: () => { } };
+  const { cart = [], addToCart } = useCart?.() || { cart: [], addToCart: () => { } };
   const { toggleWishlist, isInWishlist } = useWishlist();
   const isWishlisted = product ? isInWishlist(product.id) : false;
 
@@ -919,21 +919,26 @@ export default function ProductModal({
                       Color: {color?.name}
                     </span>
                     <div className="flex flex-wrap gap-2.5">
-                      {colorData.map((c: any) => (
+                      {colorData.map((c: any) => {
+                        const cartCountForColor = cart.filter(item => item.id === product.id && item.variant?.color === c.name).reduce((sum, item) => sum + item.quantity, 0);
+                        return (
                         <button
                           key={c.id}
                           onClick={() => {
                             setColor(c);
+                            setQuantity(1);
                             if (c.img) {
                               setPreview(c.img);
                               setHasImageError(false);
                             }
                           }}
-                          className={`flex items-center gap-2 p-1.5 rounded-xl border-2 transition cursor-pointer ${color?.id === c.id
-                            ? "border-blue-600 ring-2 ring-blue-100 bg-blue-50/10"
-                            : "border-gray-200 hover:border-gray-300 bg-white"
-                            }`}
+                          className={`relative flex flex-col items-center p-2 rounded-xl border-2 transition gap-1.5 min-w-[72px] cursor-pointer hover:scale-105 ${color?.id === c.id ? "border-blue-600 bg-blue-600 shadow-md ring-2 ring-blue-200" : cartCountForColor > 0 ? "border-blue-600 bg-white ring-1 ring-blue-100" : "border-gray-200 hover:border-gray-300 bg-white"}`}
                         >
+                          {cartCountForColor > 0 && (
+                            <span className="absolute -top-2 -right-2 bg-blue-600 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-sm z-10">
+                              {cartCountForColor}
+                            </span>
+                          )}
                           <div className="relative w-8 h-8 rounded-lg overflow-hidden bg-gray-50 border border-gray-100 shrink-0">
                             {c.img ? (
                               <Image
@@ -948,12 +953,11 @@ export default function ProductModal({
                               </div>
                             )}
                           </div>
-                          <span className={`text-[11px] font-semibold pr-1 truncate ${color?.id === c.id ? "text-blue-600 font-bold" : "text-gray-700"
-                            }`}>
+                          <span className={`text-[11px] font-semibold pr-1 text-center truncate w-full ${color?.id === c.id ? "text-white font-bold" : cartCountForColor > 0 ? "text-blue-600 font-bold" : "text-gray-700"}`}>
                             {c.name}
                           </span>
                         </button>
-                      ))}
+                      )})}
                     </div>
                   </div>
                 )}
@@ -1056,21 +1060,26 @@ export default function ProductModal({
                   <div className="hidden md:block mb-6">
                     <h3 className="font-semibold mb-3">Color: {color?.name}</h3>
                     <div className="flex flex-wrap gap-3">
-                      {colorData.map((c: any) => (
+                      {colorData.map((c: any) => {
+                        const cartCountForColor = cart.filter(item => item.id === product.id && item.variant?.color === c.name).reduce((sum, item) => sum + item.quantity, 0);
+                        return (
                         <button
                           key={c.id}
                           onClick={() => {
                             setColor(c);
+                            setQuantity(1);
                             if (c.img) {
                               setPreview(c.img);
                               setHasImageError(false);
                             }
                           }}
-                          className={`flex flex-col items-center p-2 rounded-xl border-2 transition gap-1.5 min-w-[72px] cursor-pointer hover:scale-105 ${color?.id === c.id
-                            ? "border-blue-600 ring-2 ring-blue-100 bg-blue-50/10"
-                            : "border-gray-200 hover:border-gray-300 bg-white"
-                            }`}
+                          className={`relative flex flex-col items-center p-2 rounded-xl border-2 transition gap-1.5 min-w-[72px] cursor-pointer hover:scale-105 ${color?.id === c.id ? "border-blue-600 bg-blue-600 shadow-md ring-2 ring-blue-200" : cartCountForColor > 0 ? "border-blue-600 bg-white ring-1 ring-blue-100" : "border-gray-200 hover:border-gray-300 bg-white"}`}
                         >
+                          {cartCountForColor > 0 && (
+                            <span className="absolute -top-2 -right-2 bg-blue-600 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-sm z-10">
+                              {cartCountForColor}
+                            </span>
+                          )}
                           <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-50 border border-gray-100 shrink-0">
                             {c.img ? (
                               <Image
@@ -1085,12 +1094,11 @@ export default function ProductModal({
                               </div>
                             )}
                           </div>
-                          <span className={`text-xs font-semibold px-1 text-center truncate w-full ${color?.id === c.id ? "text-blue-600 font-bold" : "text-gray-700"
-                            }`}>
+                          <span className={`text-xs font-semibold px-1 text-center truncate w-full ${color?.id === c.id ? "text-white font-bold" : cartCountForColor > 0 ? "text-blue-600 font-bold" : "text-gray-700"}`}>
                             {c.name}
                           </span>
                         </button>
-                      ))}
+                      )})}
                     </div>
                   </div>
                 )}
@@ -1105,10 +1113,10 @@ export default function ProductModal({
                       {weightData.map((w: any) => (
                         <button
                           key={w.id}
-                          onClick={() => setWeight(w)}
-                          className={`p-3 text-center rounded-xl cursor-pointer transition hover:scale-105 ${w.id === weight?.id || w === weight
-                            ? "bg-[#FFAC1C] text-white shadow-lg"
-                            : "bg-gray-100"
+                          onClick={() => { setWeight(w); setQuantity(1); }}
+                          className={`p-3 text-center rounded-xl cursor-pointer transition hover:scale-105 border ${w.id === weight?.id || w === weight
+                            ? "border-blue-600 text-blue-600 bg-blue-50/10 ring-1 ring-blue-200"
+                            : "bg-gray-100 border-transparent hover:border-gray-300"
                             }`}
                         >
                           {w.name || w}
@@ -1123,18 +1131,22 @@ export default function ProductModal({
                   <div className="mb-6">
                     <h3 className="font-semibold mb-3">Size: {size}</h3>
                     <div className="grid grid-cols-4 gap-4">
-                      {sizeData.map((s: any) => (
+                      {sizeData.map((s: any) => {
+                        const cartCountForSize = cart.filter(item => item.id === product.id && item.variant?.size === s).reduce((sum, item) => sum + item.quantity, 0);
+                        return (
                         <button
                           key={s}
-                          onClick={() => setSize(s)}
-                          className={`p-3 text-center rounded-xl cursor-pointer transition hover:scale-105 ${s === size
-                            ? "bg-[#FFAC1C] text-white shadow-lg"
-                            : "bg-gray-100"
-                            }`}
+                          onClick={() => { setSize(s); setQuantity(1); }}
+                          className={`relative p-3 text-center rounded-xl cursor-pointer transition hover:scale-105 border ${s === size ? "bg-blue-600 text-white border-blue-600 shadow-md" : cartCountForSize > 0 ? "border-blue-600 text-blue-600 bg-white ring-1 ring-blue-200" : "bg-gray-100 border-transparent hover:border-gray-300"}`}
                         >
+                          {cartCountForSize > 0 && (
+                            <span className="absolute -top-2 -right-2 bg-blue-600 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-sm z-10">
+                              {cartCountForSize}
+                            </span>
+                          )}
                           {s}
                         </button>
-                      ))}
+                      )})}
                     </div>
                   </div>
                 )}
