@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { authFetch } from '@/lib/api';
 import InfiniteScrollTrigger from '@/components/InfiniteScrollTrigger';
+import { getImageUrl } from '@/lib/utils';
 import Image from 'next/image';
 import { useCart } from '@/context/CartContext';
 import { toast } from 'react-hot-toast';
@@ -87,7 +88,7 @@ const ProductsPage = () => {
             slug: product.slug || product.product_code,
             price: product.your_price,
             base_price: product.base_price,
-            image: product.images || '/placeholder.png',
+            image: getImageUrl(product.images) || '/placeholder.png',
             quantity: 1
         });
         toast.success('Added to cart!');
@@ -134,7 +135,7 @@ const ProductsPage = () => {
                                 <div key={`${product.id}-${idx}`} className="group bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition duration-300 h-full flex flex-col">
                                     <div className="relative aspect-square bg-gray-50 overflow-hidden">
                                         <Image
-                                            src={product.images || '/placeholder.png'}
+                                            src={getImageUrl(product.images) || '/placeholder.png'}
                                             alt={product.name}
                                             fill
                                             className="object-cover group-hover:scale-110 transition duration-500"
