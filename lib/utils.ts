@@ -95,7 +95,9 @@ export function getImageUrl(url: string | null | undefined): string {
 
     // If it's a relative path that doesn't start with http or /
     if (!url.startsWith('http') && !url.startsWith('/')) {
-        return `${baseUrl}/${url}`;
+        // Many database paths omit the 'storage/' prefix. If it doesn't have it, add it.
+        const cleanPath = url.replace(/^(storage\/)/, '');
+        return `${baseUrl}/storage/${cleanPath}`;
     }
 
     return url;
