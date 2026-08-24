@@ -4,7 +4,6 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import * as LucideIcons from 'lucide-react';
 import { Category, getCategoryBar } from '@/lib/api';
-import Image from "next/image";
 
 const CategoryBar: React.FC = () => {
     const [categories, setCategories] = useState<Category[]>([]);
@@ -40,7 +39,7 @@ const CategoryBar: React.FC = () => {
                             className="flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-primary transition-colors group px-1"
                         >
                             {iconUrl ? (
-                                <Image fill sizes="100vw" src={iconUrl} alt={cat.name} className="w-5 h-5 object-contain" />
+                                <img src={iconUrl} alt={cat.name} className="w-5 h-5 object-contain" />
                             ) : (
                                 IconComponent && (
                                     <IconComponent size={18} className="text-gray-400 group-hover:text-primary" />

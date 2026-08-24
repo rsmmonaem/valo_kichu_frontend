@@ -122,7 +122,7 @@ export default function OurTeamsPage() {
               {parsedWorkflowImages.map((img: any, idx: number) => (
                 <div key={idx} className="w-full flex-shrink-0 flex items-center justify-center p-2">
                   <div className="w-full h-64 md:h-[400px] lg:h-[500px] relative rounded-xl overflow-hidden bg-slate-50">
-                    <Image fill sizes="100vw" 
+                    <img 
                       src={resolveImageUrl(img.image)} 
                       className="w-full h-full object-contain" 
                       alt={`Workflow step ${idx + 1}`} 
@@ -167,7 +167,7 @@ export default function OurTeamsPage() {
               >
                 <div className="relative w-32 h-32 mx-auto mb-6">
                   <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full scale-105 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <Image fill sizes="100vw" 
+                  <img 
                     src={resolveImageUrl(member.image) || 'https://i.pravatar.cc/300?img=11'} 
                     alt={member.name} 
                     className="w-full h-full object-cover rounded-full border-4 border-white relative z-10"

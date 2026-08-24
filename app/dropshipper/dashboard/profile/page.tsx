@@ -5,7 +5,6 @@ import { authFetch } from '@/lib/api';
 import { Camera, Save, User as UserIcon, Store, Mail, Phone, Loader2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'react-hot-toast';
-import Image from "next/image";
 
 const ProfilePage = () => {
     const { user: authUser, updateUser } = useAuth();
@@ -162,7 +161,7 @@ const ProfilePage = () => {
                         <div className="relative group">
                             <div className="w-32 h-32 rounded-full border-4 border-blue-50 overflow-hidden bg-gray-100 flex items-center justify-center">
                                 {previewUrl ? (
-                                    <Image fill sizes="100vw" src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
+                                    <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
                                 ) : (
                                     <UserIcon size={48} className="text-gray-300" />
                                 )}
@@ -188,7 +187,7 @@ const ProfilePage = () => {
                                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">Store Logo</label>
                                     <div className="relative w-full h-32 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 flex items-center justify-center overflow-hidden">
                                         {logoPreview ? (
-                                            <Image fill sizes="100vw" src={logoPreview} alt="Logo" className="max-w-full max-h-full object-contain" />
+                                            <img src={logoPreview} alt="Logo" className="max-w-full max-h-full object-contain" />
                                         ) : (
                                             <Camera size={24} className="text-gray-300" />
                                         )}
@@ -201,7 +200,7 @@ const ProfilePage = () => {
                                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">Store Banner</label>
                                     <div className="relative w-full h-32 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 flex items-center justify-center overflow-hidden">
                                         {bannerPreview ? (
-                                            <Image fill sizes="100vw" src={bannerPreview} alt="Banner" className="w-full h-full object-cover" />
+                                            <img src={bannerPreview} alt="Banner" className="w-full h-full object-cover" />
                                         ) : (
                                             <Camera size={24} className="text-gray-300" />
                                         )}

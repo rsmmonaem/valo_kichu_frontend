@@ -4,7 +4,6 @@ import React, { useRef } from 'react';
 import Link from 'next/link';
 import { Category } from '@/lib/api';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import Image from "next/image";
 
 interface CategoryCarouselProps {
     categories: Category[];
@@ -69,7 +68,8 @@ const CategoryCarousel: React.FC<CategoryCarouselProps> = ({ categories }) => {
                     >
                         <div className="w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden bg-gray-50 mb-3 border border-gray-100 group-hover/item:scale-105 transition-transform duration-300 relative">
                             {cat.image || cat.icon ? (
-                                <Image fill sizes="100vw"                                     src={cat.image?.startsWith('http') ? cat.image : `${process.env.NEXT_PUBLIC_API_URL}/storage/${cat.image}`}
+                                <img
+                                    src={cat.image?.startsWith('http') ? cat.image : `${process.env.NEXT_PUBLIC_API_URL}/storage/${cat.image}`}
                                     alt={cat.name}
                                     className="w-full h-full object-cover"
                                     loading="lazy"
@@ -98,7 +98,8 @@ const CategoryCarousel: React.FC<CategoryCarouselProps> = ({ categories }) => {
                         {/* Image Section */}
                         <div className="w-full h-40 md:h-52 bg-gray-50 overflow-hidden">
                             {(cat.image_url || cat.image) ? (
-                                <Image fill sizes="100vw"                                     src={getImageUrl(cat.image_url || cat.image)}
+                                <img
+                                    src={getImageUrl(cat.image_url || cat.image)}
                                     alt={cat.name}
                                     className="w-full h-full object-cover group-hover/item:scale-105 transition-transform duration-500"
                                     loading="lazy"

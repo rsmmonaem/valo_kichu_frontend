@@ -5,7 +5,6 @@ import { authFetch } from '@/lib/api';
 import { toast } from 'react-hot-toast';
 import { Save, Loader2, Image as ImageIcon } from 'lucide-react';
 import { getImageUrl } from '@/lib/utils';
-import Image from "next/image";
 
 interface Setting {
     key: string;
@@ -104,7 +103,7 @@ const TeamMemberEditor = ({ members, onUpdate, onImageUpload, resolveImageUrl }:
                     <div key={index} className="flex gap-4 items-start bg-white p-4 rounded border border-gray-100 shadow-sm relative group">
                         <div className="w-20 h-20 bg-gray-50 border border-gray-200 rounded flex items-center justify-center overflow-hidden shrink-0">
                             {member.image ? (
-                                <Image fill sizes="100vw" src={resolveImageUrl(member.image)} alt={member.name} className="w-full h-full object-cover" />
+                                <img src={resolveImageUrl(member.image)} alt={member.name} className="w-full h-full object-cover" />
                             ) : (
                                 <ImageIcon className="text-gray-300" size={24} />
                             )}
@@ -169,7 +168,7 @@ const WorkflowImageEditor = ({ images, onUpdate, onImageUpload, resolveImageUrl 
                     <div key={index} className="flex gap-4 items-center bg-white p-4 rounded border border-gray-100 shadow-sm relative group">
                         <div className="w-32 h-20 bg-gray-50 border border-gray-200 rounded flex items-center justify-center overflow-hidden shrink-0">
                             {img.image ? (
-                                <Image fill sizes="100vw" src={resolveImageUrl(img.image)} className="w-full h-full object-cover" />
+                                <img src={resolveImageUrl(img.image)} className="w-full h-full object-cover" />
                             ) : (
                                 <ImageIcon className="text-gray-300" size={24} />
                             )}
@@ -436,7 +435,7 @@ const SettingsPage = () => {
                                 <div className="flex items-center gap-4">
                                     <div className="w-24 h-24 bg-gray-50 border border-gray-200 rounded-lg flex items-center justify-center overflow-hidden relative">
                                         {settings.site_logo ? (
-                                            <Image fill sizes="100vw" src={resolveSettingImageUrl(settings.site_logo)} className="w-full h-full object-contain" />
+                                            <img src={resolveSettingImageUrl(settings.site_logo)} className="w-full h-full object-contain" />
                                         ) : (
                                             <ImageIcon className="text-gray-300" />
                                         )}
@@ -529,7 +528,7 @@ const SettingsPage = () => {
                             <div className="flex items-center gap-4">
                                 <div className="w-40 h-24 bg-gray-50 border border-gray-200 rounded-lg flex items-center justify-center overflow-hidden relative">
                                     {settings.site_share_image ? (
-                                        <Image fill sizes="100vw" src={resolveSettingImageUrl(settings.site_share_image)} className="w-full h-full object-contain" />
+                                        <img src={resolveSettingImageUrl(settings.site_share_image)} className="w-full h-full object-contain" />
                                     ) : (
                                         <span className="text-xs text-gray-400 italic">No image selected</span>
                                     )}

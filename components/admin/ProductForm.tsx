@@ -8,7 +8,6 @@ import toast from 'react-hot-toast';
 import clsx from 'clsx';
 import RichTextEditor from './RichTextEditor';
 import { getImageUrl } from '@/lib/utils';
-import Image from "next/image";
 
 interface ProductFormProps {
     initialData?: any;
@@ -1791,7 +1790,8 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
                                         Preview
                                     </label>
                                     <div className="border border-gray-300 rounded-lg p-4">
-                                        <Image fill sizes="100vw"                                             src={resolveImageUrl(formData.image)}
+                                        <img
+                                            src={resolveImageUrl(formData.image)}
                                             alt="preview"
                                             className="w-full max-w-md h-48 object-cover rounded-lg mx-auto"
                                         />
@@ -1857,7 +1857,8 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
                                         {(Array.isArray(formData.gallery_images) ? formData.gallery_images : []).map((image, index) => (
                                             <div key={`gallery-${index}`} className="relative group">
                                                 <div className="aspect-square overflow-hidden rounded-lg border border-gray-300 bg-gray-100">
-                                                    <Image fill sizes="100vw"                                                         src={resolveImageUrl(image)}
+                                                    <img
+                                                        src={resolveImageUrl(image)}
                                                         alt={`Gallery Image ${index + 1}`}
                                                         className="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
                                                     />
@@ -1959,7 +1960,8 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
                                             className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         />
                                         {color.image && (
-                                            <Image fill sizes="100vw"                                                 src={resolveImageUrl(color.image)}
+                                            <img
+                                                src={resolveImageUrl(color.image)}
                                                 alt={`${color.name} preview`}
                                                 className="w-16 h-16 object-cover rounded-lg border border-gray-300"
                                             />

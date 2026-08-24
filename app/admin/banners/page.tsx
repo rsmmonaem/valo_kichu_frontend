@@ -5,7 +5,6 @@ import { Plus, Trash2, Image as ImageIcon } from 'lucide-react';
 import { authFetch } from '@/lib/api';
 import toast from 'react-hot-toast';
 import { getImageUrl } from '@/lib/utils';
-import Image from 'next/image';
 
 const BannersPage = () => {
     const [banners, setBanners] = useState<any[]>([]);
@@ -108,13 +107,11 @@ const BannersPage = () => {
                 {banners.map(banner => (
                     <div key={banner.id} className="relative group rounded-xl overflow-hidden shadow-sm border border-gray-100 bg-white">
                         <div className="aspect-video bg-gray-100 relative">
-                            <Image
+                            <img
                                 src={getImageUrl(banner.image_url)} // Use image_url from DB
                                 className="w-full h-full object-cover"
                                 alt={banner.title || "Banner"}
-                                fill
-                                sizes="(max-width: 768px) 100vw, 33vw"
-                                onError={(e) => (e.currentTarget.srcset = '/placeholder.png')}
+                                onError={(e) => (e.currentTarget.src = '/placeholder.png')}
                             />
                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                 <button onClick={() => handleDelete(banner.id)} className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transform hover:scale-110 transition">

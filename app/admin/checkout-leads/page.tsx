@@ -6,7 +6,6 @@ import { authFetch } from '@/lib/api';
 import toast, { Toaster } from 'react-hot-toast';
 import clsx from 'clsx';
 import Link from 'next/link';
-import Image from "next/image";
 
 interface Lead {
   id: number;
@@ -509,7 +508,8 @@ const CheckoutLeadsPage = () => {
                             <td className="p-3">
                               <div className="flex items-center gap-3">
                                 {item.image && (
-                                  <Image fill sizes="100vw"                                     src={
+                                  <img
+                                    src={
                                       item.image.startsWith("http")
                                         ? item.image
                                         : `${process.env.NEXT_PUBLIC_API_URL || "https://backend.valokichu.com"}/${item.image}`

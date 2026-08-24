@@ -4,7 +4,6 @@ import Link from "next/link";
 import { Phone, Facebook, Youtube, Instagram, Twitter } from "lucide-react";
 import { useSettings } from "@/context/SettingsContext";
 import * as fpixel from "@/lib/fpixel";
-import Image from "next/image";
 
 export default function Footer() {
   const { settings } = useSettings();
@@ -36,7 +35,8 @@ export default function Footer() {
               <span className="text-xl font-bold text-gray-800">
                 {/* {settings.footer_about_title || 'Valokichu'} */}
                 {settings.site_logo && (
-                  <Image fill sizes="100vw"                     src={(() => {
+                  <img
+                    src={(() => {
                       const logo = settings.site_logo;
                       if (!logo) return '';
                       if (logo.startsWith('http')) {
@@ -325,19 +325,22 @@ export default function Footer() {
             <span>We Accept:</span>
             <div className="flex items-center gap-2">
               <div>
-                <Image fill sizes="100vw"                   src={`/bkash.jpeg`}
+                <img
+                  src={`/bkash.jpeg`}
                   alt={settings.site_name || "Logo"}
                   className="h-10 w-auto group-hover:scale-105 transition-transform object-contain"
                 />
               </div>
               <div>
-                <Image fill sizes="100vw"                   src={`/nagad.png`}
+                <img
+                  src={`/nagad.png`}
                   alt={settings.site_name || "Logo"}
                   className="h-10 w-auto group-hover:scale-105 transition-transform object-contain"
                 />
               </div>
               <div>
-                <Image fill sizes="100vw"                   src={`/visa.png`}
+                <img
+                  src={`/visa.png`}
                   alt={settings.site_name || "Logo"}
                   className="h-10 w-auto group-hover:scale-105 transition-transform object-contain"
                 />

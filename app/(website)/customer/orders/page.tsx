@@ -6,7 +6,6 @@ import { ShoppingBag, Calendar, Package, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import clsx from "clsx";
 import { getImageUrl } from "@/lib/utils";
-import Image from "next/image";
 
 interface Order {
     id: number;
@@ -138,13 +137,11 @@ const OrdersPage = () => {
                                         {order.products?.map((item, idx) => (
                                             <div key={idx} className="flex items-center justify-between bg-white p-3 rounded-lg border border-gray-100">
                                                 <div className="flex items-center gap-4">
-                                                    <div className="w-12 h-12 relative bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                                                    <div className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
                                                         {item.product?.images?.[0] ? (
-                                                            <Image
+                                                            <img
                                                                 src={getImageUrl(item.product.images[0])}
                                                                 alt={item.product.name}
-                                                                fill
-                                                                sizes="48px"
                                                                 className="w-full h-full object-cover"
                                                             />
                                                         ) : (

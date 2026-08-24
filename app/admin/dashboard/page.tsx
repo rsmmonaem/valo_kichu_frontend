@@ -6,7 +6,6 @@ import { authFetch } from '@/lib/api';
 import clsx from 'clsx';
 import Link from 'next/link';
 import { getImageUrl } from '@/lib/utils';
-import Image from "next/image";
 
 interface DashboardData {
     stats: {
@@ -154,7 +153,8 @@ const AdminDashboard = () => {
                             data.trending_products.map((item: any, index: number) => (
                                 <div key={index} className="flex items-center gap-4 pb-4 border-b last:border-0 last:pb-0">
                                     <div className="w-10 h-10 rounded bg-gray-100 overflow-hidden">
-                                        <Image fill sizes="100vw"                                             src={(() => {
+                                        <img
+                                            src={(() => {
                                                 const imgUrl = item.image_url || item.image || '';
                                                 if (!imgUrl) return '/placeholder.png';
                                                 

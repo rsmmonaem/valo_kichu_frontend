@@ -3,7 +3,6 @@
 import React from "react";
 import Link from "next/link";
 import { Category } from "@/lib/api";
-import Image from "next/image";
 
 interface CategoryGridProps {
   categories: Category[];
@@ -38,7 +37,8 @@ const CategoryGrid: React.FC<CategoryGridProps> = ({ categories }) => {
           {/* Image Section */}
           <div className="w-full aspect-[16/10] sm:aspect-auto sm:h-40 md:h-52 bg-gray-50 overflow-hidden">
             {(cat.image_url || cat.image) ? (
-              <Image fill sizes="100vw"                 src={getImageUrl(cat.image_url || cat.image)}
+              <img
+                src={getImageUrl(cat.image_url || cat.image)}
                 alt={cat.name}
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 loading="lazy"

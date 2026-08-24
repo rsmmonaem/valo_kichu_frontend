@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { Users, User as UserIcon, Mail, Phone, Calendar, ArrowUpRight, Search, Loader2 } from 'lucide-react';
 import { authFetch } from '@/lib/api';
-import Image from "next/image";
 
 const ChildrenPage = () => {
     const [children, setChildren] = useState<any[]>([]);
@@ -73,7 +72,7 @@ const ChildrenPage = () => {
                                 <div className="flex items-center gap-4 mb-6">
                                     <div className="w-14 h-14 rounded-2xl bg-white border border-gray-100 flex items-center justify-center text-indigo-600 font-black text-xl shadow-sm relative overflow-hidden">
                                         {child.image_url ? (
-                                            <Image fill sizes="100vw" src={child.image_url} alt={child.first_name} className="w-full h-full object-cover" />
+                                            <img src={child.image_url} alt={child.first_name} className="w-full h-full object-cover" />
                                         ) : (
                                             child.first_name?.[0] || 'U'
                                         )}

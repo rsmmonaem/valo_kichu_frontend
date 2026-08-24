@@ -23,7 +23,6 @@ import Link from "next/link";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import Image from "next/image";
 
 const AdminOrdersPage = () => {
   const searchParams = useSearchParams();
@@ -1251,7 +1250,8 @@ const AdminOrdersPage = () => {
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 bg-gray-100 rounded shrink-0 overflow-hidden">
                               {item.product?.image_url ? (
-                                <Image fill sizes="100vw"                                   src={item.product.image_url}
+                                <img
+                                  src={item.product.image_url}
                                   alt={item.product?.name || "Product"}
                                   className="w-full h-full object-cover"
                                 />

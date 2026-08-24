@@ -4,7 +4,6 @@ import React, { useEffect, useState } from "react";
 import { authFetch } from "@/lib/api";
 import { User, Mail, Phone, MapPin, Calendar, ShieldCheck, Camera } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-import Image from "next/image";
 
 const InfoItem = ({ icon: Icon, label, value }: { icon: any, label: string, value: string | undefined | null }) => (
     <div className="p-4 rounded-xl bg-gray-50 border border-gray-100 group hover:border-blue-100 hover:bg-blue-50/50 transition-colors">
@@ -148,7 +147,8 @@ const CustomerDashboard = () => {
                 <div className="relative flex items-end justify-between -mt-12 mb-6">
                     <div className="flex items-end gap-6">
                         <div className="relative group">
-                            <Image fill sizes="100vw"                                 src={imagePreview || user.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=random`}
+                            <img
+                                src={imagePreview || user.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=random`}
                                 alt="Profile"
                                 className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-md bg-white"
                             />

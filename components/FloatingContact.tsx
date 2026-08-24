@@ -3,7 +3,6 @@ import React from 'react';
 import Link from 'next/link';
 import { PhoneCall } from 'lucide-react';
 import * as fpixel from '@/lib/fpixel';
-import Image from "next/image";
 
 export default function FloatingContact() {
     return (
@@ -16,7 +15,8 @@ export default function FloatingContact() {
                 title="Track your order"
                 prefetch={false}
             >
-                <Image fill sizes="100vw"                     src="/tracking.png"
+                <img
+                    src="/tracking.png"
                     alt="Track Your Order"
                     className="w-8 h-8 md:w-10 md:h-10 object-contain"
                 />

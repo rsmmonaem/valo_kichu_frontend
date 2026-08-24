@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import clsx from 'clsx';
 import { Banner } from '@/lib/api';
-import Image from "next/image";
 
 interface HeroSliderProps {
     banners: Banner[];
@@ -43,7 +42,8 @@ const HeroSlider: React.FC<HeroSliderProps> = ({ banners }) => {
                 >
                     {banner.link ? (
                         <Link href={banner.link} className="absolute inset-0 z-0" prefetch={false}>
-                            <Image fill sizes="100vw"                                 src={banner.image_url || ((banner.image && banner.image.startsWith('http')) ? banner.image : `${process.env.NEXT_PUBLIC_API_URL}/storage/${banner.image}`)}
+                            <img
+                                src={banner.image_url || ((banner.image && banner.image.startsWith('http')) ? banner.image : `${process.env.NEXT_PUBLIC_API_URL}/storage/${banner.image}`)}
                                 alt={banner.title || 'Banner'}
                                 className="w-full h-full object-cover"
                                 fetchPriority={index === 0 ? "high" : "auto"}
@@ -51,7 +51,8 @@ const HeroSlider: React.FC<HeroSliderProps> = ({ banners }) => {
                             />
                         </Link>
                     ) : (
-                        <Image fill sizes="100vw"                             src={banner.image_url || ((banner.image && banner.image.startsWith('http')) ? banner.image : `${process.env.NEXT_PUBLIC_API_URL}/storage/${banner.image}`)}
+                        <img
+                            src={banner.image_url || ((banner.image && banner.image.startsWith('http')) ? banner.image : `${process.env.NEXT_PUBLIC_API_URL}/storage/${banner.image}`)}
                             alt={banner.title || 'Banner'}
                             className="w-full h-full object-cover"
                             fetchPriority={index === 0 ? "high" : "auto"}

@@ -674,7 +674,8 @@ const CheckoutPage = () => {
                   >
                     <div className="flex gap-3 flex-1">
                       <div className="w-12 h-12 bg-gray-100 rounded shrink-0 overflow-hidden">
-                        <Image fill sizes="100vw"                           src={getImageUrl(item.image) || "/placeholder.png"}
+                        <img
+                          src={getImageUrl(item.image) || "/placeholder.png"}
                           alt={item.name}
                           className="w-full h-full object-cover"
                         />
