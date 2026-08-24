@@ -50,7 +50,7 @@ const CartPage = () => {
                                 <div className="col-span-12 md:col-span-6 flex gap-4">
                                     <div className="w-20 h-20 relative bg-gray-100 rounded-lg overflow-hidden shrink-0">
                                         <Image
-                                            src={getImageUrl(item.image) || '/placeholder.png'}
+                                            src={getImageUrl(item.variant?.image || item.image) || '/placeholder.png'}
                                             alt={item.name}
                                             fill
                                             sizes="80px"
