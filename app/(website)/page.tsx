@@ -38,19 +38,11 @@ export default async function Home() {
     <div className="bg-gray-50 min-h-screen">
       {/* Hero Slider Area */}  
       {settings.home_show_hero_slider !== 'false' && (
-              <div className="bg-white">
-              <div className="container mx-auto px-4 py-4 md:py-6">
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-                  {/* Sidebar Categories (Desktop only) */}
-                  <CategorySidebar categories={categories} />
-      
-                  {/* Main Banner Slider */}
-                  <div className="col-span-12 md:col-span-9">
-                    <HeroSlider banners={banners} />
-                  </div>
-                </div>
-              </div>
-            </div>
+        <div className="bg-white">
+          <div className="container mx-auto px-4 py-4 md:py-6">
+            <HeroSlider banners={banners} />
+          </div>
+        </div>
       )}
       {/* Category Carousel - Critical Path */}
       {settings.home_show_shop_by_category !== 'false' && (

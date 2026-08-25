@@ -190,6 +190,7 @@ const Header: React.FC<HeaderProps> = ({ categories }) => {
 
               <Link
                 href="/cart"
+                id="header-cart-icon"
                 className="relative text-gray-600 hover:text-blue-600 transition-colors flex flex-col items-center gap-0.5 group"
                 prefetch={false}
               >

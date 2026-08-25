@@ -75,12 +75,7 @@ export default async function StoreFront({ params }: { params: Promise<{ usernam
             {/* Hero Slider Area */}
             <div className="bg-white">
                 <div className="container mx-auto px-4 py-4 md:py-6">
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-                        <CategorySidebar categories={categories} />
-                        <div className="col-span-12 md:col-span-9">
-                            <HeroSlider banners={displayBanners} />
-                        </div>
-                    </div>
+                    <HeroSlider banners={displayBanners} />
                 </div>
             </div>
 

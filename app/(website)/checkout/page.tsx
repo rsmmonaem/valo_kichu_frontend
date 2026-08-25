@@ -778,39 +778,45 @@ const CheckoutPage = () => {
                           <Trash2 size={14} />
                           <span>Remove</span>
                         </button>
-                        <div className="flex items-center gap-1">
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              updateQuantity(
-                                item.id,
-                                item.quantity - 1,
-                                item.variant?.id
-                              );
-                            }}
-                            className="w-7 h-7 flex items-center justify-center hover:bg-gray-100 rounded border border-gray-200 disabled:opacity-50 bg-transparent cursor-pointer"
-                            disabled={item.quantity <= 1}
-                          >
-                            <Minus size={14} />
-                          </button>
-                          <span className="font-medium w-8 text-center text-sm">
-                            {item.quantity}
+                        <div className="flex flex-col items-end">
+                          <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                updateQuantity(
+                                  item.id,
+                                  item.quantity - 1,
+                                  item.variant?.id
+                                );
+                              }}
+                              className="w-7 h-7 flex items-center justify-center hover:bg-gray-100 rounded border border-gray-200 disabled:opacity-50 bg-transparent cursor-pointer"
+                              disabled={item.quantity <= 1}
+                            >
+                              <Minus size={14} />
+                            </button>
+                            <span className="font-medium w-8 text-center text-sm">
+                              {item.quantity}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                updateQuantity(
+                                  item.id,
+                                  item.quantity + 1,
+                                  item.variant?.id
+                                );
+                              }}
+                              className="w-7 h-7 flex items-center justify-center hover:bg-gray-100 rounded border border-gray-200 bg-transparent cursor-pointer"
+                            >
+                              <Plus size={14} />
+                            </button>
+                          </div>
+                          {/* Calculation line */}
+                          <span className="text-[10px] font-medium text-gray-500 mt-1">
+                            {item.quantity} × ৳{formatAmount(item.price)}
                           </span>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              updateQuantity(
-                                item.id,
-                                item.quantity + 1,
-                                item.variant?.id
-                              );
-                            }}
-                            className="w-7 h-7 flex items-center justify-center hover:bg-gray-100 rounded border border-gray-200 bg-transparent cursor-pointer"
-                          >
-                            <Plus size={14} />
-                          </button>
                         </div>
 
                       </div>

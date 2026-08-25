@@ -43,6 +43,7 @@ export default function MobileBottomNav() {
                         <Link
                             key={item.label}
                             href={item.href}
+                            id={item.label === "Cart" ? "mobile-bottom-cart-icon" : undefined}
                             onClick={(e) => handleNavClick(e, item)}
                             className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${isActive ? "text-blue-600" : "text-gray-500 hover:text-gray-900"
                                 }`}

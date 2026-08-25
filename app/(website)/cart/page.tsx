@@ -68,28 +68,34 @@ const CartPage = () => {
                                             </p>
                                         )}
                                         {/* Mobile: Remove + Qty controls in one row */}
-                                        <div className="flex items-center justify-between mt-2 md:hidden">
+                                        <div className="flex items-start justify-between mt-2 md:hidden">
                                             <button
                                                 onClick={() => removeFromCart(item.id, item.variant?.id)}
-                                                className="text-red-500 text-sm flex items-center gap-1 hover:text-red-700"
+                                                className="text-red-500 text-sm flex items-center gap-1 hover:text-red-700 mt-1"
                                             >
                                                 <Trash2 size={14} /> Remove
                                             </button>
-                                            <div className="flex items-center gap-1 border border-gray-200 rounded-lg overflow-hidden">
-                                                <button
-                                                    onClick={() => updateQuantity(item.id, item.quantity - 1, item.variant?.id)}
-                                                    className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 disabled:opacity-40 bg-transparent cursor-pointer"
-                                                    disabled={item.quantity <= 1}
-                                                >
-                                                    <Minus size={14} />
-                                                </button>
-                                                <span className="font-semibold w-6 text-center text-sm">{item.quantity}</span>
-                                                <button
-                                                    onClick={() => updateQuantity(item.id, item.quantity + 1, item.variant?.id)}
-                                                    className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 bg-transparent cursor-pointer"
-                                                >
-                                                    <Plus size={14} />
-                                                </button>
+                                            <div className="flex flex-col items-end">
+                                                <div className="flex items-center gap-1 border border-gray-200 rounded-lg overflow-hidden bg-white">
+                                                    <button
+                                                        onClick={() => updateQuantity(item.id, item.quantity - 1, item.variant?.id)}
+                                                        className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 disabled:opacity-40 bg-transparent cursor-pointer"
+                                                        disabled={item.quantity <= 1}
+                                                    >
+                                                        <Minus size={14} />
+                                                    </button>
+                                                    <span className="font-semibold w-6 text-center text-sm">{item.quantity}</span>
+                                                    <button
+                                                        onClick={() => updateQuantity(item.id, item.quantity + 1, item.variant?.id)}
+                                                        className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 bg-transparent cursor-pointer"
+                                                    >
+                                                        <Plus size={14} />
+                                                    </button>
+                                                </div>
+                                                {/* Qty * Price calculation line */}
+                                                <span className="text-[11px] font-medium text-gray-500 mt-1">
+                                                    {item.quantity} × ৳{formatAmount(item.price)} = <span className="font-bold text-blue-600">৳{formatAmount(item.price * item.quantity)}</span>
+                                                </span>
                                             </div>
                                         </div>
                                         {/* Desktop: Remove button only */}
@@ -106,28 +112,9 @@ const CartPage = () => {
                                     ৳{formatAmount(item.price)}
                                 </div>
 
-                                {/* <div className="col-span-2 flex items-center justify-between md:justify-center bg-gray-50 rounded-lg p-1 md:p-0">
-                                    <span className="text-sm font-medium text-gray-500 md:hidden px-2">Qty:</span>
-                                    <div className="flex items-center gap-3">
-                                        <button
-                                            onClick={() => updateQuantity(item.id, item.quantity - 1, item.variant?.id)}
-                                            className="p-1 hover:bg-white rounded shadow-sm disabled:opacity-50"
-                                            disabled={item.quantity <= 1}
-                                        >
-                                            <Minus size={14} />
-                                        </button>
-                                        <span className="font-medium w-6 text-center">{item.quantity}</span>
-                                        <button
-                                            onClick={() => updateQuantity(item.id, item.quantity + 1, item.variant?.id)}
-                                            className="p-1 hover:bg-white rounded shadow-sm"
-                                        >
-                                            <Plus size={14} />
-                                        </button>
-                                    </div>
-                                </div> */}
                                 {/* Desktop qty controls only */}
-                                <div className="col-span-2 hidden md:flex items-center justify-center">
-                                    <div className="flex items-center gap-1 border border-gray-200 rounded-lg overflow-hidden">
+                                <div className="col-span-2 hidden md:flex flex-col items-center justify-center">
+                                    <div className="flex items-center gap-1 border border-gray-200 rounded-lg overflow-hidden bg-white">
                                         <button
                                             onClick={() => updateQuantity(item.id, item.quantity - 1, item.variant?.id)}
                                             className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 disabled:opacity-40 bg-transparent cursor-pointer"
@@ -143,8 +130,11 @@ const CartPage = () => {
                                             <Plus size={14} />
                                         </button>
                                     </div>
+                                    {/* Qty * Price calculation line */}
+                                    <span className="text-[11px] font-medium text-gray-500 mt-1">
+                                        {item.quantity} × ৳{formatAmount(item.price)}
+                                    </span>
                                 </div>
-
 
                                 <div className="col-span-2 text-right font-bold text-gray-900 hidden md:block">
                                     ৳{formatAmount(item.price * item.quantity)}

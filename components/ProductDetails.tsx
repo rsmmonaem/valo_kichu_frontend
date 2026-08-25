@@ -28,6 +28,7 @@ import { formatProductDescriptionUniversal } from "@/lib/utils/formatProductDesc
 import { formatAmount } from "@/lib/utils/formatAmount";
 import * as fpixel from "@/lib/fpixel";
 import { getDefaultColor } from "@/lib/utils/getDefaultColorImage";
+import { flyToCart } from "@/lib/utils/flyToCart";
 
 interface ProductDetailsProps {
   product: Product;
@@ -318,7 +319,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
   }, [product.id, product.name, product.category?.name, displayPrice]);
 
 
-  const handleAddToCart = (redirect = false) => {
+  const handleAddToCart = (redirect = false, targetEl?: HTMLElement | null) => {
     const matchedVariation = getMatchedVariation();
     const variantId = matchedVariation?.id || [
       typeof selectedColor === 'string' ? selectedColor : selectedColor?.name || '',
@@ -344,20 +345,17 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
 
     addToCart(itemToAdd);
 
-    // Show the animation
+    // Trigger laser trail + flying particle animation to cart icon
     if (!redirect) {
+      flyToCart(targetEl);
       setShowCartAnimation(true);
-      // Hide animation after 2 seconds
       setTimeout(() => {
         setShowCartAnimation(false);
-      }, 2000);
+      }, 2200);
     }
 
     if (redirect) {
       router.push("/checkout");
-    } else {
-      // Optional: Show toast
-      // toggleCart(); // If we had a drawer
     }
   };
 
@@ -801,37 +799,12 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
 
           {/* Action Buttons — Frozen/Sticky at bottom ONLY on mobile, standard static in right column on desktop */}
           <div className="fixed bottom-16 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-gray-200 px-4 py-3 shadow-[0_-6px_20px_rgba(0,0,0,0.12)] flex gap-3 md:static md:p-0 md:bg-transparent md:border-0 md:shadow-none md:z-auto md:mt-4 md:mb-2 md:relative">
-            {/* Cart Animation - Only shown when showCartAnimation is true */}
-            {showCartAnimation && (
-              <div
-                className="
-                    absolute
-                    top-[-120%]
-                    left-4
-                    md:left-[10%]
-                    w-33
-                    md:w-35
-                    h-10
-                    p-3
-                    rounded-xl
-                    text-sm
-                    font-semibold
-                    z-50
-                    animate-cart-alert
-                    bg-gradient-to-r from-blue-600 to-indigo-600
-                    text-white
-                    shadow-lg shadow-blue-500/40
-                    flex items-center gap-2
-                    pointer-events-none
-                  "
-              >
-                🛒 Added to cart
-              </div>
-            )}
+            {/* Modern Cart Motion Animation Toast */}
+            {showCartAnimation && <AddtocartToster />}
 
             <button
               type="button"
-              onClick={() => handleAddToCart(false)}
+              onClick={(e) => handleAddToCart(false, e.currentTarget)}
               className="flex-1 bg-white border-2 border-blue-600 text-blue-600 py-3 rounded-xl font-bold hover:bg-blue-50 transition flex items-center justify-center gap-2 cursor-pointer text-sm md:text-base shadow-sm"
             >
               <ShoppingCart size={18} /> Add to Cart
@@ -845,34 +818,6 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
             >
               Buy Now
             </button>
-          </div>
-
-          {/* Trust Signals */}
-          <div className="grid grid-cols-3 gap-4 mt-4 pt-4 border-t border-gray-100">
-            <div className="text-center group">
-              <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition">
-                <Truck size={20} />
-              </div>
-              <span className="text-[10px] text-gray-500 font-medium uppercase">
-                Fast Delivery
-              </span>
-            </div>
-            <div className="text-center group">
-              <div className="w-10 h-10 bg-green-50 text-green-600 rounded-full flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition">
-                <ShieldCheck size={20} />
-              </div>
-              <span className="text-[10px] text-gray-500 font-medium uppercase">
-                Authentic
-              </span>
-            </div>
-            <div className="text-center group">
-              <div className="w-10 h-10 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition">
-                <ArrowLeftRight size={20} />
-              </div>
-              <span className="text-[10px] text-gray-500 font-medium uppercase">
-                Easy Returns
-              </span>
-            </div>
           </div>
         </div>
       </div>

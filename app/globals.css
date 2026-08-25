@@ -75,6 +75,51 @@ body {
   animation: cart-alert 2.2s ease-in-out forwards;
 }
 
+@keyframes modern-cart-toast {
+  0% {
+    opacity: 0;
+    transform: translateY(14px) scale(0.85);
+  }
+  16% {
+    opacity: 1;
+    transform: translateY(-3px) scale(1.03);
+  }
+  26% {
+    transform: translateY(0px) scale(1);
+  }
+  85% {
+    opacity: 1;
+    transform: translateY(0px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.92);
+  }
+}
+
+.animate-modern-cart-toast {
+  animation: modern-cart-toast 2.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes cart-bounce {
+  0%, 100% {
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(1.35) rotate(-6deg);
+  }
+  50% {
+    transform: scale(1.2) rotate(6deg);
+  }
+  75% {
+    transform: scale(1.1) rotate(0deg);
+  }
+}
+
+.animate-cart-bounce {
+  animation: cart-bounce 0.65s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
 /* Image Protection */
 img {
   -webkit-user-drag: none;
