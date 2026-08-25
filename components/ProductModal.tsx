@@ -912,16 +912,17 @@ className="object-cover"
 
                 {/* Mobile-only Color Selector — shown under the main image */}
                 {colorData.length > 0 && (
-                  <div className="block md:hidden mt-4 pt-4 border-t border-gray-100">
-                    <span className="font-bold text-gray-800 text-xs block mb-2">
-                      Color: {color?.name}
+                  <div className="block md:hidden mt-3 pt-3 border-t border-gray-100">
+                    <span className="font-semibold text-gray-800 text-xs block mb-1.5">
+                      Color: <span className="font-bold text-gray-900">{color?.name}</span>
                     </span>
-                    <div className="flex flex-wrap gap-2.5">
+                    <div className="flex flex-wrap gap-2">
                       {colorData.map((c: any) => {
                         const cartCountForColor = cart.filter(item => item.id === product.id && item.variant?.color === c.name).reduce((sum, item) => sum + item.quantity, 0);
                         return (
                         <button
                           key={c.id}
+                          type="button"
                           onClick={() => {
                             setColor(c);
                             setQuantity(1);
@@ -930,39 +931,34 @@ className="object-cover"
                               setHasImageError(false);
                             }
                           }}
-                          className={`relative flex flex-col items-center p-2 rounded-xl border-2 transition gap-1.5 min-w-[72px] cursor-pointer hover:scale-105 ${color?.id === c.id ? "border-blue-600 bg-blue-600 shadow-md ring-2 ring-blue-200" : cartCountForColor > 0 ? "border-blue-600 bg-white ring-1 ring-blue-100" : "border-gray-200 hover:border-gray-300 bg-white"}`}
+                          title={c.name}
+                          className={`relative p-0.5 rounded-lg border-2 transition overflow-visible cursor-pointer hover:scale-105 shrink-0 ${color?.id === c.id ? "border-blue-600 ring-2 ring-blue-200 shadow-sm" : cartCountForColor > 0 ? "border-blue-500 ring-1 ring-blue-100" : "border-gray-200 hover:border-gray-300 bg-white"}`}
                         >
                           {cartCountForColor > 0 && (
-                            <span className={`absolute -top-2 -right-2 text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-sm z-10 ${color?.id === c.id ? "bg-white text-blue-600" : "bg-blue-600 text-white"}`}>
+                            <span className={`absolute -top-1.5 -right-1.5 text-[9px] font-bold min-w-4 h-4 flex items-center justify-center rounded-full shadow-sm z-10 px-0.5 ${color?.id === c.id ? "bg-blue-600 text-white ring-1 ring-white" : "bg-blue-600 text-white"}`}>
                               {cartCountForColor}
                             </span>
                           )}
-                          <div className="relative w-8 h-8 rounded-lg overflow-hidden bg-gray-50 border border-gray-100 shrink-0">
+                          <div className="relative w-10 h-10 rounded-md overflow-hidden bg-gray-50 shrink-0">
                             {c.img ? (
                               <Image
                                 src={c.img}
-                                alt={c.name}
+                                alt={c.name || "Color"}
                                 fill
                                 sizes="(max-width: 768px) 100vw, 50vw"
-className="object-cover"
+                                className="object-cover"
                               />
                             ) : (
-                              <div className="w-full h-full flex items-center justify-center text-[10px] text-gray-400 bg-gray-100 font-bold uppercase">
-                                {c.name.substring(0, 2)}
+                              <div className="w-full h-full flex items-center justify-center text-[10px] text-gray-500 bg-gray-100 font-bold uppercase">
+                                {c.name?.substring(0, 2) || "CL"}
                               </div>
                             )}
                           </div>
-                          <span className={`text-[11px] font-semibold pr-1 text-center truncate w-full ${color?.id === c.id ? "text-white font-bold" : cartCountForColor > 0 ? "text-blue-600 font-bold" : "text-gray-700"}`}>
-                            {c.name}
-                          </span>
                         </button>
                       )})}
                     </div>
                   </div>
                 )}
-
-
-
 
                 {/* Video */}
                 {!isMobile && product.video_link && (
@@ -981,36 +977,36 @@ className="object-cover"
               {/* RIGHT COLUMN - Product Details */}
               <div>
                 {/* Product Name */}
-                <h2 className="text-xl md:text-3xl font-extrabold mb-3 md:max-w-[calc(100%-3rem)] overflow-hidden">
+                <h2 className="text-xl md:text-2xl font-extrabold mb-2 md:max-w-[calc(100%-3rem)] overflow-hidden">
                   {product.name}
                 </h2>
 
                 {/* Rating */}
-                <div className="flex items-center gap-1 mb-4">
+                <div className="flex items-center gap-1 mb-3">
                   {[...Array(5)].map((_, i) => (
                     <Star
                       key={i}
-                      size={18}
+                      size={15}
                       className="text-[#FFAC1C] fill-[#FFAC1C]"
                     />
                   ))}
-                  <span className="text-sm text-gray-500 ml-2">
+                  <span className="text-xs text-gray-500 ml-1.5">
                     ({product.rating_count || 0} reviews)
                   </span>
                 </div>
 
                 {/* Price */}
-                <div className="flex items-center gap-4 mb-4">
-                  <span className="text-3xl md:text-4xl font-extrabold text-blue-600">
+                <div className="flex items-baseline gap-3 mb-3">
+                  <span className="text-2xl md:text-3xl font-extrabold text-blue-600">
                     ৳{formatAmount(displayPrice)}
                   </span>
                   {(variationPrice !== null || hasDiscount) && displayPrice < basePrice && (
-                    <span className="text-lg text-gray-400 line-through">
+                    <span className="text-base md:text-lg text-gray-400 line-through">
                       ৳{formatAmount(basePrice)}
                     </span>
                   )}
                   {hasDiscount && variationPrice === null && (
-                    <span className="text-lg text-gray-400 line-through">
+                    <span className="text-base md:text-lg text-gray-400 line-through">
                       ৳{formatAmount(basePrice)}
                     </span>
                   )}
@@ -1018,11 +1014,11 @@ className="object-cover"
 
                 {/* Bulk Discount Offers Banner */}
                 {product.bulk_discount_rules && product.bulk_discount_rules.length > 0 && (
-                  <div className="mb-4 p-4 bg-gradient-to-r from-orange-50 to-amber-50 border border-amber-200/60 rounded-2xl">
-                    <span className="text-xs font-bold text-amber-700 uppercase tracking-wider block mb-2">🎁 Bulk Discount Offers</span>
-                    <div className="space-y-1.5">
+                  <div className="mb-3 p-3 bg-gradient-to-r from-orange-50 to-amber-50 border border-amber-200/60 rounded-xl">
+                    <span className="text-[11px] font-bold text-amber-700 uppercase tracking-wider block mb-1.5">🎁 Bulk Discount Offers</span>
+                    <div className="space-y-1">
                       {product.bulk_discount_rules.map((rule: any, idx: number) => (
-                        <div key={idx} className="flex justify-between items-center text-sm text-gray-700">
+                        <div key={idx} className="flex justify-between items-center text-xs text-gray-700">
                           <span>Buy <strong className="text-amber-800">{rule.min_qty} or more</strong>:</span>
                           <span className="font-semibold text-green-600">Save ৳{formatAmount(rule.discount_amount)} per item</span>
                         </div>
@@ -1031,39 +1027,25 @@ className="object-cover"
                   </div>
                 )}
 
-                {/* Total Price */}
-                <div className="flex flex-col gap-1.5 mb-4 bg-blue-50 border border-blue-100 rounded-2xl px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-gray-600">Total Price:</span>
-                    <span className="text-xl font-bold text-blue-600">
-                      ৳{formatAmount(previewTotalPrice)}
-                    </span>
-                    <span className="text-xs text-gray-400">(Tax incl.)</span>
-                  </div>
-                  {activeBulkDiscountPerItem > 0 && (
-                    <span className="text-xs text-green-600 font-bold">
-                      🎉 Bulk discount of ৳{formatAmount(activeBulkDiscountPerItem * quantity)} applied (৳{formatAmount(activeBulkDiscountPerItem)} off per item)!
-                    </span>
-                  )}
-                </div>
-
-
                 {/* Loyalty Points — single row */}
-                <div className="flex items-center gap-2 px-3 py-2 bg-yellow-50 border border-yellow-200 rounded-xl w-fit mb-4">
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-yellow-50 border border-yellow-200 rounded-xl w-fit mb-3">
                   <span className="text-xs text-gray-500 font-medium">Earn Loyalty Coins:</span>
                   <span className="font-bold text-yellow-600 text-xs">{product.loyalty_points || 0} Coins</span>
                 </div>
 
                 {/* Color Selection — hidden on mobile (shown under image instead) */}
                 {colorData.length > 0 && (
-                  <div className="hidden md:block mb-6">
-                    <h3 className="font-semibold mb-3">Color: {color?.name}</h3>
-                    <div className="flex flex-wrap gap-3">
+                  <div className="hidden md:block mb-4">
+                    <h3 className="font-semibold text-xs md:text-sm mb-2">
+                      Color: <span className="font-bold text-gray-900">{color?.name}</span>
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
                       {colorData.map((c: any) => {
                         const cartCountForColor = cart.filter(item => item.id === product.id && item.variant?.color === c.name).reduce((sum, item) => sum + item.quantity, 0);
                         return (
                         <button
                           key={c.id}
+                          type="button"
                           onClick={() => {
                             setColor(c);
                             setQuantity(1);
@@ -1072,31 +1054,29 @@ className="object-cover"
                               setHasImageError(false);
                             }
                           }}
-                          className={`relative flex flex-col items-center p-2 rounded-xl border-2 transition gap-1.5 min-w-[72px] cursor-pointer hover:scale-105 ${color?.id === c.id ? "border-blue-600 bg-blue-600 shadow-md ring-2 ring-blue-200" : cartCountForColor > 0 ? "border-blue-600 bg-white ring-1 ring-blue-100" : "border-gray-200 hover:border-gray-300 bg-white"}`}
+                          title={c.name}
+                          className={`relative p-0.5 rounded-lg border-2 transition overflow-visible cursor-pointer hover:scale-105 shrink-0 ${color?.id === c.id ? "border-blue-600 ring-2 ring-blue-200 shadow-sm" : cartCountForColor > 0 ? "border-blue-500 ring-1 ring-blue-100" : "border-gray-200 hover:border-gray-300 bg-white"}`}
                         >
                           {cartCountForColor > 0 && (
-                            <span className={`absolute -top-2 -right-2 text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-sm z-10 ${color?.id === c.id ? "bg-white text-blue-600" : "bg-blue-600 text-white"}`}>
+                            <span className={`absolute -top-1.5 -right-1.5 text-[9px] font-bold min-w-4 h-4 flex items-center justify-center rounded-full shadow-sm z-10 px-0.5 ${color?.id === c.id ? "bg-blue-600 text-white ring-1 ring-white" : "bg-blue-600 text-white"}`}>
                               {cartCountForColor}
                             </span>
                           )}
-                          <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-50 border border-gray-100 shrink-0">
+                          <div className="relative w-11 h-11 md:w-13 md:h-13 rounded-md overflow-hidden bg-gray-50 shrink-0">
                             {c.img ? (
                               <Image
                                 src={c.img}
-                                alt={c.name}
+                                alt={c.name || "Color"}
                                 fill
                                 sizes="(max-width: 768px) 100vw, 50vw"
-className="object-cover"
+                                className="object-cover"
                               />
                             ) : (
-                              <div className="w-full h-full flex items-center justify-center text-xs text-gray-400 bg-gray-100 font-bold uppercase">
-                                {c.name.substring(0, 2)}
+                              <div className="w-full h-full flex items-center justify-center text-xs text-gray-500 bg-gray-100 font-bold uppercase">
+                                {c.name?.substring(0, 2) || "CL"}
                               </div>
                             )}
                           </div>
-                          <span className={`text-xs font-semibold px-1 text-center truncate w-full ${color?.id === c.id ? "text-white font-bold" : cartCountForColor > 0 ? "text-blue-600 font-bold" : "text-gray-700"}`}>
-                            {c.name}
-                          </span>
                         </button>
                       )})}
                     </div>
@@ -1105,16 +1085,17 @@ className="object-cover"
 
                 {/* Weight Selection */}
                 {weightData.length > 0 && (
-                  <div className="mb-6">
-                    <h3 className="font-semibold mb-3">
-                      Weight: {weight?.name || weight}
+                  <div className="mb-3">
+                    <h3 className="font-semibold text-xs md:text-sm mb-2">
+                      Weight: <span className="font-bold text-gray-900">{weight?.name || weight}</span>
                     </h3>
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="flex flex-wrap gap-2">
                       {weightData.map((w: any) => (
                         <button
                           key={w.id}
+                          type="button"
                           onClick={() => { setWeight(w); setQuantity(1); }}
-                          className={`p-3 text-center rounded-xl cursor-pointer transition hover:scale-105 border ${w.id === weight?.id || w === weight
+                          className={`px-3 py-1.5 text-xs md:text-sm font-semibold rounded-lg cursor-pointer transition hover:scale-105 border ${w.id === weight?.id || w === weight
                             ? "border-blue-600 text-blue-600 bg-blue-50/10 ring-1 ring-blue-200"
                             : "bg-gray-100 border-transparent hover:border-gray-300"
                             }`}
@@ -1128,19 +1109,22 @@ className="object-cover"
 
                 {/* Size Selection */}
                 {sizeData.length > 0 && (
-                  <div className="mb-6">
-                    <h3 className="font-semibold mb-3">Size: {size}</h3>
-                    <div className="grid grid-cols-4 gap-4">
+                  <div className="mb-3">
+                    <h3 className="font-semibold text-xs md:text-sm mb-2">
+                      Size: <span className="font-bold text-gray-900">{size}</span>
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
                       {sizeData.map((s: any) => {
                         const cartCountForSize = cart.filter(item => item.id === product.id && item.variant?.size === s).reduce((sum, item) => sum + item.quantity, 0);
                         return (
                         <button
                           key={s}
+                          type="button"
                           onClick={() => { setSize(s); setQuantity(1); }}
-                          className={`relative p-3 text-center rounded-xl cursor-pointer transition hover:scale-105 border ${s === size ? "bg-blue-600 text-white border-blue-600 shadow-md" : cartCountForSize > 0 ? "border-blue-600 text-blue-600 bg-white ring-1 ring-blue-200" : "bg-gray-100 border-transparent hover:border-gray-300"}`}
+                          className={`relative px-3 py-1.5 text-xs md:text-sm font-semibold rounded-lg cursor-pointer transition hover:scale-105 border ${s === size ? "bg-blue-600 text-white border-blue-600 shadow-sm" : cartCountForSize > 0 ? "border-blue-600 text-blue-600 bg-white ring-1 ring-blue-200" : "bg-gray-100 border-transparent hover:border-gray-300"}`}
                         >
                           {cartCountForSize > 0 && (
-                            <span className={`absolute -top-2 -right-2 text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-sm z-10 ${s === size ? "bg-white text-blue-600" : "bg-blue-600 text-white"}`}>
+                            <span className={`absolute -top-1.5 -right-1.5 text-[9px] font-bold min-w-4 h-4 flex items-center justify-center rounded-full shadow-sm z-10 px-0.5 ${s === size ? "bg-white text-blue-600 ring-1 ring-blue-600" : "bg-blue-600 text-white"}`}>
                               {cartCountForSize}
                             </span>
                           )}
@@ -1152,27 +1136,31 @@ className="object-cover"
                 )}
 
                 {/* Quantity Selector */}
-                <div className="flex items-center gap-4 mb-6">
-                  <span className="font-semibold text-lg">Quantity</span>
-                  <div className="flex items-center border rounded-xl overflow-hidden">
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="font-semibold text-xs md:text-sm text-gray-800">Quantity:</span>
+                  <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden bg-white">
                     <button
-                      className="px-4 py-3 hover:bg-gray-100 active:bg-gray-200 disabled:opacity-50"
+                      type="button"
+                      className="p-2 hover:bg-gray-100 active:bg-gray-200 disabled:opacity-50 text-gray-600"
                       onClick={() => handleQuantityChange("decrement")}
                       disabled={quantity <= 1}
                     >
-                      <Minus size={16} />
+                      <Minus size={15} />
                     </button>
-                    <span className="px-6 font-bold min-w-[40px] text-center">
+                    <span className="w-10 font-bold text-sm text-center text-gray-800">
                       {quantity}
                     </span>
                     <button
-                      className="px-4 py-3 hover:bg-gray-100 active:bg-gray-200"
+                      type="button"
+                      className="p-2 hover:bg-gray-100 active:bg-gray-200 text-gray-600"
                       onClick={() => handleQuantityChange("increment")}
                     >
-                      <Plus size={16} />
+                      <Plus size={15} />
                     </button>
                   </div>
                 </div>
+
+
 
                 {/* Mobile Key Features */}
                 {isMobile &&
@@ -1259,59 +1247,16 @@ className="object-cover"
             </div>
           </div>
 
-          {/* Sticky CTA Buttons */}
-
-          {/* <div className="sticky bottom-0 bg-white border-t p-4 flex gap-4 z-40">
-            {showCartAnimation && (
-              //             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50">
-              // <AddtocartToster />
-              //             </div>
-              <div className="">
-                <AddtocartToster />
-              </div>
-            )}
-            <button
-              onClick={handleAddToCart}
-              className="flex-1 py-3 rounded-xl text-md font-semibold bg-[#FFAC1C] text-white shadow-lg hover:opacity-90 transition flex items-center justify-center gap-2"
-            >
-              <ShoppingCart size={18} />
-              Add to Cart
-            </button>
-
-            <button
-              onClick={handleBuyNow}
-              className="flex-1 py-3 rounded-xl text-md font-semibold bg-[#FFAC1C] text-white shadow-lg hover:opacity-90 transition"
-            >
-              Buy Now
-            </button>
-          </div> */}
-          {/* <div className="sticky bottom-0 bg-white border-t p-4 flex gap-4 z-40 ">
-            {showCartAnimation && <AddtocartToster />}
-
-            <button
-              onClick={handleAddToCart}
-              className="flex-1 py-3 rounded-xl text-md font-semibold bg-[#FFAC1C] text-white shadow-lg hover:opacity-90 transition flex items-center justify-center gap-2"
-            >
-              <ShoppingCart size={18} />
-              Add to Cart
-            </button>
-
-            <button
-              onClick={handleBuyNow}
-              className="flex-1 py-3 rounded-xl text-md font-semibold bg-[#FFAC1C] text-white shadow-lg hover:opacity-90 transition"
-            >
-              Buy Now
-            </button>
-          </div> */}
-          <div className="sticky bottom-0 bg-white border-t p-4 flex gap-4 z-40">
-
+          {/* Sticky CTA Buttons at bottom of Modal */}
+          <div className="sticky bottom-0 bg-white border-t border-gray-100 p-3 md:p-4 flex gap-3 md:gap-4 z-40 shadow-[0_-4px_12px_rgba(0,0,0,0.06)] shrink-0">
             {/* Add to Cart Button Wrapper */}
             <div className="flex-1 relative">
               {showCartAnimation && <AddtocartToster />}
 
               <button
+                type="button"
                 onClick={handleAddToCart}
-                className="w-full py-3 rounded-xl text-md font-semibold bg-[#FFAC1C] text-white shadow-lg hover:opacity-90 transition flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-3 rounded-xl text-sm md:text-base font-bold bg-[#FFAC1C] text-white shadow-md hover:opacity-90 transition flex items-center justify-center gap-2 cursor-pointer"
               >
                 <ShoppingCart size={18} />
                 Add to Cart
@@ -1320,13 +1265,13 @@ className="object-cover"
 
             {/* Buy Now Button */}
             <button
+              type="button"
               onClick={handleBuyNow}
-              className="flex-1 py-3 rounded-xl text-md font-semibold bg-[#FFAC1C] text-white shadow-lg hover:opacity-90 transition cursor-pointer"
+              className="flex-1 py-3 rounded-xl text-sm md:text-base font-bold bg-[#FFAC1C] text-white shadow-md hover:opacity-90 transition cursor-pointer"
             >
               Buy Now
             </button>
           </div>
-
         </div>
       </div>
 

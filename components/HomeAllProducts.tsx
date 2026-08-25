@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { getProducts, Product } from '@/lib/api';
 import ProductCard from '@/components/ProductCard';
-import ProductModal from '@/components/ProductModal';
 import InfiniteScrollTrigger from '@/components/InfiniteScrollTrigger';
 
 const HomeAllProducts = () => {
@@ -11,7 +10,6 @@ const HomeAllProducts = () => {
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
-    const [activeModalIndex, setActiveModalIndex] = useState<number | null>(null);
 
     const loadMore = async () => {
         if (isLoading || !hasMore) return;
@@ -50,18 +48,9 @@ const HomeAllProducts = () => {
 
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                     {products.map((product, idx) => (
-                        <ProductCard key={`${product.id}-${idx}`} product={product} onOpenModal={() => setActiveModalIndex(idx)} />
+                        <ProductCard key={`${product.id}-${idx}`} product={product} />
                     ))}
                 </div>
-
-                {activeModalIndex !== null && products[activeModalIndex] && (
-                    <ProductModal
-                        product={products[activeModalIndex]}
-                        onClose={() => setActiveModalIndex(null)}
-                        onNextProduct={activeModalIndex < products.length - 1 ? () => setActiveModalIndex(activeModalIndex + 1) : undefined}
-                        onPrevProduct={activeModalIndex > 0 ? () => setActiveModalIndex(activeModalIndex - 1) : undefined}
-                    />
-                )}
 
                 <InfiniteScrollTrigger
                     onIntersect={loadMore}

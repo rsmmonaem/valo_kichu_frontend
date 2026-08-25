@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Star,
   Truck,
@@ -34,13 +34,22 @@ interface ProductDetailsProps {
 }
 
 const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
-  const { cart, addToCart, toggleCart } = useCart();
+  const { cart = [], addToCart, toggleCart } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
   const isWishlisted = isInWishlist(product.id);
   const router = useRouter();
-  // console.log("Product in Details:", product);
-  // Parse Images
-  const galleryArray = parseGalleryImages(product.gallery_images) || [];
+
+  const [selectedImage, setSelectedImage] = useState(0);
+  const [mainImageOverride, setMainImageOverride] = useState<string | null>(null);
+  const [quantity, setQuantity] = useState(1);
+  const [showCartAnimation, setShowCartAnimation] = useState(false);
+
+  // Variations State
+  const [attributes, setAttributes] = useState<any[]>([]);
+  const [selectedColor, setSelectedColor] = useState<any>(null);
+  const [selectedSize, setSelectedSize] = useState<any>(null);
+  const [selectedWeight, setSelectedWeight] = useState<any>(null);
+  const [expanded, setExpanded] = useState<boolean>(false);
 
   // Standardize the API base URL to remove /api for storage links
   const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://backend.valokichu.com').replace(/\/api\/?$/, '');
@@ -71,28 +80,9 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
   };
 
   const mainImage = resolveImageUrl(product.image_url || ((typeof product.images === 'string') ? product.images : '') || product.image || '');
-
-  const allImages = product.gallery_image_urls && product.gallery_image_urls.length > 0
-    ? product.gallery_image_urls.map(img => resolveImageUrl(img))
-    : (galleryArray.length > 0
-      ? galleryArray.map(img => resolveImageUrl(img))
-      : [mainImage]);
-
-  const [selectedImage, setSelectedImage] = useState(0);
-  const [mainImageOverride, setMainImageOverride] = useState<string | null>(null);
-  const [quantity, setQuantity] = useState(1);
-  const [showCartAnimation, setShowCartAnimation] = useState(false); // New state for animation
-
-  // Variations State
-  const [attributes, setAttributes] = useState<any[]>([]);
-  const [selectedColor, setSelectedColor] = useState<any>(null);
-  const [selectedSize, setSelectedSize] = useState<any>(null);
-  const [selectedWeight, setSelectedWeight] = useState<any>(null);
-  const [expanded, setExpanded] = useState<boolean>(false);
-
-  // Safe parsing of product.variations and product.colors (handling potential JSON string or array)
-  const parsedVariations = React.useMemo(() => {
-    if (!product?.variations) return [];
+  // Safe parsing of product.variations and product.colors (handling potential JSON string or array or object)
+  const parsedVariations = useMemo(() => {
+    if (!product.variations) return [];
     if (typeof product.variations === 'string') {
       try {
         const parsed = JSON.parse(product.variations);
@@ -102,10 +92,10 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
       }
     }
     return Array.isArray(product.variations) ? product.variations : Object.values(product.variations);
-  }, [product?.variations]);
+  }, [product.variations]);
 
-  const parsedColors = React.useMemo(() => {
-    if (!product?.colors) return [];
+  const parsedColors = useMemo(() => {
+    if (!product.colors) return [];
     if (typeof product.colors === 'string') {
       try {
         const parsed = JSON.parse(product.colors);
@@ -115,30 +105,38 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
       }
     }
     return Array.isArray(product.colors) ? product.colors : Object.values(product.colors);
-  }, [product?.colors]);
+  }, [product.colors]);
 
-  // Derived Data
+  const galleryArray = parseGalleryImages(product.gallery_images) || [];
+  const productAttributes = parseAttributes(product.attributes) || [];
+
+  const allImages = product.gallery_image_urls && product.gallery_image_urls.length > 0
+    ? product.gallery_image_urls.map((img: string) => resolveImageUrl(img))
+    : (galleryArray.length > 0
+      ? galleryArray.map((img: string) => resolveImageUrl(img))
+      : [mainImage]);
+
+  // Extract size, color, weight from attributes + product data
   // For colors: prefer product.colors field, then fall back to attributes
-  const colorData = (() => {
+  const colorData = useMemo(() => {
     let colors = [];
     if (parsedColors.length > 0) {
       colors = parsedColors.map((c: any, idx: number) => ({
-        id: c.id || idx,
+        id: c.id || idx + 1,
         name: typeof c === "string" ? c : c.name || "",
         img: resolveImageUrl(c?.image || c?.color_image || ""),
         priority: c.priority ?? null,
       }));
     } else {
-      colors = attributes
-        .find((a) => a.name.toLowerCase() === "color")
-        ?.values.map((c: any, i: number) => ({
-          id: i,
-          name: typeof c === "string" ? c : c.name,
-          img: resolveImageUrl(c.image || ""),
+      colors = productAttributes
+        .find((a) => a.name?.toLowerCase() === "color")
+        ?.values.map((c: any, idx: number) => ({
+          id: idx + 1,
+          name: typeof c === "string" ? c : c.name || "",
+          img: resolveImageUrl(c?.image || ""),
           priority: null,
         })) || [];
     }
-
     // Sort colors based on priority (lowest number first, e.g. 1, 2, 3...)
     // Colors without priority come last
     return [...colors].sort((a, b) => {
@@ -147,11 +145,11 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
       if (aPriority === bPriority) return 0;
       return aPriority - bPriority;
     });
-  })();
+  }, [parsedColors, productAttributes]);
 
   // For sizes: merge from attributes AND variations
   const attrSizes =
-    attributes.find((a) => a.name.toLowerCase() === "size")?.values || [];
+    productAttributes.find((a) => a.name?.toLowerCase() === "size")?.values || [];
   const variationSizes = parsedVariations.length > 0
     ? [...new Set(parsedVariations.map((v: any) => v.size || getVariationAttr(v, 'size')).filter(Boolean))]
     : [];
@@ -161,7 +159,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
 
   // For weight: merge from attributes AND variations
   const attrWeights =
-    attributes
+    productAttributes
       .find((a) => a.name?.toLowerCase() === "weight")
       ?.values.map((c: any, idx: number) => ({
         id: idx + 1,
@@ -174,7 +172,6 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
   const weightData = attrWeights.length > 0
     ? attrWeights
     : variationWeightNames.map((w: any, idx: number) => ({ id: idx + 1, name: w, img: "" }));
-
 
   // Track recently viewed products
   useEffect(() => {
@@ -394,12 +391,76 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
     ? totalCartQuantity * previewUnitPrice
     : quantity * previewUnitPrice;
 
+  // Cart items helper for selected color (associated sizes in cart)
+  const cartSizesForSelectedColor = useMemo(() => {
+    const colorName = selectedColor?.name || (typeof selectedColor === 'string' ? selectedColor : '');
+    if (!colorName) return '';
+    const items = cart.filter(
+      (item) => item.id === product.id && item.variant?.color === colorName && item.variant?.size
+    );
+    if (items.length === 0) return '';
+    return items.map((item) => `${item.variant?.size}${item.quantity > 1 ? ` (${item.quantity})` : ''}`).join(', ');
+  }, [cart, product.id, selectedColor]);
+
+  // Cart items helper for selected size (associated colors in cart)
+  const cartColorsForSelectedSize = useMemo(() => {
+    if (!selectedSize) return '';
+    const items = cart.filter(
+      (item) => item.id === product.id && item.variant?.size === selectedSize && item.variant?.color
+    );
+    if (items.length === 0) return '';
+    return items.map((item) => `${item.variant?.color}${item.quantity > 1 ? ` (${item.quantity})` : ''}`).join(', ');
+  }, [cart, product.id, selectedSize]);
+
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      {/* Mobile-only Title Header (Above Image Slider) */}
+      <div className="block md:hidden px-4 pt-4 pb-2 bg-white">
+        <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+          <span className="text-blue-600 font-bold text-[10px] uppercase tracking-wider bg-blue-50 px-2 py-0.5 rounded">
+            {product.category?.name || "Store Item"}
+          </span>
+          {product.product_code && (
+            <span className="text-gray-500 font-bold text-[9px] uppercase tracking-widest bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200">
+              Code: {product.product_code}
+            </span>
+          )}
+        </div>
+        <h1 className="text-lg font-bold text-gray-900 leading-snug mb-1.5">
+          {product.name}
+        </h1>
+        <div className="flex items-center gap-3 text-xs mb-2">
+          <div className="flex items-center text-yellow-500 gap-1">
+            <Star size={14} fill="currentColor" />
+            <span className="font-bold text-gray-900">4.8</span>
+            <span className="text-gray-400 text-xs">(120 Reviews)</span>
+          </div>
+          <span className="text-gray-300">|</span>
+          <span className="text-green-600 font-medium text-xs">In Stock</span>
+        </div>
+
+        {/* Mobile Price: Placed directly below 4.8 (120 Reviews) | In Stock */}
+        <div className="flex items-baseline gap-2.5">
+          <span className="text-2xl font-bold text-blue-600">
+            ৳{formatAmount(displayPrice)}
+          </span>
+          {(variationPrice !== null || hasDiscount) && displayPrice < basePrice && (
+            <span className="text-sm text-gray-400 line-through">
+              ৳{formatAmount(basePrice)}
+            </span>
+          )}
+          {hasDiscount && variationPrice === null && (
+            <span className="text-sm text-gray-400 line-through">
+              ৳{formatAmount(basePrice)}
+            </span>
+          )}
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-8">
         {/* Image Gallery */}
         <div className="p-2 md:p-8 bg-white">
-          <div className="aspect-square rounded-xl overflow-hidden bg-gray-50 mb-4 border border-gray-100 relative group/gallery">
+          <div className="aspect-square rounded-xl overflow-hidden bg-gray-50 mb-3 border border-gray-100 relative group/gallery">
             {allImages.length > 0 ? (
               <Image
                 src={mainImageOverride || allImages[selectedImage]}
@@ -417,11 +478,11 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
 
             <button
               onClick={() => toggleWishlist(product)}
-              className="absolute top-4 right-4 p-3 bg-white/95 hover:bg-white text-gray-600 hover:text-red-500 rounded-full shadow-md z-20 transition duration-300 backdrop-blur-sm cursor-pointer hover:scale-105"
+              className="absolute top-4 right-4 p-2.5 bg-white/95 hover:bg-white text-gray-600 hover:text-red-500 rounded-full shadow-md z-20 transition duration-300 backdrop-blur-sm cursor-pointer hover:scale-105"
               title={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
             >
               <Heart
-                size={20}
+                size={18}
                 className={`transition-all duration-300 ${isWishlisted ? "fill-red-500 text-red-500 scale-110" : "text-gray-600"}`}
               />
             </button>
@@ -446,10 +507,10 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
                       setSelectedImage((prev) => (prev <= 0 ? allImages.length - 1 : prev - 1));
                     }
                   }}
-                  className="pointer-events-auto flex items-center justify-center w-9 h-9 md:w-11 md:h-11 bg-white/95 hover:bg-white text-gray-800 hover:text-blue-600 rounded-full border border-gray-150 shadow-md transition-all hover:scale-110 active:scale-95 cursor-pointer"
+                  className="pointer-events-auto flex items-center justify-center w-8 h-8 md:w-10 md:h-10 bg-white/95 hover:bg-white text-gray-800 hover:text-blue-600 rounded-full border border-gray-150 shadow-md transition-all hover:scale-110 active:scale-95 cursor-pointer"
                   title="Previous"
                 >
-                  <ChevronLeft size={22} className="mr-0.5" />
+                  <ChevronLeft size={18} className="mr-0.5" />
                 </button>
                 <button
                   type="button"
@@ -468,21 +529,21 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
                       setSelectedImage((prev) => (prev >= allImages.length - 1 ? 0 : prev + 1));
                     }
                   }}
-                  className="pointer-events-auto flex items-center justify-center w-9 h-9 md:w-11 md:h-11 bg-white/95 hover:bg-white text-gray-800 hover:text-blue-600 rounded-full border border-gray-150 shadow-md transition-all hover:scale-110 active:scale-95 cursor-pointer"
+                  className="pointer-events-auto flex items-center justify-center w-8 h-8 md:w-10 md:h-10 bg-white/95 hover:bg-white text-gray-800 hover:text-blue-600 rounded-full border border-gray-150 shadow-md transition-all hover:scale-110 active:scale-95 cursor-pointer"
                   title="Next"
                 >
-                  <ChevronRight size={22} className="ml-0.5" />
+                  <ChevronRight size={18} className="ml-0.5" />
                 </button>
               </div>
             )}
 
             {hasDiscount && salePrice && (
-              <div className="absolute top-4 left-4 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+              <div className="absolute top-4 left-4 bg-blue-600 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-lg">
                 -{Math.round(((basePrice - salePrice) / basePrice) * 100)}%
               </div>
             )}
           </div>
-          <div className="flex gap-2 md:gap-4 overflow-x-auto pb-2 scrollbar-hide">
+          <div className="flex gap-2 md:gap-3 overflow-x-auto pb-1 scrollbar-hide">
             {allImages.map((img, idx) => (
               <button
                 key={idx}
@@ -491,7 +552,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
                   setMainImageOverride(null);
                 }}
                 className={clsx(
-                  "w-16 h-16 md:w-20 md:h-20 flex shrink-0 rounded-lg overflow-hidden border-2 transition",
+                  "w-14 h-14 md:w-18 md:h-18 flex shrink-0 rounded-lg overflow-hidden border-2 transition",
                   selectedImage === idx && !mainImageOverride
                     ? "border-blue-600 ring-2 ring-blue-100"
                     : "border-gray-200 hover:border-gray-300"
@@ -514,8 +575,9 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
         </div>
 
         {/* Product Info */}
-        <div className="p-6 md:p-8 bg-gray-50 md:bg-white flex flex-col">
-          <div className="mb-2 flex items-center gap-2">
+        <div className="p-4 md:p-8 bg-gray-50 md:bg-white flex flex-col">
+          {/* Desktop Title & Details Header */}
+          <div className="hidden md:flex items-center gap-2 mb-2">
             <span className="text-blue-600 font-bold text-xs uppercase tracking-wider bg-blue-50 px-2 py-1 rounded">
               {product.category?.name || "Store Item"}
             </span>
@@ -525,13 +587,13 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
               </span>
             )}
           </div>
-          <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-3 leading-tight">
+          <h1 className="hidden md:block text-2xl lg:text-3xl font-bold text-gray-900 mb-2.5 leading-tight">
             {product.name}
           </h1>
 
-          <div className="flex items-center gap-4 mb-6">
+          <div className="hidden md:flex items-center gap-4 mb-4">
             <div className="flex items-center text-yellow-500 gap-1">
-              <Star size={18} fill="currentColor" />
+              <Star size={16} fill="currentColor" />
               <span className="font-bold text-gray-900">4.8</span>
               <span className="text-gray-400 text-sm">(120 Reviews)</span>
             </div>
@@ -539,18 +601,19 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
             <span className="text-green-600 font-medium text-sm">In Stock</span>
           </div>
 
-          <div className="flex items-baseline gap-4 mb-4">
-            <span className="text-4xl font-bold text-blue-600">
+          {/* Desktop Price (Mobile price is directly below rating) */}
+          <div className="hidden md:flex items-baseline gap-3 mb-3">
+            <span className="text-2xl md:text-3xl font-bold text-blue-600">
               ৳{formatAmount(displayPrice)}
             </span>
             {/* Show original base price as strikethrough if variation price or sale price applies */}
             {(variationPrice !== null || hasDiscount) && displayPrice < basePrice && (
-              <span className="text-xl text-gray-400 line-through">
+              <span className="text-base md:text-lg text-gray-400 line-through">
                 ৳{formatAmount(basePrice)}
               </span>
             )}
             {hasDiscount && variationPrice === null && (
-              <span className="text-xl text-gray-400 line-through">
+              <span className="text-base md:text-lg text-gray-400 line-through">
                 ৳{formatAmount(basePrice)}
               </span>
             )}
@@ -558,11 +621,11 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
 
           {/* Bulk Discount Offers Banner */}
           {product.bulk_discount_rules && product.bulk_discount_rules.length > 0 && (
-            <div className="mb-6 p-4 bg-gradient-to-r from-orange-50 to-amber-50 border border-amber-200/60 rounded-xl">
-              <span className="text-xs font-bold text-amber-700 uppercase tracking-wider block mb-2">🎁 Bulk Discount Offers</span>
-              <div className="space-y-1.5">
+            <div className="mb-3 p-3 bg-gradient-to-r from-orange-50 to-amber-50 border border-amber-200/60 rounded-xl">
+              <span className="text-[11px] font-bold text-amber-700 uppercase tracking-wider block mb-1.5">🎁 Bulk Discount Offers</span>
+              <div className="space-y-1">
                 {product.bulk_discount_rules.map((rule: any, idx: number) => (
-                  <div key={idx} className="flex justify-between items-center text-sm text-gray-700">
+                  <div key={idx} className="flex justify-between items-center text-xs text-gray-700">
                     <span>Buy <strong className="text-amber-800">{rule.min_qty} or more</strong>:</span>
                     <span className="font-semibold text-green-600">Save ৳{formatAmount(rule.discount_amount)} per item</span>
                   </div>
@@ -571,85 +634,69 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
             </div>
           )}
 
-          {/* Total Price */}
-          <div className="flex flex-col gap-1.5 mb-4 bg-blue-50 border border-blue-100 rounded-xl px-4 py-3">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold text-gray-600">Total Price:</span>
-              <span className="text-xl font-bold text-blue-600">
-                ৳{formatAmount(previewTotalPrice)}
-              </span>
-              <span className="text-xs text-gray-400">(Tax incl.)</span>
-            </div>
-            {activeBulkDiscountPerItem > 0 && (
-              <span className="text-xs text-green-600 font-bold">
-                🎉 Bulk discount of ৳{formatAmount(activeBulkDiscountPerItem * quantity)} applied (৳{formatAmount(activeBulkDiscountPerItem)} off per item)!
-              </span>
-            )}
-          </div>
-
-
-          <div className="mb-4 border-t border-b border-gray-100 py-4 space-y-4">
+          <div className="mb-3 border-t border-b border-gray-100 py-3 space-y-3">
             <div
-              className={`text-gray-600 text-sm md:text-base leading-relaxed ${!product.short_description ? "hidden" : ""}
-                [&_p]:mb-2 [&_ul]:list-disc [&_ul]:ml-4 [&_strong]:font-bold [&_b]:font-bold [&_a]:text-blue-600`}
+              className={`text-gray-600 text-xs md:text-sm leading-relaxed ${!product.short_description ? "hidden" : ""}
+                [&_p]:mb-1.5 [&_ul]:list-disc [&_ul]:ml-4 [&_strong]:font-bold [&_b]:font-bold [&_a]:text-blue-600`}
               dangerouslySetInnerHTML={{ __html: formatProductDescriptionUniversal(product.short_description || "") }}
             />
 
-            <div className="flex flex-col gap-4 mt-2">
-              {/* Color Selector */}
+            <div className="flex flex-col gap-3 mt-1">
+              {/* Color Selector — Only Keep Image */}
               {colorData.length > 0 && (
-                <div className="mb-2">
-                  <span className="font-bold text-gray-800 text-sm block mb-2">
-                    Color: {selectedColor?.name}
+                <div>
+                  <span className="font-semibold text-gray-800 text-xs md:text-sm block mb-1.5">
+                    Color: <span className="font-bold text-gray-900">{selectedColor?.name}</span>
+                    {cartSizesForSelectedColor && (
+                      <span className="text-blue-600 font-bold ml-1.5">
+                        + {cartSizesForSelectedColor}
+                      </span>
+                    )}
                   </span>
-                  <div className="flex flex-wrap gap-3">
+                  <div className="flex flex-wrap gap-2">
                     {colorData.map((c: any, idx: number) => {
                       const cartCountForColor = cart.filter(item => item.id === product.id && item.variant?.color === c.name).reduce((sum, item) => sum + item.quantity, 0);
                       return (
                         <button
                           key={idx}
+                          type="button"
                           onClick={() => {
-                          setSelectedColor(c);
-                          setQuantity(1);
-                      if (c.img) {
+                            setSelectedColor(c);
+                            setQuantity(1);
+                            if (c.img) {
                               setMainImageOverride(c.img);
                             }
                           }}
+                          title={c.name}
                           className={clsx(
-                            "relative flex flex-col items-center p-2 rounded-xl border-2 transition gap-1.5 min-w-[72px]",
+                            "relative p-0.5 rounded-lg border-2 transition overflow-visible cursor-pointer hover:scale-105 shrink-0",
                             selectedColor?.id === c.id
-                              ? "border-blue-600 bg-blue-600 shadow-md ring-2 ring-blue-200"
+                              ? "border-blue-600 ring-2 ring-blue-200 shadow-sm"
                               : cartCountForColor > 0
-                                ? "border-blue-600 bg-white ring-1 ring-blue-100"
+                                ? "border-blue-500 ring-1 ring-blue-100"
                                 : "border-gray-200 hover:border-gray-300 bg-white"
                           )}
                         >
                           {cartCountForColor > 0 && (
-                            <span className={`absolute -top-2 -right-2 text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-sm z-10 ${selectedColor?.id === c.id ? 'bg-white text-blue-600 ring-2 ring-blue-600' : 'bg-blue-600 text-white'}`}>
+                            <span className={`absolute -top-1.5 -right-1.5 text-[9px] font-bold min-w-4 h-4 flex items-center justify-center rounded-full shadow-sm z-10 px-0.5 ${selectedColor?.id === c.id ? 'bg-blue-600 text-white ring-1 ring-white' : 'bg-blue-600 text-white'}`}>
                               {cartCountForColor}
                             </span>
                           )}
-                          <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-50 border border-gray-100 shrink-0">
+                          <div className="relative w-11 h-11 md:w-13 md:h-13 rounded-md overflow-hidden bg-gray-50 shrink-0">
                             {c.img ? (
                               <Image
                                 src={c.img}
-                                alt={c.name}
+                                alt={c.name || "Color"}
                                 fill
                                 sizes="(max-width: 768px) 100vw, 50vw"
                                 className="object-cover"
                               />
                             ) : (
-                              <div className="w-full h-full flex items-center justify-center text-xs text-gray-400 bg-gray-100 font-bold uppercase">
-                                {c.name.substring(0, 2)}
+                              <div className="w-full h-full flex items-center justify-center text-xs text-gray-500 bg-gray-100 font-bold uppercase">
+                                {c.name?.substring(0, 2) || "CL"}
                               </div>
                             )}
                           </div>
-                          <span className={clsx(
-                            "text-xs font-semibold px-1 text-center truncate w-full",
-                            selectedColor?.id === c.id ? "text-white font-bold" : cartCountForColor > 0 ? "text-blue-600 font-bold" : "text-gray-700"
-                          )}>
-                            {c.name}
-                          </span>
                         </button>
                       )
                     })}
@@ -659,9 +706,14 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
 
               {/* Size Selector */}
               {sizeData.length > 0 && (
-                <div className="mb-2">
-                  <span className="font-bold text-gray-800 text-sm block mb-2">
-                    Size: {selectedSize}
+                <div>
+                  <span className="font-semibold text-gray-800 text-xs md:text-sm block mb-1.5">
+                    Size: <span className="font-bold text-gray-900">{selectedSize}</span>
+                    {cartColorsForSelectedSize && (
+                      <span className="text-blue-600 font-bold ml-1.5">
+                        + {cartColorsForSelectedSize}
+                      </span>
+                    )}
                   </span>
                   <div className="flex flex-wrap gap-2">
                     {sizeData.map((s: any, idx: number) => {
@@ -669,18 +721,19 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
                       return (
                         <button
                           key={idx}
+                          type="button"
                           onClick={() => { setSelectedSize(s); setQuantity(1); }}
                           className={clsx(
-                            "relative px-4 py-2 text-sm font-medium rounded-lg border transition",
+                            "relative px-3 py-1.5 text-xs md:text-sm font-semibold rounded-lg border transition",
                             selectedSize === s
-                              ? "bg-blue-600 text-white border-blue-600 shadow-md"
+                              ? "bg-blue-600 text-white border-blue-600 shadow-sm"
                               : cartCountForSize > 0
                                 ? "border-blue-600 text-blue-600 bg-white ring-1 ring-blue-200"
-                                : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
+                                : "bg-white text-gray-700 border-gray-200 hover:border-gray-300"
                           )}
                         >
                           {cartCountForSize > 0 && (
-                            <span className={`absolute -top-2 -right-2 text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-sm z-10 ${selectedSize === s ? 'bg-white text-blue-600 ring-2 ring-blue-600' : 'bg-blue-600 text-white'}`}>
+                            <span className={`absolute -top-1.5 -right-1.5 text-[9px] font-bold min-w-4 h-4 flex items-center justify-center rounded-full shadow-sm z-10 px-0.5 ${selectedSize === s ? 'bg-blue-600 text-white ring-1 ring-white' : 'bg-blue-600 text-white'}`}>
                               {cartCountForSize}
                             </span>
                           )}
@@ -694,20 +747,21 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
 
               {/* Weight Selector */}
               {weightData.length > 0 && (
-                <div className="mb-2">
-                  <span className="font-bold text-gray-800 text-sm block mb-2">
-                    Weight: {typeof selectedWeight === "string" ? selectedWeight : selectedWeight?.name || ""}
+                <div>
+                  <span className="font-semibold text-gray-800 text-xs md:text-sm block mb-1.5">
+                    Weight: <span className="font-bold text-gray-900">{typeof selectedWeight === "string" ? selectedWeight : selectedWeight?.name || ""}</span>
                   </span>
                   <div className="flex flex-wrap gap-2">
                     {weightData.map((w: any, idx: number) => (
                       <button
                         key={idx}
+                        type="button"
                         onClick={() => { setSelectedWeight(w); setQuantity(1); }}
                         className={clsx(
-                          "px-4 py-2 text-sm font-medium rounded-lg border transition",
+                          "px-3 py-1.5 text-xs md:text-sm font-semibold rounded-lg border transition",
                           (selectedWeight?.id === w.id || selectedWeight === w)
-                            ? "bg-blue-600 text-white border-blue-600 shadow-md"
-                            : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
+                            ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                            : "bg-white text-gray-700 border-gray-200 hover:border-gray-300"
                         )}
                       >
                         {w.name || w}
@@ -718,39 +772,42 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
               )}
 
               {/* Quantity Selector */}
-              <div className="mt-2">
-                <span className="font-bold text-gray-800 text-sm block mb-2">
+              <div>
+                <span className="font-semibold text-gray-800 text-xs md:text-sm block mb-1.5">
                   Quantity:
                 </span>
                 <div className="flex items-center border border-gray-300 rounded-lg w-fit bg-white">
                   <button
+                    type="button"
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="p-3 text-gray-600 hover:text-blue-600 transition"
+                    className="p-2 text-gray-600 hover:text-blue-600 transition"
                   >
-                    <Minus size={18} />
+                    <Minus size={16} />
                   </button>
-                  <span className="w-12 text-center font-bold text-gray-800">
+                  <span className="w-10 text-center font-bold text-gray-800 text-sm">
                     {quantity}
                   </span>
                   <button
+                    type="button"
                     onClick={() => setQuantity(quantity + 1)}
-                    className="p-3 text-gray-600 hover:text-blue-600 transition"
+                    className="p-2 text-gray-600 hover:text-blue-600 transition"
                   >
-                    <Plus size={18} />
+                    <Plus size={16} />
                   </button>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="flex gap-4 mt-auto relative">
+          {/* Action Buttons — Frozen/Sticky at bottom ONLY on mobile, standard static in right column on desktop */}
+          <div className="fixed bottom-16 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-gray-200 px-4 py-3 shadow-[0_-6px_20px_rgba(0,0,0,0.12)] flex gap-3 md:static md:p-0 md:bg-transparent md:border-0 md:shadow-none md:z-auto md:mt-4 md:mb-2 md:relative">
             {/* Cart Animation - Only shown when showCartAnimation is true */}
             {showCartAnimation && (
               <div
                 className="
                     absolute
                     top-[-120%]
-                    left-[-3%]
+                    left-4
                     md:left-[10%]
                     w-33
                     md:w-35
@@ -759,10 +816,10 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
                     rounded-xl
                     text-sm
                     font-semibold
-                    z-10
+                    z-50
                     animate-cart-alert
                     bg-gradient-to-r from-blue-600 to-indigo-600
-      text-white
+                    text-white
                     shadow-lg shadow-blue-500/40
                     flex items-center gap-2
                     pointer-events-none
@@ -773,16 +830,18 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
             )}
 
             <button
+              type="button"
               onClick={() => handleAddToCart(false)}
-              className="flex-1 bg-white border-2 border-blue-600 text-blue-600 py-3.5 rounded-xl font-bold hover:bg-blue-50 transition flex items-center justify-center gap-2 cursor-pointer"
+              className="flex-1 bg-white border-2 border-blue-600 text-blue-600 py-3 rounded-xl font-bold hover:bg-blue-50 transition flex items-center justify-center gap-2 cursor-pointer text-sm md:text-base shadow-sm"
             >
-              <ShoppingCart size={20} /> Add to Cart
+              <ShoppingCart size={18} /> Add to Cart
             </button>
             <button
+              type="button"
               onClick={() => {
                 handleAddToCart(true);
               }}
-              className="flex-1 bg-blue-600 text-white py-3.5 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-600/30 cursor-pointer"
+              className="flex-1 bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition shadow-md shadow-blue-600/30 cursor-pointer text-sm md:text-base"
             >
               Buy Now
             </button>
@@ -885,6 +944,8 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
           </div>
         </div>
       </div>
+      {/* Mobile Spacer for sticky bottom action bar */}
+      <div className="h-28 md:hidden" />
     </div>
   );
 };
