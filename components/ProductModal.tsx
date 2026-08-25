@@ -201,16 +201,6 @@ export default function ProductModal({
   );
   const [weight, setWeight] = useState(weightData[0]);
 
-  console.log("ProductModal Debug JSON:", JSON.stringify({
-    productName: product?.name,
-    productColors: product?.colors,
-    productVariations: product?.variations,
-    parsedColors,
-    parsedVariations,
-    colorData,
-    sizeData,
-    weightData
-  }));
 
   // ---------------- EFFECTS ----------------
   useEffect(() => {
@@ -730,8 +720,13 @@ export default function ProductModal({
       }
     }
   }
-  const previewUnitPrice = Math.max(0, displayPrice - activeBulkDiscountPerItem);
-  const previewTotalPrice = previewUnitPrice * quantity;
+  const productCartItems = cart.filter((item) => item.id === product?.id);
+  const totalCartQuantity = productCartItems.reduce((sum, item) => sum + item.quantity, 0);
+
+  // Total Price = (total variant count in cart * product price), or (quantity * product price) if cart is empty
+  const previewTotalPrice = totalCartQuantity > 0
+    ? totalCartQuantity * previewUnitPrice
+    : previewUnitPrice * quantity;
 
   if (!product) return null;
 
@@ -937,7 +932,7 @@ className="object-cover"
                           className={`relative flex flex-col items-center p-2 rounded-xl border-2 transition gap-1.5 min-w-[72px] cursor-pointer hover:scale-105 ${color?.id === c.id ? "border-blue-600 bg-blue-600 shadow-md ring-2 ring-blue-200" : cartCountForColor > 0 ? "border-blue-600 bg-white ring-1 ring-blue-100" : "border-gray-200 hover:border-gray-300 bg-white"}`}
                         >
                           {cartCountForColor > 0 && (
-                            <span className="absolute -top-2 -right-2 bg-blue-600 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-sm z-10">
+                            <span className={`absolute -top-2 -right-2 text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-sm z-10 ${color?.id === c.id ? "bg-white text-blue-600" : "bg-blue-600 text-white"}`}>
                               {cartCountForColor}
                             </span>
                           )}
@@ -1079,7 +1074,7 @@ className="object-cover"
                           className={`relative flex flex-col items-center p-2 rounded-xl border-2 transition gap-1.5 min-w-[72px] cursor-pointer hover:scale-105 ${color?.id === c.id ? "border-blue-600 bg-blue-600 shadow-md ring-2 ring-blue-200" : cartCountForColor > 0 ? "border-blue-600 bg-white ring-1 ring-blue-100" : "border-gray-200 hover:border-gray-300 bg-white"}`}
                         >
                           {cartCountForColor > 0 && (
-                            <span className="absolute -top-2 -right-2 bg-blue-600 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-sm z-10">
+                            <span className={`absolute -top-2 -right-2 text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-sm z-10 ${color?.id === c.id ? "bg-white text-blue-600" : "bg-blue-600 text-white"}`}>
                               {cartCountForColor}
                             </span>
                           )}
@@ -1144,7 +1139,7 @@ className="object-cover"
                           className={`relative p-3 text-center rounded-xl cursor-pointer transition hover:scale-105 border ${s === size ? "bg-blue-600 text-white border-blue-600 shadow-md" : cartCountForSize > 0 ? "border-blue-600 text-blue-600 bg-white ring-1 ring-blue-200" : "bg-gray-100 border-transparent hover:border-gray-300"}`}
                         >
                           {cartCountForSize > 0 && (
-                            <span className="absolute -top-2 -right-2 bg-blue-600 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-sm z-10">
+                            <span className={`absolute -top-2 -right-2 text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-sm z-10 ${s === size ? "bg-white text-blue-600" : "bg-blue-600 text-white"}`}>
                               {cartCountForSize}
                             </span>
                           )}

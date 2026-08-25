@@ -175,7 +175,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
     ? attrWeights
     : variationWeightNames.map((w: any, idx: number) => ({ id: idx + 1, name: w, img: "" }));
 
-  
+
   // Track recently viewed products
   useEffect(() => {
     if (product && product.slug) {
@@ -385,7 +385,14 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
     }
   }
   const previewUnitPrice = Math.max(0, displayPrice - activeBulkDiscountPerItem);
-  const previewTotalPrice = previewUnitPrice * quantity;
+
+  const productCartItems = cart.filter((item) => item.id === product.id);
+  const totalCartQuantity = productCartItems.reduce((sum, item) => sum + item.quantity, 0);
+
+  // Total Price = (total variant count in cart * product price), or (quantity * product price) if cart is empty
+  const previewTotalPrice = totalCartQuantity > 0
+    ? totalCartQuantity * previewUnitPrice
+    : quantity * previewUnitPrice;
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -399,7 +406,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
                 alt={product.name}
                 fill
                 sizes="(max-width: 768px) 100vw, 50vw"
-priority
+                priority
                 className="object-cover"
               />
             ) : (
@@ -418,7 +425,7 @@ priority
                 className={`transition-all duration-300 ${isWishlisted ? "fill-red-500 text-red-500 scale-110" : "text-gray-600"}`}
               />
             </button>
-            
+
             {/* Prev/Next Navigation Arrows inside Image */}
             {(colorData.length > 1 || allImages.length > 1) && (
               <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 pointer-events-none flex justify-between px-3 z-10">
@@ -496,7 +503,7 @@ priority
                     alt=""
                     fill
                     sizes="(max-width: 768px) 100vw, 50vw"
-className="object-cover"
+                    className="object-cover"
                   />
                 </div>
               </button>
@@ -599,52 +606,53 @@ className="object-cover"
                     {colorData.map((c: any, idx: number) => {
                       const cartCountForColor = cart.filter(item => item.id === product.id && item.variant?.color === c.name).reduce((sum, item) => sum + item.quantity, 0);
                       return (
-                      <button
-                        key={idx}
-                        onClick={() => {
-                      setSelectedColor(c);
-                      setQuantity(1);
+                        <button
+                          key={idx}
+                          onClick={() => {
+                          setSelectedColor(c);
+                          setQuantity(1);
                       if (c.img) {
-                            setMainImageOverride(c.img);
-                          }
-                        }}
-                        className={clsx(
-                      "relative flex flex-col items-center p-2 rounded-xl border-2 transition gap-1.5 min-w-[72px]",
-                      selectedColor?.id === c.id
-                        ? "border-blue-600 bg-blue-600 shadow-md ring-2 ring-blue-200"
-                        : cartCountForColor > 0
-                        ? "border-blue-600 bg-white ring-1 ring-blue-100"
-                        : "border-gray-200 hover:border-gray-300 bg-white"
-                    )}
-                      >
-                        {cartCountForColor > 0 && (
-                          <span className="absolute -top-2 -right-2 bg-blue-600 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-sm z-10">
-                            {cartCountForColor}
-                          </span>
-                        )}
-                        <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-50 border border-gray-100 shrink-0">
-                          {c.img ? (
-                            <Image
-                              src={c.img}
-                              alt={c.name}
-                              fill
-                              sizes="(max-width: 768px) 100vw, 50vw"
-className="object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-xs text-gray-400 bg-gray-100 font-bold uppercase">
-                              {c.name.substring(0, 2)}
-                            </div>
+                              setMainImageOverride(c.img);
+                            }
+                          }}
+                          className={clsx(
+                            "relative flex flex-col items-center p-2 rounded-xl border-2 transition gap-1.5 min-w-[72px]",
+                            selectedColor?.id === c.id
+                              ? "border-blue-600 bg-blue-600 shadow-md ring-2 ring-blue-200"
+                              : cartCountForColor > 0
+                                ? "border-blue-600 bg-white ring-1 ring-blue-100"
+                                : "border-gray-200 hover:border-gray-300 bg-white"
                           )}
-                        </div>
-                        <span className={clsx(
-                          "text-xs font-semibold px-1 text-center truncate w-full",
-                          selectedColor?.id === c.id ? "text-white font-bold" : cartCountForColor > 0 ? "text-blue-600 font-bold" : "text-gray-700"
-                        )}>
-                          {c.name}
-                        </span>
-                      </button>
-                    )})}
+                        >
+                          {cartCountForColor > 0 && (
+                            <span className={`absolute -top-2 -right-2 text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-sm z-10 ${selectedColor?.id === c.id ? 'bg-white text-blue-600 ring-2 ring-blue-600' : 'bg-blue-600 text-white'}`}>
+                              {cartCountForColor}
+                            </span>
+                          )}
+                          <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-50 border border-gray-100 shrink-0">
+                            {c.img ? (
+                              <Image
+                                src={c.img}
+                                alt={c.name}
+                                fill
+                                sizes="(max-width: 768px) 100vw, 50vw"
+                                className="object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-xs text-gray-400 bg-gray-100 font-bold uppercase">
+                                {c.name.substring(0, 2)}
+                              </div>
+                            )}
+                          </div>
+                          <span className={clsx(
+                            "text-xs font-semibold px-1 text-center truncate w-full",
+                            selectedColor?.id === c.id ? "text-white font-bold" : cartCountForColor > 0 ? "text-blue-600 font-bold" : "text-gray-700"
+                          )}>
+                            {c.name}
+                          </span>
+                        </button>
+                      )
+                    })}
                   </div>
                 </div>
               )}
@@ -659,26 +667,27 @@ className="object-cover"
                     {sizeData.map((s: any, idx: number) => {
                       const cartCountForSize = cart.filter(item => item.id === product.id && item.variant?.size === s).reduce((sum, item) => sum + item.quantity, 0);
                       return (
-                      <button
-                        key={idx}
-                        onClick={() => { setSelectedSize(s); setQuantity(1); }}
-                        className={clsx(
-                          "relative px-4 py-2 text-sm font-medium rounded-lg border transition",
-                          selectedSize === s
-                            ? "bg-blue-600 text-white border-blue-600 shadow-md"
-                            : cartCountForSize > 0
-                            ? "border-blue-600 text-blue-600 bg-white ring-1 ring-blue-200"
-                            : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
-                        )}
-                      >
-                        {cartCountForSize > 0 && (
-                          <span className="absolute -top-2 -right-2 bg-blue-600 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-sm z-10">
-                            {cartCountForSize}
-                          </span>
-                        )}
-                        {s}
-                      </button>
-                    )})}
+                        <button
+                          key={idx}
+                          onClick={() => { setSelectedSize(s); setQuantity(1); }}
+                          className={clsx(
+                            "relative px-4 py-2 text-sm font-medium rounded-lg border transition",
+                            selectedSize === s
+                              ? "bg-blue-600 text-white border-blue-600 shadow-md"
+                              : cartCountForSize > 0
+                                ? "border-blue-600 text-blue-600 bg-white ring-1 ring-blue-200"
+                                : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
+                          )}
+                        >
+                          {cartCountForSize > 0 && (
+                            <span className={`absolute -top-2 -right-2 text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-sm z-10 ${selectedSize === s ? 'bg-white text-blue-600 ring-2 ring-blue-600' : 'bg-blue-600 text-white'}`}>
+                              {cartCountForSize}
+                            </span>
+                          )}
+                          {s}
+                        </button>
+                      )
+                    })}
                   </div>
                 </div>
               )}
