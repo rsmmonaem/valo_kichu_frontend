@@ -760,8 +760,8 @@ const CheckoutPage = () => {
                             </p>
                           )}
                         </div>
-                        <p className="font-bold text-gray-900 whitespace-nowrap">
-                          ৳{formatAmount(item.price * item.quantity)}
+                        <p className="font-semibold text-gray-900 whitespace-nowrap text-sm">
+                          ৳{formatAmount(item.price)}
                         </p>
                       </div>
 
@@ -813,9 +813,9 @@ const CheckoutPage = () => {
                               <Plus size={14} />
                             </button>
                           </div>
-                          {/* Calculation line */}
+                          {/* Calculation line with Total Price */}
                           <span className="text-[10px] font-medium text-gray-500 mt-1">
-                            {item.quantity} × ৳{formatAmount(item.price)}
+                            {item.quantity} × ৳{formatAmount(item.price)} = <span className="font-bold text-blue-600">৳{formatAmount(item.price * item.quantity)}</span>
                           </span>
                         </div>
 
