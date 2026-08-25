@@ -720,6 +720,7 @@ export default function ProductModal({
       }
     }
   }
+  const previewUnitPrice = Math.max(0, displayPrice - activeBulkDiscountPerItem);
   const productCartItems = cart.filter((item) => item.id === product?.id);
   const totalCartQuantity = productCartItems.reduce((sum, item) => sum + item.quantity, 0);
 
