@@ -9,15 +9,19 @@ import { Product } from '@/lib/api';
 import { formatAmount } from '@/lib/utils/formatAmount';
 import { getDefaultColor } from '@/lib/utils/getDefaultColorImage';
 import { getImageUrl } from '@/lib/utils';
+import { trackSelectItem, mapProductToGAItem } from '@/lib/gtm';
 
 interface ProductCardProps {
     product: Product;
+    index?: number;
+    listName?: string;
+    listId?: string;
     onNextProduct?: () => void;
     onPrevProduct?: () => void;
     onOpenModal?: () => void;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
+const ProductCard: React.FC<ProductCardProps> = ({ product, index, listName, listId }) => {
     const { toggleWishlist, isInWishlist } = useWishlist();
     const isWishlisted = isInWishlist(product.id);
 
@@ -80,9 +84,15 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     const salePrice = product.sale_price ? parseFloat(product.sale_price) : null;
     const hasDiscount = salePrice && salePrice > 0 && salePrice < basePrice;
 
+    const handleProductClick = () => {
+        const gaItem = mapProductToGAItem(product, index, 1, undefined, listName, listId);
+        trackSelectItem(gaItem, listId || 'product_list', listName || 'Product List');
+    };
+
     return (
         <Link
             href={`/products/${product.slug}`}
+            onClick={handleProductClick}
             className="group bg-white rounded-xl border border-gray-100 hover:border-blue-600/30 hover:shadow-lg transition duration-300 overflow-hidden flex flex-col h-full relative cursor-pointer"
         >
             <div className="aspect-square bg-gray-100 relative overflow-hidden">

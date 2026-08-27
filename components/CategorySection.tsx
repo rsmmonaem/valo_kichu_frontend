@@ -1,10 +1,11 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { Star, ChevronRight } from 'lucide-react';
 import { Product } from '@/lib/api';
 import ProductCard from './ProductCard';
+import { trackViewItemList, mapProductToGAItem } from '@/lib/gtm';
 
 interface CategorySectionProps {
     title: string;
@@ -14,6 +15,15 @@ interface CategorySectionProps {
 
 const CategorySection: React.FC<CategorySectionProps> = ({ title, categorySlug, products }) => {
     const displayProducts = products.slice(0, 6);
+    const listId = `category_section_${categorySlug}`;
+    const listName = `Category Section: ${title}`;
+
+    useEffect(() => {
+        if (displayProducts && displayProducts.length > 0) {
+            const gaItems = displayProducts.map((p, idx) => mapProductToGAItem(p, idx + 1, 1, undefined, listName, listId));
+            trackViewItemList(gaItems, listId, listName);
+        }
+    }, [displayProducts.length, categorySlug, title]);
 
     return (
         <section className="py-8 border-b border-gray-100 bg-white mb-4">
@@ -30,8 +40,14 @@ const CategorySection: React.FC<CategorySectionProps> = ({ title, categorySlug, 
 
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 border-t border-gray-50 pt-4">
                     {displayProducts.length > 0 ? (
-                        displayProducts.map((product) => (
-                            <ProductCard key={product.id} product={product} />
+                        displayProducts.map((product, idx) => (
+                            <ProductCard
+                                key={product.id}
+                                product={product}
+                                index={idx + 1}
+                                listName={listName}
+                                listId={listId}
+                            />
                         ))
                     ) : (
                         <div className="col-span-full py-8 text-center text-gray-400 bg-gray-50 rounded-lg border border-dashed border-gray-200">

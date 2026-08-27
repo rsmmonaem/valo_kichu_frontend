@@ -25,6 +25,13 @@ import Image from "next/image";
 // import toast from "react-hot-toast";
 import toast, { Toaster } from "react-hot-toast";
 import { formatAmount } from "@/lib/utils/formatAmount";
+import {
+  trackBeginCheckout,
+  trackAddShippingInfo,
+  trackAddPaymentInfo,
+  trackPurchase,
+  mapCartItemToGAItem
+} from "@/lib/gtm";
 
 interface ShippingMethod {
   id: number;
@@ -48,6 +55,7 @@ const CheckoutPage = () => {
       const firstName = nameParts[0] || '';
       const lastName = nameParts.slice(1).join(' ') || '';
 
+      // Meta Pixel: Track InitiateCheckout
       fpixel.event('InitiateCheckout', {
         content_ids: cart.map((item) => item.id.toString()),
         content_type: 'product',
@@ -66,6 +74,11 @@ const CheckoutPage = () => {
         city: user?.address || undefined,
         externalId: user?.id ? String(user.id) : undefined,
       });
+
+      // GA4: Track begin_checkout
+      const gaItems = cart.map((item, idx) => mapCartItemToGAItem(item, idx + 1));
+      trackBeginCheckout(gaItems, Number(cartTotal || 0));
+
       setHasInitiatedCheckout(true);
     }
   }, [cart, cartTotal, hasInitiatedCheckout, user]);
@@ -255,8 +268,13 @@ const CheckoutPage = () => {
     if (name === "area") {
       const method = shippingMethods.find((m) => m.name === value);
       if (method) {
-        setShippingCost(Number(method.cost));
+        const cost = Number(method.cost);
+        setShippingCost(cost);
         setShowAreaError(false);
+
+        // GA4: Track add_shipping_info
+        const gaItems = cart.map((item, idx) => mapCartItemToGAItem(item, idx + 1));
+        trackAddShippingInfo(gaItems, Number(cartTotal || 0) + cost, value);
       } else {
         setShippingCost(0);
       }
@@ -327,6 +345,14 @@ const CheckoutPage = () => {
         externalId: user?.id ? String(user.id) : undefined,
       });
 
+      // GA4: Track add_payment_info
+      const checkoutGaItems = cart.map((item, idx) => mapCartItemToGAItem(item, idx + 1));
+      trackAddPaymentInfo(
+        checkoutGaItems,
+        Number(cartTotal || 0) + Number(shippingCost || 0),
+        checkoutData.payment_method === 'cod' ? 'Cash on Delivery' : 'Online Payment'
+      );
+
       // 1. Prepare Payload
       const orderPayload = {
         name: checkoutData.name,
@@ -383,6 +409,8 @@ const CheckoutPage = () => {
         // Clear checkout lead session token so next order starts fresh
         localStorage.removeItem("checkout_lead_session_token");
 
+        const orderId = data.order ? data.order.id : data.id || data.order_id;
+
         // Meta Pixel: Track Purchase
         const purchaseNameParts = (checkoutData.name || '').trim().split(/\s+/);
         const purchaseFirstName = purchaseNameParts[0] || '';
@@ -397,7 +425,7 @@ const CheckoutPage = () => {
           })),
           value: Number(cartTotal || 0) + Number(shippingCost || 0),
           currency: 'BDT',
-          order_id: data.order ? data.order.id : data.id || data.order_id
+          order_id: orderId
         }, {
           email: checkoutData.email || undefined,
           phone: checkoutData.phone || undefined,
@@ -407,6 +435,15 @@ const CheckoutPage = () => {
           country: checkoutData.country || undefined,
           zip: checkoutData.zip_code || undefined,
           externalId: user?.id ? String(user.id) : undefined,
+        });
+
+        // GA4: Track purchase
+        trackPurchase({
+          transaction_id: orderId,
+          value: Number(cartTotal || 0) + Number(shippingCost || 0),
+          shipping: Number(shippingCost || 0),
+          currency: 'BDT',
+          items: checkoutGaItems
         });
 
         // Handle success and possible payment gateway redirect

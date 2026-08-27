@@ -7,6 +7,7 @@ import { Lock, Mail, User, Phone, Ticket, TrendingUp } from 'lucide-react';
 import { authFetch } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import * as fpixel from '@/lib/fpixel';
+import { trackSignUp, trackGenerateLead } from '@/lib/gtm';
 
 const DropshipperSignupPage = () => {
     const { login } = useAuth();
@@ -93,6 +94,10 @@ const DropshipperSignupPage = () => {
                     content_name: `${formData.first_name} ${formData.last_name}`,
                     status: 'Success'
                 }, signupUserData);
+
+                // GA4: Track sign_up and generate_lead
+                trackSignUp('email');
+                trackGenerateLead('Dropshipper Signup');
 
                 router.push('/dropshipper/dashboard');
             } else {

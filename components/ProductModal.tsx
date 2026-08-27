@@ -17,6 +17,7 @@ import { formatAmount } from "@/lib/utils/formatAmount";
 import * as fpixel from "@/lib/fpixel";
 import { getDefaultColor } from '@/lib/utils/getDefaultColorImage';
 import { getImageUrl } from '@/lib/utils';
+import { trackViewItem, mapProductToGAItem } from '@/lib/gtm';
 
 interface ProductModalProps {
   product: Product | null;
@@ -695,7 +696,7 @@ export default function ProductModal({
   const variationPrice = getVariationPrice();
   const displayPrice = variationPrice !== null ? variationPrice : (hasDiscount && salePrice ? salePrice : basePrice);
 
-  // Meta Pixel: Track ViewContent for Quick View
+  // Meta Pixel & GA4: Track ViewContent / view_item for Quick View
   useEffect(() => {
     if (product && product.id) {
       fpixel.event('ViewContent', {
@@ -706,6 +707,16 @@ export default function ProductModal({
         value: Number(displayPrice || 0),
         currency: 'BDT'
       });
+
+      // GA4: Track view_item
+      const variantInfo = {
+        color: typeof color === 'string' ? color : color?.name,
+        size: typeof size === 'string' ? size : '',
+        weight: typeof weight === 'string' ? weight : weight?.name
+      };
+      const gaItem = mapProductToGAItem(product, undefined, quantity, variantInfo);
+      gaItem.price = Number(displayPrice || gaItem.price || 0);
+      trackViewItem(gaItem, Number(displayPrice || 0));
     }
   }, [product?.id, product?.name, product?.category?.name, displayPrice]);
 

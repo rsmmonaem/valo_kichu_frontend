@@ -28,6 +28,7 @@ import { formatProductDescriptionUniversal } from "@/lib/utils/formatProductDesc
 import { formatAmount } from "@/lib/utils/formatAmount";
 import * as fpixel from "@/lib/fpixel";
 import { getDefaultColor } from "@/lib/utils/getDefaultColorImage";
+import { trackViewItem, mapProductToGAItem } from "@/lib/gtm";
 import { flyToCart } from "@/lib/utils/flyToCart";
 
 interface ProductDetailsProps {
@@ -315,6 +316,17 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
         value: Number(displayPrice || 0),
         currency: 'BDT'
       });
+
+      // GA4: Track view_item
+      const matchedVariation = getMatchedVariation();
+      const variantInfo = {
+        color: selectedColor?.name,
+        size: selectedSize,
+        weight: typeof selectedWeight === "string" ? selectedWeight : selectedWeight?.name || ""
+      };
+      const gaItem = mapProductToGAItem(product, undefined, quantity, variantInfo);
+      gaItem.price = Number(displayPrice || gaItem.price || 0);
+      trackViewItem(gaItem, Number(displayPrice || 0));
     }
   }, [product.id, product.name, product.category?.name, displayPrice]);
 

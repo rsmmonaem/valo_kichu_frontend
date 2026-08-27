@@ -9,11 +9,19 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { formatAmount } from '@/lib/utils/formatAmount';
 import { getImageUrl } from '@/lib/utils';
-
+import { trackViewCart, mapCartItemToGAItem } from '@/lib/gtm';
 
 const CartPage = () => {
     const { cart, removeFromCart, updateQuantity, cartTotal, cartSubtotal, cartDiscount, clearCart } = useCart();
     const router = useRouter();
+
+    // GA4: Track view_cart
+    useEffect(() => {
+        if (cart && cart.length > 0) {
+            const gaItems = cart.map((item, idx) => mapCartItemToGAItem(item, idx + 1));
+            trackViewCart(gaItems, Number(cartTotal || 0));
+        }
+    }, [cart, cartTotal]);
 
 
 

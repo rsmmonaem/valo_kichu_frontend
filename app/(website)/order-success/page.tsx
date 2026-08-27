@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { CheckCircle, Package, Home, Download, Mail, Send, Loader2, Truck, Phone } from 'lucide-react';
 import { sendOrderInvoice, getOrderSuccessDetails } from '@/lib/api';
-
+import { trackPurchase, mapProductToGAItem } from '@/lib/gtm';
 
 const OrderSuccessContent = () => {
     const searchParams = useSearchParams();
@@ -24,8 +24,31 @@ const OrderSuccessContent = () => {
             setLoadingDetails(true);
             try {
                 const res = await getOrderSuccessDetails(orderId);
-                if (res.status) {
+                if (res.status && res.data) {
                     setOrderDetails(res.data);
+
+                    // GA4: Track purchase if not already tracked in this browser session
+                    const trackedKey = `ga_purchase_tracked_${orderId}`;
+                    if (typeof window !== 'undefined' && !sessionStorage.getItem(trackedKey)) {
+                        sessionStorage.setItem(trackedKey, 'true');
+                        const items = Array.isArray(res.data.items || res.data.products)
+                            ? (res.data.items || res.data.products).map((item: any, idx: number) => ({
+                                item_id: String(item.product_id || item.id || ''),
+                                item_name: item.product_name || item.name || 'Product',
+                                price: Number(item.price || 0),
+                                quantity: Number(item.quantity || 1),
+                                item_variant: item.variation_snapshot || undefined
+                            }))
+                            : [];
+
+                        trackPurchase({
+                            transaction_id: res.data.order_number || res.data.id || orderId,
+                            value: Number(res.data.total_amount || res.data.grand_total || res.data.total || 0),
+                            shipping: Number(res.data.shipping_cost || 0),
+                            currency: 'BDT',
+                            items
+                        });
+                    }
                 }
             } catch (err) {
                 console.error("Failed to load order details", err);

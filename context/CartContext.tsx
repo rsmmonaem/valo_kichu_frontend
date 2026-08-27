@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import * as fpixel from '@/lib/fpixel';
+import { trackAddToCart, trackRemoveFromCart, mapCartItemToGAItem } from '@/lib/gtm';
 
 export interface CartItem {
     id: number;
@@ -89,9 +90,18 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
             value: Number(newItem.price || 0) * newItem.quantity,
             currency: 'BDT'
         });
+
+        // GA4: Track add_to_cart
+        const gaItem = mapCartItemToGAItem(newItem);
+        trackAddToCart([gaItem], Number(newItem.price || 0) * (newItem.quantity || 1));
     };
 
     const removeFromCart = (id: number, variantId?: string | number) => {
+        const itemToRemove = cart.find((item) => item.id === id && item.variant?.id === variantId);
+        if (itemToRemove) {
+            const gaItem = mapCartItemToGAItem(itemToRemove);
+            trackRemoveFromCart([gaItem], Number(itemToRemove.price || 0) * (itemToRemove.quantity || 1));
+        }
         setCart((prevCart) => prevCart.filter((item) => !(item.id === id && item.variant?.id === variantId)));
     };
 

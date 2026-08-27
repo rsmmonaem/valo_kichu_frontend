@@ -7,6 +7,7 @@ import { Lock, Mail, User,Phone } from 'lucide-react';
 import { authFetch } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import * as fpixel from '@/lib/fpixel';
+import { trackSignUp } from '@/lib/gtm';
 
 const RegisterPage = () => {
     const { login } = useAuth();
@@ -71,6 +72,9 @@ const RegisterPage = () => {
                     lastName: lastName || undefined,
                     externalId: userData?.id ? String(userData.id) : undefined
                 });
+
+                // GA4: Track sign_up
+                trackSignUp('email');
 
                 // Redirect based on role
                 if (userData.role === 'admin' || userData.role === 'super_admin') {

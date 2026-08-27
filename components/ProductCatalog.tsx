@@ -6,6 +6,7 @@ import { getProducts, Product } from '@/lib/api';
 import ProductCard from '@/components/ProductCard';
 import InfiniteScrollTrigger from '@/components/InfiniteScrollTrigger';
 import * as fpixel from '@/lib/fpixel';
+import { trackSearch, trackViewItemList, mapProductToGAItem } from '@/lib/gtm';
 
 interface ProductCatalogProps {
     initialProducts: Product[];
@@ -15,13 +16,19 @@ interface ProductCatalogProps {
 const ProductCatalog: React.FC<ProductCatalogProps> = ({ initialProducts, initialMeta }) => {
     const searchParams = useSearchParams();
 
-    // Meta Pixel: Track Search
+    // Track Search & View Item List
     const searchVal = searchParams?.get('search');
+    const categorySlug = searchParams?.get('category');
+    const listId = categorySlug ? `category_${categorySlug}` : (searchVal ? 'search_results' : 'product_catalog');
+    const listName = categorySlug ? `Category: ${categorySlug}` : (searchVal ? `Search: ${searchVal}` : 'Product Catalog');
+
     useEffect(() => {
         if (searchVal) {
             fpixel.event('Search', {
                 search_string: searchVal
             });
+            // GA4: Track search
+            trackSearch(searchVal);
         }
     }, [searchVal]);
 
@@ -30,6 +37,14 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({ initialProducts, initia
     const [hasMore, setHasMore] = useState(initialMeta ? initialMeta.current_page < initialMeta.last_page : false);
     const [isLoading, setIsLoading] = useState(false);
     const [isFiltering, setIsFiltering] = useState(false);
+
+    // GA4: Track view_item_list on product list load/change
+    useEffect(() => {
+        if (products && products.length > 0) {
+            const gaItems = products.map((p, idx) => mapProductToGAItem(p, idx + 1, 1, undefined, listName, listId));
+            trackViewItemList(gaItems, listId, listName);
+        }
+    }, [products, listId, listName]);
 
     // Trigger filtering loading state as soon as search params change
     useEffect(() => {
@@ -89,7 +104,13 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({ initialProducts, initia
                 <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
                     {products.length > 0 ? (
                         products.map((product, idx) => (
-                            <ProductCard key={`${product.id}-${idx}`} product={product} />
+                            <ProductCard
+                                key={`${product.id}-${idx}`}
+                                product={product}
+                                index={idx + 1}
+                                listName={listName}
+                                listId={listId}
+                            />
                         ))
                     ) : (
                         <div className="col-span-full py-12 text-center bg-gray-50 rounded-xl border border-dashed border-gray-200">

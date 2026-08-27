@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Lock, Mail } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { authFetch } from '@/lib/api';
+import { trackLogin } from '@/lib/gtm';
 
 const LoginPage = () => {
     const { login } = useAuth();
@@ -48,6 +49,9 @@ const LoginPage = () => {
                 }
 
                 login(data.access_token, userData);
+
+                // GA4: Track login
+                trackLogin('email');
 
                 // Redirect based on role
                 if (userData.role === 'admin' || userData.role === 'super_admin') {

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { User, Mail, Phone, ExternalLink } from 'lucide-react';
 import { authFetch } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
-
+import { trackGenerateLead } from '@/lib/gtm';
 
 const DropShipperForm = () => {
     const { user, login } = useAuth();
@@ -43,6 +43,8 @@ const DropShipperForm = () => {
             const data = await res.json();
 
             if (res.ok) {
+                // GA4: Track generate_lead
+                trackGenerateLead('Legacy Dropshipper Form');
                 setSuccess('DropShipper created successfully!');
                 setName('');
                 setEmail('');

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import clsx from 'clsx';
 import { Banner } from '@/lib/api';
+import { trackViewPromotion, trackSelectPromotion } from '@/lib/gtm';
 
 interface HeroSliderProps {
     banners: Banner[];
@@ -12,6 +13,19 @@ interface HeroSliderProps {
 const HeroSlider: React.FC<HeroSliderProps> = ({ banners }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
 
+    // GA4: Track view_promotion when banners are available
+    useEffect(() => {
+        if (banners && banners.length > 0) {
+            const promotions = banners.map((b, idx) => ({
+                promotion_id: String(b.id || `banner_${idx + 1}`),
+                promotion_name: b.title || `Promotion Banner ${idx + 1}`,
+                creative_name: b.image || b.image_url || 'Hero Banner Image',
+                creative_slot: `hero_slide_${idx + 1}`
+            }));
+            trackViewPromotion(promotions);
+        }
+    }, [banners]);
+
     useEffect(() => {
         if (banners.length <= 1) return;
         const interval = setInterval(() => {
@@ -19,6 +33,15 @@ const HeroSlider: React.FC<HeroSliderProps> = ({ banners }) => {
         }, 5000);
         return () => clearInterval(interval);
     }, [banners.length]);
+
+    const handleBannerClick = (banner: Banner, index: number) => {
+        trackSelectPromotion({
+            promotion_id: String(banner.id || `banner_${index + 1}`),
+            promotion_name: banner.title || `Promotion Banner ${index + 1}`,
+            creative_name: banner.image || banner.image_url || 'Hero Banner Image',
+            creative_slot: `hero_slide_${index + 1}`
+        });
+    };
 
     if (banners.length === 0) {
         return (
@@ -41,7 +64,12 @@ const HeroSlider: React.FC<HeroSliderProps> = ({ banners }) => {
                     )}
                 >
                     {banner.link ? (
-                        <Link href={banner.link} className="absolute inset-0 z-0" prefetch={false}>
+                        <Link
+                            href={banner.link}
+                            onClick={() => handleBannerClick(banner, index)}
+                            className="absolute inset-0 z-0"
+                            prefetch={false}
+                        >
                             <img
                                 src={banner.image_url || ((banner.image && banner.image.startsWith('http')) ? banner.image : `${process.env.NEXT_PUBLIC_API_URL}/storage/${banner.image}`)}
                                 alt={banner.title || 'Banner'}
@@ -66,7 +94,12 @@ const HeroSlider: React.FC<HeroSliderProps> = ({ banners }) => {
                             </h2>
                         )}
                         {banner.link && (
-                            <Link href={banner.link} className="mt-6 bg-blue-600 text-white px-6 py-2 rounded-full font-bold text-sm w-fit hover:bg-blue-600/90 transition shadow-lg" prefetch={false}>
+                            <Link
+                                href={banner.link}
+                                onClick={() => handleBannerClick(banner, index)}
+                                className="mt-6 bg-blue-600 text-white px-6 py-2 rounded-full font-bold text-sm w-fit hover:bg-blue-600/90 transition shadow-lg"
+                                prefetch={false}
+                            >
                                 Shop Now
                             </Link>
                         )}

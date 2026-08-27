@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { trackAddToWishlist, mapProductToGAItem } from '@/lib/gtm';
 
 interface WishlistContextType {
     wishlist: any[];
@@ -38,6 +39,10 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             if (prev.some((item) => item.id === product.id)) return prev;
             return [...prev, product];
         });
+
+        // GA4: Track add_to_wishlist
+        const gaItem = mapProductToGAItem(product);
+        trackAddToWishlist([gaItem], Number(gaItem.price || 0));
     };
 
     const removeFromWishlist = (id: number) => {
@@ -50,6 +55,9 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             if (exists) {
                 return prev.filter((item) => item.id !== product.id);
             } else {
+                // GA4: Track add_to_wishlist
+                const gaItem = mapProductToGAItem(product);
+                trackAddToWishlist([gaItem], Number(gaItem.price || 0));
                 return [...prev, product];
             }
         });

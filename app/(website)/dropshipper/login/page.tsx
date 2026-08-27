@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Lock, Mail, Truck } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { authFetch } from '@/lib/api';
+import { trackLogin } from '@/lib/gtm';
 
 const DropshipperLoginPage = () => {
     const { login } = useAuth();
@@ -45,6 +46,9 @@ const DropshipperLoginPage = () => {
                 }
 
                 login(data.access_token, userData);
+
+                // GA4: Track login
+                trackLogin('email');
 
                 // Redirect based on role - for dropshipper login, we prioritize dropshipper dashboard
                 if (userData.role === 'admin' || userData.role === 'super_admin') {

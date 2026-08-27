@@ -24,6 +24,7 @@ import AuthMenu from "./AuthMenu";
 import { authFetch } from '@/lib/api';
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
+import { trackSearch } from "@/lib/gtm";
 
 interface HeaderProps {
   categories: Category[];
@@ -67,6 +68,7 @@ const Header: React.FC<HeaderProps> = ({ categories }) => {
 
   const handleSearch = () => {
     if (search.trim()) {
+      trackSearch(search.trim());
       router.push(`/products?search=${encodeURIComponent(search)}`);
     }
   };

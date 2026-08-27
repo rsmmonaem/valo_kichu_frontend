@@ -1,15 +1,24 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { getProducts, Product } from '@/lib/api';
 import ProductCard from '@/components/ProductCard';
 import InfiniteScrollTrigger from '@/components/InfiniteScrollTrigger';
+import { trackViewItemList, mapProductToGAItem } from '@/lib/gtm';
 
 const HomeAllProducts = () => {
     const [products, setProducts] = useState<Product[]>([]);
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
+
+    // GA4: Track view_item_list for Home All Products
+    useEffect(() => {
+        if (products && products.length > 0) {
+            const gaItems = products.map((p, idx) => mapProductToGAItem(p, idx + 1, 1, undefined, 'Home All Products', 'home_all_products'));
+            trackViewItemList(gaItems, 'home_all_products', 'Home All Products');
+        }
+    }, [products]);
 
     const loadMore = async () => {
         if (isLoading || !hasMore) return;
@@ -48,7 +57,13 @@ const HomeAllProducts = () => {
 
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                     {products.map((product, idx) => (
-                        <ProductCard key={`${product.id}-${idx}`} product={product} />
+                        <ProductCard
+                            key={`${product.id}-${idx}`}
+                            product={product}
+                            index={idx + 1}
+                            listName="Home All Products"
+                            listId="home_all_products"
+                        />
                     ))}
                 </div>
 

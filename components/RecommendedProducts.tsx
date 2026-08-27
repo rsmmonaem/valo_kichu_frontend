@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { Product } from "@/lib/api";
 import ProductCard from "./ProductCard";
 import { getRecommendedProducts, getProducts, getProduct } from "@/lib/api";
+import { trackViewItemList, mapProductToGAItem } from "@/lib/gtm";
 
 interface RecommendedProductsProps {
   currentProduct: Product;
@@ -101,6 +102,14 @@ export default function RecommendedProducts({ currentProduct }: RecommendedProdu
         }
 
         setProducts(finalProducts.slice(0, 6));
+        
+        // GA4: Track view_item_list for recommended products
+        if (finalProducts.length > 0) {
+          const gaItems = finalProducts.slice(0, 6).map((p, idx) => 
+            mapProductToGAItem(p, idx + 1, 1, undefined, 'Recommended For You', 'recommended_products')
+          );
+          trackViewItemList(gaItems, 'recommended_products', 'Recommended For You');
+        }
       } catch (error) {
         console.error("Failed to fetch recommendations:", error);
       } finally {
@@ -127,8 +136,14 @@ export default function RecommendedProducts({ currentProduct }: RecommendedProdu
         Recommended For You
       </h2>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        {products.map((p) => (
-          <ProductCard key={p.id} product={p} />
+        {products.map((p, idx) => (
+          <ProductCard
+            key={p.id}
+            product={p}
+            index={idx + 1}
+            listName="Recommended For You"
+            listId="recommended_products"
+          />
         ))}
       </div>
     </div>
