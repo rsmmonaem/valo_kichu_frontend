@@ -696,19 +696,9 @@ export default function ProductModal({
   const variationPrice = getVariationPrice();
   const displayPrice = variationPrice !== null ? variationPrice : (hasDiscount && salePrice ? salePrice : basePrice);
 
-  // Meta Pixel & GA4: Track ViewContent / view_item for Quick View
+  // Unified GA4 view_item & Meta Pixel ViewContent for Quick View
   useEffect(() => {
     if (product && product.id) {
-      fpixel.event('ViewContent', {
-        content_ids: [product.id.toString()],
-        content_name: product.name,
-        content_category: product.category?.name || 'Store Item',
-        content_type: 'product',
-        value: Number(displayPrice || 0),
-        currency: 'BDT'
-      });
-
-      // GA4: Track view_item
       const variantInfo = {
         color: typeof color === 'string' ? color : color?.name,
         size: typeof size === 'string' ? size : '',

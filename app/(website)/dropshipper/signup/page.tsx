@@ -77,7 +77,7 @@ const DropshipperSignupPage = () => {
 
                 login(data.access_token, userData);
 
-                // Meta Pixel: Track CompleteRegistration & Lead
+                // Unified GA4 & Meta Pixel: Track CompleteRegistration and Lead
                 const signupUserData = {
                     email: formData.email || undefined,
                     phone: formData.phone_number || undefined,
@@ -85,19 +85,9 @@ const DropshipperSignupPage = () => {
                     lastName: formData.last_name || undefined,
                     externalId: userData?.id ? String(userData.id) : undefined
                 };
-                fpixel.event('CompleteRegistration', {
-                    status: true,
-                    role: 'dropshipper'
-                }, signupUserData);
-                fpixel.event('Lead', {
-                    content_category: 'Dropshipper Signup',
-                    content_name: `${formData.first_name} ${formData.last_name}`,
-                    status: 'Success'
-                }, signupUserData);
 
-                // GA4: Track sign_up and generate_lead
-                trackSignUp('email');
-                trackGenerateLead('Dropshipper Signup');
+                trackSignUp('email', signupUserData);
+                trackGenerateLead('Dropshipper Signup', undefined, 'BDT', signupUserData);
 
                 router.push('/dropshipper/dashboard');
             } else {

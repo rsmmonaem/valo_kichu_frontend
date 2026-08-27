@@ -17,23 +17,41 @@ if (typeof window !== 'undefined') {
   }
 }
 
-const generateEventId = () => {
-  return `evt_${Date.now()}_${Math.floor(Math.random() * 1000000)}`;
+export const generateEventId = (prefix: string = 'evt') => {
+  return `${prefix}_${Date.now()}_${Math.floor(Math.random() * 1000000)}`;
+};
+
+// Helper: Extract cookie value directly from document.cookie
+const getCookie = (name: string): string | undefined => {
+  if (typeof document === 'undefined') return undefined;
+  const match = document.cookie.match(new RegExp('(^|;\\s*)(' + name + ')=([^;]*)'));
+  return match ? decodeURIComponent(match[3]) : undefined;
 };
 
 const sendCapiEvent = async (eventName: string, customData: any, eventId: string, userData: any = {}) => {
   if (typeof window === 'undefined') return;
+
+  const fbp = getCookie('_fbp');
+  const fbc = getCookie('_fbc');
+
+  const enrichedUserData = {
+    ...userData,
+    ...(fbp ? { fbp } : {}),
+    ...(fbc ? { fbc } : {}),
+  };
   
   try {
+    // keepalive ensures the browser completes the request even during page navigations / redirects
     await fetch('/api/fb-capi', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      keepalive: true,
       body: JSON.stringify({
         event_name: eventName,
         event_id: eventId,
         event_source_url: window.location.href,
         custom_data: customData,
-        user_data: userData,
+        user_data: enrichedUserData,
       }),
     });
   } catch (error) {
@@ -41,22 +59,25 @@ const sendCapiEvent = async (eventName: string, customData: any, eventId: string
   }
 };
 
-export const pageview = (userData: any = {}) => {
+export const pageview = (userData: any = {}, explicitEventId?: string) => {
   if (typeof window !== 'undefined') {
-    const eventId = generateEventId();
+    const eventId = explicitEventId || generateEventId('pv');
     const options: any = {};
     if (TEST_EVENT_CODE) {
       options.test_event_code = TEST_EVENT_CODE;
     }
     (window as any).fbq('track', 'PageView', options, { eventID: eventId });
     sendCapiEvent('PageView', {}, eventId, userData);
+    return eventId;
   }
 };
 
 // https://developers.facebook.com/docs/meta-pixel/reference
-export const event = (name: string, options: any = {}, userData: any = {}) => {
+export const event = (name: string, options: any = {}, userData: any = {}, explicitEventId?: string) => {
   if (typeof window !== 'undefined') {
-    const eventId = generateEventId();
+    // Deterministic deduplication ID for Purchase or custom event_id if provided
+    const eventId = explicitEventId || options.event_id || (name === 'Purchase' && options.order_id ? `purchase_${options.order_id}` : generateEventId());
+    
     const payload = { ...options };
     if (TEST_EVENT_CODE) {
       payload.test_event_code = TEST_EVENT_CODE;
@@ -78,7 +99,12 @@ export const event = (name: string, options: any = {}, userData: any = {}) => {
       }
     }
 
+    // Track via Browser Pixel with eventID
     (window as any).fbq('track', name, payload, { eventID: eventId });
+    
+    // Track via Server CAPI with exact matching event_id
     sendCapiEvent(name, options, eventId, userData);
+
+    return eventId;
   }
 };

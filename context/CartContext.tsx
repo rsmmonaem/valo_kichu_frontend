@@ -81,17 +81,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
         setIsCartOpen(true);
 
-        // Meta Pixel: Track AddToCart
-        fpixel.event('AddToCart', {
-            content_ids: [newItem.id.toString()],
-            content_name: newItem.name,
-            content_type: 'product',
-            contents: [{ id: newItem.id.toString(), quantity: newItem.quantity }],
-            value: Number(newItem.price || 0) * newItem.quantity,
-            currency: 'BDT'
-        });
-
-        // GA4: Track add_to_cart
+        // Unified GA4 dataLayer & Meta Pixel AddToCart
         const gaItem = mapCartItemToGAItem(newItem);
         trackAddToCart([gaItem], Number(newItem.price || 0) * (newItem.quantity || 1));
     };

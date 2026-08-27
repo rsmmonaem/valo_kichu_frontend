@@ -308,16 +308,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
 
   useEffect(() => {
     if (product && product.id) {
-      fpixel.event('ViewContent', {
-        content_ids: [product.id.toString()],
-        content_name: product.name,
-        content_category: product.category?.name || 'Store Item',
-        content_type: 'product',
-        value: Number(displayPrice || 0),
-        currency: 'BDT'
-      });
-
-      // GA4: Track view_item
+      // Unified GA4 view_item and Meta Pixel ViewContent
       const matchedVariation = getMatchedVariation();
       const variantInfo = {
         color: selectedColor?.name,

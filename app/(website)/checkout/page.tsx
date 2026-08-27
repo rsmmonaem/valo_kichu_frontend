@@ -48,25 +48,15 @@ const CheckoutPage = () => {
 
   const [hasInitiatedCheckout, setHasInitiatedCheckout] = useState(false);
 
-  // Meta Pixel: Track InitiateCheckout
+  // Unified GA4 begin_checkout & Meta Pixel InitiateCheckout
   useEffect(() => {
     if (cart && cart.length > 0 && !hasInitiatedCheckout) {
       const nameParts = (user?.name || `${user?.first_name || ''} ${user?.last_name || ''}`).trim().split(/\s+/);
       const firstName = nameParts[0] || '';
       const lastName = nameParts.slice(1).join(' ') || '';
 
-      // Meta Pixel: Track InitiateCheckout
-      fpixel.event('InitiateCheckout', {
-        content_ids: cart.map((item) => item.id.toString()),
-        content_type: 'product',
-        contents: cart.map((item) => ({
-          id: item.id.toString(),
-          quantity: item.quantity,
-        })),
-        value: Number(cartTotal || 0),
-        currency: 'BDT',
-        num_items: cart.reduce((acc, item) => acc + item.quantity, 0)
-      }, {
+      const gaItems = cart.map((item, idx) => mapCartItemToGAItem(item, idx + 1));
+      trackBeginCheckout(gaItems, Number(cartTotal || 0), 'BDT', undefined, {
         email: user?.email || undefined,
         phone: user?.phone_number || undefined,
         firstName: firstName || undefined,
@@ -74,10 +64,6 @@ const CheckoutPage = () => {
         city: user?.address || undefined,
         externalId: user?.id ? String(user.id) : undefined,
       });
-
-      // GA4: Track begin_checkout
-      const gaItems = cart.map((item, idx) => mapCartItemToGAItem(item, idx + 1));
-      trackBeginCheckout(gaItems, Number(cartTotal || 0));
 
       setHasInitiatedCheckout(true);
     }
@@ -319,38 +305,27 @@ const CheckoutPage = () => {
     // const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://backend.valokichu.com";
 
     try {
-      // Meta Pixel: Track AddPaymentInfo
+      // Unified GA4 add_payment_info & Meta Pixel AddPaymentInfo
       const nameParts = (checkoutData.name || '').trim().split(/\s+/);
       const firstName = nameParts[0] || '';
       const lastName = nameParts.slice(1).join(' ') || '';
-
-      fpixel.event('AddPaymentInfo', {
-        content_ids: cart.map((item) => item.id.toString()),
-        content_type: 'product',
-        contents: cart.map((item) => ({
-          id: item.id.toString(),
-          quantity: item.quantity,
-        })),
-        value: Number(cartTotal || 0) + Number(shippingCost || 0),
-        currency: 'BDT',
-        payment_category: checkoutData.payment_method === 'cod' ? 'Cash on Delivery' : 'Online Payment'
-      }, {
-        email: checkoutData.email || undefined,
-        phone: checkoutData.phone || undefined,
-        firstName: firstName || undefined,
-        lastName: lastName || undefined,
-        city: checkoutData.city || undefined,
-        country: checkoutData.country || undefined,
-        zip: checkoutData.zip_code || undefined,
-        externalId: user?.id ? String(user.id) : undefined,
-      });
-
-      // GA4: Track add_payment_info
       const checkoutGaItems = cart.map((item, idx) => mapCartItemToGAItem(item, idx + 1));
+
       trackAddPaymentInfo(
         checkoutGaItems,
         Number(cartTotal || 0) + Number(shippingCost || 0),
-        checkoutData.payment_method === 'cod' ? 'Cash on Delivery' : 'Online Payment'
+        checkoutData.payment_method === 'cod' ? 'Cash on Delivery' : 'Online Payment',
+        'BDT',
+        {
+          email: checkoutData.email || undefined,
+          phone: checkoutData.phone || undefined,
+          firstName: firstName || undefined,
+          lastName: lastName || undefined,
+          city: checkoutData.city || undefined,
+          country: checkoutData.country || undefined,
+          zip: checkoutData.zip_code || undefined,
+          externalId: user?.id ? String(user.id) : undefined,
+        }
       );
 
       // 1. Prepare Payload
@@ -422,33 +397,11 @@ const CheckoutPage = () => {
           checkoutData.district
         ].filter(Boolean).join(", ");
 
-        // Meta Pixel: Track Purchase
+        // Unified GA4 purchase & Meta Pixel Purchase
         const purchaseNameParts = (checkoutData.name || '').trim().split(/\s+/);
         const purchaseFirstName = purchaseNameParts[0] || '';
         const purchaseLastName = purchaseNameParts.slice(1).join(' ') || '';
 
-        fpixel.event('Purchase', {
-          content_ids: cart.map((item) => item.id.toString()),
-          content_type: 'product',
-          contents: cart.map((item) => ({
-            id: item.id.toString(),
-            quantity: item.quantity,
-          })),
-          value: Number(cartTotal || 0) + Number(shippingCost || 0),
-          currency: 'BDT',
-          order_id: orderId
-        }, {
-          email: checkoutData.email || undefined,
-          phone: checkoutData.phone || undefined,
-          firstName: purchaseFirstName || undefined,
-          lastName: purchaseLastName || undefined,
-          city: checkoutData.city || undefined,
-          country: checkoutData.country || undefined,
-          zip: checkoutData.zip_code || undefined,
-          externalId: user?.id ? String(user.id) : undefined,
-        });
-
-        // GA4: Track purchase
         trackPurchase({
           transaction_id: orderId,
           value: Number(cartTotal || 0) + Number(shippingCost || 0),
@@ -460,6 +413,15 @@ const CheckoutPage = () => {
           customer_address: fullAddress || checkoutData.address_line1,
           delivery_area: deliveryAreaString,
           items: checkoutGaItems
+        }, {
+          email: checkoutData.email || undefined,
+          phone: checkoutData.phone || undefined,
+          firstName: purchaseFirstName || undefined,
+          lastName: purchaseLastName || undefined,
+          city: checkoutData.city || undefined,
+          country: checkoutData.country || undefined,
+          zip: checkoutData.zip_code || undefined,
+          externalId: user?.id ? String(user.id) : undefined,
         });
 
         // Handle success and possible payment gateway redirect

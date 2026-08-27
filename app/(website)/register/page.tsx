@@ -61,20 +61,14 @@ const RegisterPage = () => {
                 const firstName = nameParts[0] || '';
                 const lastName = nameParts.slice(1).join(' ') || '';
 
-                // Meta Pixel: Track CompleteRegistration
-                fpixel.event('CompleteRegistration', {
-                    status: true,
-                    role: 'customer'
-                }, {
+                // Unified GA4 sign_up & Meta Pixel CompleteRegistration
+                trackSignUp('email', {
                     email: email || undefined,
                     phone: phone_number || undefined,
                     firstName: firstName || undefined,
                     lastName: lastName || undefined,
                     externalId: userData?.id ? String(userData.id) : undefined
                 });
-
-                // GA4: Track sign_up
-                trackSignUp('email');
 
                 // Redirect based on role
                 if (userData.role === 'admin' || userData.role === 'super_admin') {
