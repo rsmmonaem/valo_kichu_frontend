@@ -38,7 +38,13 @@ export interface GAPurchaseParams {
     shipping?: number;
     currency?: string;
     coupon?: string;
+    customer_name?: string;
+    customer_phone?: string;
+    customer_email?: string;
+    customer_address?: string;
+    delivery_area?: string;
     items: GAItem[];
+    [key: string]: any;
 }
 
 export interface GARefundParams {
@@ -326,12 +332,22 @@ export const trackPurchase = (params: GAPurchaseParams) => {
     clearEcommerce();
     pushToDataLayer({
         event: 'purchase',
+        customer_name: params.customer_name || undefined,
+        customer_phone: params.customer_phone || undefined,
+        customer_email: params.customer_email || undefined,
+        customer_address: params.customer_address || undefined,
+        delivery_area: params.delivery_area || undefined,
         ecommerce: {
             transaction_id: String(params.transaction_id),
             value: Number(params.value || 0),
             tax: params.tax !== undefined ? Number(params.tax) : 0,
             shipping: params.shipping !== undefined ? Number(params.shipping) : 0,
             currency: params.currency || 'BDT',
+            delivery_area: params.delivery_area || undefined,
+            customer_name: params.customer_name || undefined,
+            customer_phone: params.customer_phone || undefined,
+            customer_email: params.customer_email || undefined,
+            customer_address: params.customer_address || undefined,
             ...(params.coupon ? { coupon: params.coupon } : {}),
             items: params.items
         }

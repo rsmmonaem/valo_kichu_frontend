@@ -41,11 +41,21 @@ const OrderSuccessContent = () => {
                             }))
                             : [];
 
+                        const shipCost = Number(res.data.shipping_cost || 0);
+                        const deliveryAreaString = res.data.area
+                            ? `${res.data.area} (৳${Math.floor(shipCost)})`
+                            : (shipCost === 80 ? "Inside Dhaka (৳80)" : (shipCost === 120 ? "Outside Dhaka (৳120)" : undefined));
+
                         trackPurchase({
                             transaction_id: res.data.order_number || res.data.id || orderId,
                             value: Number(res.data.total_amount || res.data.grand_total || res.data.total || 0),
-                            shipping: Number(res.data.shipping_cost || 0),
+                            shipping: shipCost,
                             currency: 'BDT',
+                            customer_name: res.data.shipping_address?.name || res.data.customer_name || res.data.name || undefined,
+                            customer_phone: res.data.contact_number || res.data.phone || undefined,
+                            customer_email: res.data.email || undefined,
+                            customer_address: typeof res.data.shipping_address === 'string' ? res.data.shipping_address : undefined,
+                            delivery_area: deliveryAreaString,
                             items
                         });
                     }

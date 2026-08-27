@@ -409,7 +409,18 @@ const CheckoutPage = () => {
         // Clear checkout lead session token so next order starts fresh
         localStorage.removeItem("checkout_lead_session_token");
 
-        const orderId = data.order ? data.order.id : data.id || data.order_id;
+        const orderId = data.order?.order_number || data.order_number || (data.order ? data.order.id : data.id || data.order_id);
+
+        const deliveryAreaString = checkoutData.area
+          ? `${checkoutData.area} (৳${formatAmount(Math.floor(shippingCost))})`
+          : (shippingCost === 80 ? "Inside Dhaka (৳80)" : (shippingCost === 120 ? "Outside Dhaka (৳120)" : ""));
+
+        const fullAddress = [
+          checkoutData.address_line1,
+          checkoutData.area,
+          checkoutData.city,
+          checkoutData.district
+        ].filter(Boolean).join(", ");
 
         // Meta Pixel: Track Purchase
         const purchaseNameParts = (checkoutData.name || '').trim().split(/\s+/);
@@ -443,6 +454,11 @@ const CheckoutPage = () => {
           value: Number(cartTotal || 0) + Number(shippingCost || 0),
           shipping: Number(shippingCost || 0),
           currency: 'BDT',
+          customer_name: checkoutData.name,
+          customer_phone: checkoutData.phone,
+          customer_email: checkoutData.email,
+          customer_address: fullAddress || checkoutData.address_line1,
+          delivery_area: deliveryAreaString,
           items: checkoutGaItems
         });
 
@@ -668,6 +684,11 @@ const CheckoutPage = () => {
                           }));
                           setShippingCost(method.cost); // Update the shipping cost based on the selected method
                           setShowAreaError(false);
+
+                          // GA4: Track add_shipping_info
+                          const gaItems = cart.map((item, idx) => mapCartItemToGAItem(item, idx + 1));
+                          const areaLabel = `${method.name} (৳${formatAmount(Math.floor(method.cost))})`;
+                          trackAddShippingInfo(gaItems, Number(cartTotal || 0) + Number(method.cost || 0), areaLabel);
                         }}
                         className={clsx(
                           "p-3 text-center rounded-xl cursor-pointer transition border-2 hover:scale-105",
