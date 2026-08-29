@@ -280,12 +280,16 @@ export const trackAddToCart = (
         ? value
         : items.reduce((acc, it) => acc + (Number(it.price || 0) * Number(it.quantity || 1)), 0);
 
+    const numItems = items.reduce((acc, it) => acc + Number(it.quantity || 1), 0);
+
     pushToDataLayer({
         event: 'add_to_cart',
         event_id: eventId,
+        num_items: numItems,
         ecommerce: {
             currency,
             value: totalValue,
+            num_items: numItems,
             items
         }
     });
@@ -353,13 +357,16 @@ export const trackViewCart = (
     const totalValue = value !== undefined
         ? value
         : items.reduce((acc, it) => acc + (Number(it.price || 0) * Number(it.quantity || 1)), 0);
+    const numItems = items.reduce((acc, it) => acc + Number(it.quantity || 1), 0);
 
     pushToDataLayer({
         event: 'view_cart',
         event_id: eventId,
+        num_items: numItems,
         ecommerce: {
             currency,
             value: totalValue,
+            num_items: numItems,
             items
         }
     });
@@ -370,7 +377,8 @@ export const trackViewCart = (
         content_type: 'product',
         contents: items.map((it) => ({ id: String(it.item_id), quantity: it.quantity || 1 })),
         value: Number(totalValue || 0),
-        currency: currency || 'BDT'
+        currency: currency || 'BDT',
+        num_items: numItems
     }, userData, eventId);
 
     return eventId;
@@ -427,13 +435,16 @@ export const trackBeginCheckout = (
     const totalValue = value !== undefined
         ? value
         : items.reduce((acc, it) => acc + (Number(it.price || 0) * Number(it.quantity || 1)), 0);
+    const numItems = items.reduce((acc, it) => acc + Number(it.quantity || 1), 0);
 
     pushToDataLayer({
         event: 'begin_checkout',
         event_id: eventId,
+        num_items: numItems,
         ecommerce: {
             currency,
             value: totalValue,
+            num_items: numItems,
             ...(coupon ? { coupon } : {}),
             items
         }
@@ -446,7 +457,7 @@ export const trackBeginCheckout = (
         contents: items.map((it) => ({ id: String(it.item_id), quantity: it.quantity || 1 })),
         value: Number(totalValue || 0),
         currency: currency || 'BDT',
-        num_items: items.reduce((acc, it) => acc + (it.quantity || 1), 0),
+        num_items: numItems,
         ...(coupon ? { coupon } : {})
     }, userData, eventId);
 
@@ -464,12 +475,16 @@ export const trackAddShippingInfo = (
 ) => {
     const eventId = customEventId || fpixel.generateEventId('shipping_info');
     clearEcommerce();
+    const numItems = items.reduce((acc, it) => acc + Number(it.quantity || 1), 0);
+
     pushToDataLayer({
         event: 'add_shipping_info',
         event_id: eventId,
+        num_items: numItems,
         ecommerce: {
             currency,
             value,
+            num_items: numItems,
             shipping_tier: shippingTier,
             items
         }
@@ -482,7 +497,8 @@ export const trackAddShippingInfo = (
         contents: items.map((it) => ({ id: String(it.item_id), quantity: it.quantity || 1 })),
         value: Number(value || 0),
         currency: currency || 'BDT',
-        shipping_tier: shippingTier
+        shipping_tier: shippingTier,
+        num_items: numItems
     }, userData, eventId);
 
     return eventId;
@@ -499,12 +515,16 @@ export const trackAddPaymentInfo = (
 ) => {
     const eventId = customEventId || fpixel.generateEventId('payment_info');
     clearEcommerce();
+    const numItems = items.reduce((acc, it) => acc + Number(it.quantity || 1), 0);
+
     pushToDataLayer({
         event: 'add_payment_info',
         event_id: eventId,
+        num_items: numItems,
         ecommerce: {
             currency,
             value,
+            num_items: numItems,
             payment_type: paymentType,
             items
         }
@@ -517,7 +537,8 @@ export const trackAddPaymentInfo = (
         contents: items.map((it) => ({ id: String(it.item_id), quantity: it.quantity || 1 })),
         value: Number(value || 0),
         currency: currency || 'BDT',
-        payment_category: paymentType
+        payment_category: paymentType,
+        num_items: numItems
     }, userData, eventId);
 
     return eventId;
@@ -529,10 +550,12 @@ export const trackPurchase = (params: GAPurchaseParams, userData: any = {}) => {
     const eventId = params.event_id || `purchase_${params.transaction_id}`;
     clearEcommerce();
     const finalUserData = extractUserData(params, userData);
+    const numItems = params.items.reduce((acc, it) => acc + Number(it.quantity || 1), 0);
 
     pushToDataLayer({
         event: 'purchase',
         event_id: eventId,
+        num_items: numItems,
         customer_name: params.customer_name || undefined,
         customer_phone: params.customer_phone || undefined,
         customer_email: params.customer_email || undefined,
@@ -544,6 +567,7 @@ export const trackPurchase = (params: GAPurchaseParams, userData: any = {}) => {
             tax: params.tax !== undefined ? Number(params.tax) : 0,
             shipping: params.shipping !== undefined ? Number(params.shipping) : 0,
             currency: params.currency || 'BDT',
+            num_items: numItems,
             delivery_area: params.delivery_area || undefined,
             customer_name: params.customer_name || undefined,
             customer_phone: params.customer_phone || undefined,
@@ -562,7 +586,8 @@ export const trackPurchase = (params: GAPurchaseParams, userData: any = {}) => {
         value: Number(params.value || 0),
         currency: params.currency || 'BDT',
         order_id: String(params.transaction_id),
-        delivery_area: params.delivery_area || undefined
+        delivery_area: params.delivery_area || undefined,
+        num_items: numItems
     }, finalUserData, eventId);
 
     return eventId;
