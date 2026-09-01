@@ -29,6 +29,7 @@ const getCookie = (name: string): string | undefined => {
 };
 
 const sendCapiEvent = async (eventName: string, customData: any, eventId: string, userData: any = {}) => {
+  return; // Temporarily disabled
   if (typeof window === 'undefined') return;
 
   const fbp = getCookie('_fbp');
@@ -60,6 +61,7 @@ const sendCapiEvent = async (eventName: string, customData: any, eventId: string
 };
 
 export const pageview = (userData: any = {}, explicitEventId?: string) => {
+  return; // Temporarily disabled
   if (typeof window !== 'undefined') {
     const eventId = explicitEventId || generateEventId('pv');
     const options: any = {};
@@ -74,6 +76,7 @@ export const pageview = (userData: any = {}, explicitEventId?: string) => {
 
 // https://developers.facebook.com/docs/meta-pixel/reference
 export const event = (name: string, options: any = {}, userData: any = {}, explicitEventId?: string) => {
+  return; // Temporarily disabled
   if (typeof window !== 'undefined') {
     // Deterministic deduplication ID for Purchase or custom event_id if provided
     const eventId = explicitEventId || options.event_id || (name === 'Purchase' && options.order_id ? `purchase_${options.order_id}` : generateEventId());

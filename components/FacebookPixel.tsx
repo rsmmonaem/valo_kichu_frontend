@@ -17,6 +17,9 @@ function NavigationEvents() {
 }
 
 export default function FacebookPixel() {
+  // Temporarily disabled
+  return null;
+  
   if (!fpixel.FB_PIXEL_ID) return null;
 
   return (
