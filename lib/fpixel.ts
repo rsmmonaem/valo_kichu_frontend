@@ -99,8 +99,17 @@ export const event = (name: string, options: any = {}, userData: any = {}, expli
       }
     }
 
-    // Track via Browser Pixel with eventID
-    (window as any).fbq('track', name, payload, { eventID: eventId });
+    // Standard FB Events list
+    const standardEvents = [
+      'AddPaymentInfo', 'AddToCart', 'AddToWishlist', 'CompleteRegistration', 
+      'Contact', 'CustomizeProduct', 'Donate', 'FindLocation', 'InitiateCheckout', 
+      'Lead', 'Purchase', 'Schedule', 'Search', 'StartTrial', 'SubmitApplication', 
+      'Subscribe', 'ViewContent', 'PageView'
+    ];
+    
+    // Track via Browser Pixel with eventID (use trackCustom for non-standard events)
+    const trackType = standardEvents.includes(name) ? 'track' : 'trackCustom';
+    (window as any).fbq(trackType, name, payload, { eventID: eventId });
     
     // Track via Server CAPI with exact matching event_id
     sendCapiEvent(name, options, eventId, userData);
