@@ -429,7 +429,7 @@ const CheckoutPage = () => {
         
         if (checkoutData.payment_method === 'eps') {
           if (redirectUrl) {
-            // Do NOT clear cart here. Wait for payment success.
+            clearCart();
             window.location.href = redirectUrl;
           } else {
             const errorMsg = data.payment_result?.data?.message || "Unable to connect to EPS Payment Gateway. Please try again.";
