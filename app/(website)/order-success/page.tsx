@@ -6,10 +6,12 @@ import Link from 'next/link';
 import { CheckCircle, Package, Home, Download, Mail, Send, Loader2, Truck, Phone } from 'lucide-react';
 import { sendOrderInvoice, getOrderSuccessDetails } from '@/lib/api';
 import { trackPurchase, mapProductToGAItem } from '@/lib/gtm';
+import { useCart } from "@/context/CartContext";
 
 const OrderSuccessContent = () => {
     const searchParams = useSearchParams();
     const orderId = searchParams.get('order');
+    const { clearCart } = useCart();
 
     const [email, setEmail] = useState('');
     const [isSending, setIsSending] = useState(false);
@@ -26,6 +28,9 @@ const OrderSuccessContent = () => {
                 const res = await getOrderSuccessDetails(orderId);
                 if (res.status && res.data) {
                     setOrderDetails(res.data);
+                    
+                    // Clear the cart when the order is successfully fetched
+                    clearCart();
 
                     // GA4: Track purchase if not already tracked in this browser session
                     const trackedKey = `ga_purchase_tracked_${orderId}`;
