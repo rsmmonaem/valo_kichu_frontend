@@ -12,6 +12,26 @@ import Link from 'next/link';
 const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false });
 import 'react-quill-new/dist/quill.snow.css';
 
+const quillModules = {
+    toolbar: [
+        [{ header: [1, 2, 3, 4, 5, 6, false] }],
+        ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+        [{ list: 'ordered' }, { list: 'bullet' }, { indent: '-1' }, { indent: '+1' }],
+        ['link', 'image', 'video'],
+        [{ align: [] }],
+        [{ color: [] }, { background: [] }],
+        ['clean'],
+    ],
+};
+
+const quillFormats = [
+    'header',
+    'bold', 'italic', 'underline', 'strike', 'blockquote',
+    'list', 'bullet', 'indent',
+    'link', 'image', 'video',
+    'align', 'color', 'background'
+];
+
 export default function AdminBlogCreatePage() {
     const router = useRouter();
     const [saving, setSaving] = useState(false);
@@ -56,7 +76,7 @@ export default function AdminBlogCreatePage() {
                 });
                 if (uploadRes.ok) {
                     const data = await uploadRes.json();
-                    setForm(prev => ({ ...prev, [field]: data.url || data.path }));
+                    setForm(prev => ({ ...prev, [field]: data.path || data.url }));
                 }
             } catch (err) {
                 alert('Image upload failed');
@@ -157,12 +177,13 @@ export default function AdminBlogCreatePage() {
                 {/* Description (Quill) */}
                 <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Blog Description / Content</label>
-                    <div className="bg-white border border-gray-300 rounded-lg overflow-hidden">
+                    <div className="bg-white border border-gray-300 rounded-lg overflow-hidden [&_.ql-toolbar]:bg-gray-50 [&_.ql-toolbar]:border-none [&_.ql-toolbar]:border-b [&_.ql-toolbar]:border-gray-200 [&_.ql-container]:border-none [&_.ql-editor]:min-h-[400px] [&_.ql-editor]:text-base [&_.ql-editor]:text-gray-800">
                         <ReactQuill
                             theme="snow"
                             value={form.description}
                             onChange={(value: string) => setForm(prev => ({ ...prev, description: value }))}
-                            style={{ minHeight: '300px' }}
+                            modules={quillModules}
+                            formats={quillFormats}
                         />
                     </div>
                 </div>
