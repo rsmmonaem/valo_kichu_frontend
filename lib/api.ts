@@ -352,3 +352,74 @@ export const getOrderSuccessDetails = async (orderId: string) => {
   }
 };
 
+// Blog Types and API
+export interface Blog {
+  id: number;
+  title: string;
+  slug: string;
+  category_id?: number;
+  description?: string;
+  thumbnail?: string;
+  views: number;
+  status: boolean;
+  is_featured: boolean;
+  meta_title?: string;
+  meta_keywords?: string;
+  meta_description?: string;
+  meta_thumbnail?: string;
+  created_at: string;
+  updated_at: string;
+  category?: {
+    id: number;
+    name: string;
+    slug: string;
+  };
+}
+
+export interface BlogCategory {
+  id: number;
+  name: string;
+  slug: string;
+}
+
+export const getBlogs = async (categorySlug?: string): Promise<Blog[]> => {
+  try {
+    let url = `${API_URL}/blogs`;
+    if (categorySlug) url += `?category=${categorySlug}`;
+    const res = await fetch(url, { next: { revalidate: 60 } });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch (e) {
+    return [];
+  }
+};
+
+export const getFeaturedBlogs = async (): Promise<Blog[]> => {
+  try {
+    const res = await fetch(`${API_URL}/blogs/featured`, { next: { revalidate: 60 } });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch (e) {
+    return [];
+  }
+};
+
+export const getBlogCategories = async (): Promise<BlogCategory[]> => {
+  try {
+    const res = await fetch(`${API_URL}/blogs/categories`, { next: { revalidate: 60 } });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch (e) {
+    return [];
+  }
+};
+
+export const getBlogBySlug = async (slug: string): Promise<Blog | null> => {
+  try {
+    const res = await fetch(`${API_URL}/blogs/${slug}`, { cache: 'no-store' });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (e) {
+    return null;
+  }
+};

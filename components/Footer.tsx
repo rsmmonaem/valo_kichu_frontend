@@ -153,6 +153,15 @@ export default function Footer() {
                       Contact Us
                     </Link>
                   </li>
+                  <li>
+                    <Link
+                      href="/blogs"
+                      className="hover:text-blue-600 transition-colors"
+                      prefetch={false}
+                    >
+                      Blogs
+                    </Link>
+                  </li>
                 </>
               )}
             </ul>

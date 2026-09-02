@@ -24,7 +24,8 @@ import {
     ShieldAlert,
     Activity,
     BarChart3,
-    User
+    User,
+    Newspaper
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import clsx from 'clsx';
@@ -78,6 +79,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, setIsOpen }) => {
         { path: '/admin/sub-sub-categories', label: 'Sub Sub Categories', icon: FolderOpen },
         { path: '/admin/brands', label: 'Brands', icon: Tags },
         { path: '/admin/banners', label: 'Banners', icon: ImageIcon },
+        { path: '/admin/blogs', label: 'Blogs', icon: Newspaper },
         { path: '/admin/customers', label: 'Customers', icon: Users },
         { path: '/admin/checkout-leads', label: 'Checkout Leads', icon: ClipboardList },
         { path: '/admin/visitors', label: 'Visitors', icon: Activity },

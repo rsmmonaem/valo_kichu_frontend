@@ -2,6 +2,7 @@
 
 import React, { useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Category } from '@/lib/api';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
@@ -96,14 +97,15 @@ const CategoryCarousel: React.FC<CategoryCarouselProps> = ({ categories }) => {
                overflow-hidden border border-gray-100 hover:border-blue-200 group/item"
                     >
                         {/* Image Section */}
-                        <div className="w-full h-40 md:h-52 bg-gray-50 overflow-hidden">
+                        <div className="w-full h-40 md:h-52 bg-gray-50 overflow-hidden relative">
                             {(cat.image_url || cat.image) ? (
-                                <img
+                                <Image
                                     src={getImageUrl(cat.image_url || cat.image)}
                                     alt={cat.name}
-                                    className="w-full h-full object-cover group-hover/item:scale-105 transition-transform duration-500"
-                                    loading="lazy"
-                                    onError={(e) => (e.currentTarget.style.display = "none")}
+                                    fill
+                                    sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                                    className="object-cover group-hover/item:scale-105 transition-transform duration-500"
+                                    onError={(e) => ((e.target as HTMLImageElement).style.display = "none")}
                                 />
                             ) : (
                                 <div className="w-full h-full flex items-center justify-center 

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import clsx from 'clsx';
 import { Banner } from '@/lib/api';
 import { trackViewPromotion, trackSelectPromotion } from '@/lib/gtm';
@@ -70,21 +71,23 @@ const HeroSlider: React.FC<HeroSliderProps> = ({ banners }) => {
                             className="absolute inset-0 z-0"
                             prefetch={false}
                         >
-                            <img
+                            <Image
                                 src={banner.image_url || ((banner.image && banner.image.startsWith('http')) ? banner.image : `${process.env.NEXT_PUBLIC_API_URL}/storage/${banner.image}`)}
                                 alt={banner.title || 'Banner'}
-                                className="w-full h-full object-cover"
-                                fetchPriority={index === 0 ? "high" : "auto"}
-                                onError={(e) => (e.currentTarget.style.display = 'none')}
+                                fill
+                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 100vw"
+                                className="object-cover"
+                                priority={index === 0}
                             />
                         </Link>
                     ) : (
-                        <img
+                        <Image
                             src={banner.image_url || ((banner.image && banner.image.startsWith('http')) ? banner.image : `${process.env.NEXT_PUBLIC_API_URL}/storage/${banner.image}`)}
                             alt={banner.title || 'Banner'}
-                            className="w-full h-full object-cover"
-                            fetchPriority={index === 0 ? "high" : "auto"}
-                            onError={(e) => (e.currentTarget.style.display = 'none')}
+                            fill
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 100vw"
+                            className="object-cover"
+                            priority={index === 0}
                         />
                     )}
                     <div className="absolute inset-0 bg-black/20 flex flex-col justify-center px-6 md:px-16 text-white text-left">
