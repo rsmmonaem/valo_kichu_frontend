@@ -6,7 +6,7 @@ Welcome to the **Valo Kichu Dropshipping API**. This gateway allows you to progr
 
 `https://backend.valokichu.com/api/dropshipping`
 
-## Authentication
+## Authentication#
 
 All requests must be signed using **HMAC-SHA256**. You need an **Access Key** and a **Secret Key** from your Dropshipper Dashboard.
 
