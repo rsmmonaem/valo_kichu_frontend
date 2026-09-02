@@ -6,6 +6,7 @@ import FloatingContact from '@/components/FloatingContact';
 import { getCategoryList, getSettings } from '@/lib/api';
 import Script from 'next/script';
 import { getImageUrl } from '@/lib/utils';
+import { connection } from 'next/server';
 
 export async function generateMetadata(): Promise<Metadata> {
     let settings = {
@@ -64,6 +65,8 @@ export default async function WebsiteLayout({
 }: Readonly<{
     children: React.ReactNode;
 }>) {
+    await connection();
+
     const { data: categories } = await getCategoryList();
     const settingsMap = await getSettings({ next: { revalidate: 60 } } as any);
     const googleAnalyticsId = settingsMap.google_analytics_id;
