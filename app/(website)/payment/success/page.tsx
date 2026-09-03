@@ -4,11 +4,17 @@ import React, { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { CheckCircle, Package, Home, Loader2, Info } from 'lucide-react';
+import { useCart } from '@/context/CartContext';
 
 const PaymentSuccessContent = () => {
     const searchParams = useSearchParams();
     const transactionId = searchParams.get('MerchantTransactionId') || searchParams.get('merchant_transaction_id');
     const status = searchParams.get('Status') || searchParams.get('status');
+    const { clearCart } = useCart();
+
+    React.useEffect(() => {
+        clearCart();
+    }, [clearCart]);
 
     React.useEffect(() => {
         if (transactionId) {

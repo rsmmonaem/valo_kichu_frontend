@@ -6,10 +6,12 @@ import Link from 'next/link';
 import { CheckCircle, Package, Home, Download, Mail, Send, Loader2, Truck, Phone } from 'lucide-react';
 import { sendOrderInvoice, getOrderSuccessDetails } from '@/lib/api';
 import { trackPurchase, mapProductToGAItem } from '@/lib/gtm';
+import { useCart } from '@/context/CartContext';
 
 const OrderSuccessContent = () => {
     const searchParams = useSearchParams();
     const orderId = searchParams.get('order');
+    const { clearCart } = useCart();
 
     const [email, setEmail] = useState('');
     const [isSending, setIsSending] = useState(false);
@@ -17,6 +19,10 @@ const OrderSuccessContent = () => {
     const [emailSent, setEmailSent] = useState(false);
     const [orderDetails, setOrderDetails] = useState<any>(null);
     const [loadingDetails, setLoadingDetails] = useState(false);
+
+    useEffect(() => {
+        clearCart();
+    }, [clearCart]);
 
     useEffect(() => {
         if (!orderId) return;
