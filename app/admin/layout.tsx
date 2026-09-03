@@ -20,6 +20,8 @@ const ALLOWED_ADMIN_ROLES = [
     'custom'
 ];
 
+const BLOGGER_ROLES = ['blogger', 'content_writer', 'blog_manager', 'blog_editor'];
+
 export default function AdminLayout({
     children,
 }: {
@@ -75,11 +77,11 @@ export default function AdminLayout({
         );
     }
 
-    if (!user || !ALLOWED_ADMIN_ROLES.includes(user.role)) {
+    if (!user || !user.role || !ALLOWED_ADMIN_ROLES.includes(user.role)) {
         return null;
     }
 
-    const isBlogger = BLOGGER_ROLES.includes(user.role);
+    const isBlogger = !!(user.role && BLOGGER_ROLES.includes(user.role));
 
     return (
         <div className="flex h-screen bg-gray-100 overflow-hidden">
