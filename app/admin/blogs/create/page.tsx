@@ -77,11 +77,10 @@ export default function AdminBlogCreatePage() {
     // Auto-generate slug preview
     const slugPreview = useMemo(() => {
         return form.title
-            .toLowerCase()
             .trim()
-            .replace(/[^\w\s-]/g, '')
-            .replace(/[\s_-]+/g, '-')
-            .replace(/^-+|-+$/g, '') || 'your-blog-post-slug';
+            .replace(/[^\p{L}\p{N}\s-]/gu, '')
+            .replace(/[\s_-]+/gu, '-')
+            .replace(/^-+|-+$/gu, '') || 'your-blog-post-slug';
     }, [form.title]);
 
     // Word count & reading time calculation

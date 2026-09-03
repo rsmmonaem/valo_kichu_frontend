@@ -81,11 +81,10 @@ export default function AdminBlogEditPage({ params }: { params: Promise<{ id: st
     // Auto-generate slug preview
     const slugPreview = useMemo(() => {
         return existingSlug || form.title
-            .toLowerCase()
             .trim()
-            .replace(/[^\w\s-]/g, '')
-            .replace(/[\s_-]+/g, '-')
-            .replace(/^-+|-+$/g, '') || 'your-blog-post-slug';
+            .replace(/[^\p{L}\p{N}\s-]/gu, '')
+            .replace(/[\s_-]+/gu, '-')
+            .replace(/^-+|-+$/gu, '') || 'your-blog-post-slug';
     }, [form.title, existingSlug]);
 
     // Word count & reading time calculation
