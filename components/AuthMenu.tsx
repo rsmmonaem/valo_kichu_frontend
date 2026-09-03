@@ -65,9 +65,14 @@ const AuthMenu = () => {
                 </div>
 
                 <div className="py-1">
-                    {(user.role === 'admin' || user.role === 'super_admin') && (
+                    {(user.role === 'admin' || user.role === 'super_admin' || user.role === 'child_admin') && (
                         <Link href="/admin/dashboard" className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600">
                             <LayoutDashboard size={16} /> Admin Panel
+                        </Link>
+                    )}
+                    {['blogger', 'content_writer', 'blog_manager', 'blog_editor'].includes(user.role) && (
+                        <Link href="/admin/blogs" className="flex items-center gap-2 px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 font-semibold">
+                            <LayoutDashboard size={16} /> Blog Management
                         </Link>
                     )}
                     <Link href="/customer/dashboard" className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600">

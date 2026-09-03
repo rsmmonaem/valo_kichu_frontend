@@ -30,17 +30,20 @@ import {
 import { useAuth } from '@/context/AuthContext';
 import clsx from 'clsx';
 
+const BLOGGER_ROLES = ['blogger', 'content_writer', 'blog_manager', 'blog_editor'];
+
 interface AdminSidebarProps {
     isOpen: boolean;
     setIsOpen: (open: boolean) => void;
 }
 
 const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, setIsOpen }) => {
-    const { logout } = useAuth();
+    const { user, logout } = useAuth();
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
     const currentType = searchParams.get('type');
+    const isBlogger = !!(user && BLOGGER_ROLES.includes(user.role));
 
     const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>({
         Orders: pathname.startsWith('/admin/orders'),
@@ -63,7 +66,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, setIsOpen }) => {
         router.push('/login');
     };
 
-    const navItems = [
+    const fullNavItems = [
         { path: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
         { path: '/admin/products', label: 'Products', icon: Package },
         {
@@ -99,6 +102,13 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, setIsOpen }) => {
         { path: '/admin/page-settings', label: 'Page Settings', icon: FileText },
     ];
 
+    const bloggerNavItems = [
+        { path: '/admin/blogs', label: 'Blogs & Articles', icon: Newspaper },
+        { path: '/admin/profile', label: 'Profile Settings', icon: User },
+    ];
+
+    const navItems = isBlogger ? bloggerNavItems : fullNavItems;
+
     return (
         <>
             {/* Overlay for mobile */}
@@ -115,16 +125,25 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, setIsOpen }) => {
                 isOpen ? "translate-x-0" : "-translate-x-full"
             )}>
                 {/* Logo Area */}
-                <div className="p-6 border-b border-slate-800/50 flex items-center justify-between bg-slate-900/50 backdrop-blur-sm">
-                    <Link href="/admin/dashboard" className="text-xl font-bold flex items-center gap-3">
-                        <div className="bg-gradient-to-tr from-blue-600 to-blue-500 p-2 rounded-lg shadow-lg shadow-blue-500/30">
-                            <span className="text-white font-bold text-lg leading-none">V</span>
+                <div className="p-6 border-b border-slate-800/50 flex flex-col gap-2 bg-slate-900/50 backdrop-blur-sm">
+                    <div className="flex items-center justify-between">
+                        <Link href={isBlogger ? "/admin/blogs" : "/admin/dashboard"} className="text-xl font-bold flex items-center gap-3">
+                            <div className="bg-gradient-to-tr from-blue-600 to-blue-500 p-2 rounded-lg shadow-lg shadow-blue-500/30">
+                                <span className="text-white font-bold text-lg leading-none">V</span>
+                            </div>
+                            <span className="tracking-tight text-slate-100">Valokichu<span className="text-blue-500">.</span></span>
+                        </Link>
+                        <button onClick={() => setIsOpen(false)} aria-label="Close sidebar" className="md:hidden text-gray-400 hover:text-white transition-colors">
+                            <X size={20} />
+                        </button>
+                    </div>
+
+                    {isBlogger && (
+                        <div className="flex items-center gap-1.5 mt-1 bg-blue-950/60 border border-blue-800/40 px-2.5 py-1 rounded-lg">
+                            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                            <span className="text-[11px] font-semibold text-blue-300">Content Writer Access</span>
                         </div>
-                        <span className="tracking-tight text-slate-100">Valokichu<span className="text-blue-500">.</span></span>
-                    </Link>
-                    <button onClick={() => setIsOpen(false)} className="md:hidden text-gray-400 hover:text-white transition-colors">
-                        <X size={20} />
-                    </button>
+                    )}
                 </div>
 
                 {/* Nav Items */}
