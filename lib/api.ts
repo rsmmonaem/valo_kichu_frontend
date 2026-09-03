@@ -132,26 +132,40 @@ export interface SingleResponse<T> {
   message?: string;
 }
 
+const fetchWithTimeout = async (url: string, options: RequestInit = {}, timeoutMs = 4000): Promise<Response> => {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, {
+      ...options,
+      signal: options.signal || controller.signal,
+    });
+    return res;
+  } finally {
+    clearTimeout(timer);
+  }
+};
+
 export const getCategoryList = async (): Promise<SingleResponse<Category[]>> => {
   // Try the nested list endpoint first (v1)
   try {
-    const res = await fetch(`${API_URL}/v1/category-list`, {
+    const res = await fetchWithTimeout(`${API_URL}/v1/category-list`, {
       next: { revalidate: 60 },
-    });
+    }, 3000);
     if (res.ok) {
       const data = await res.json();
       const list = Array.isArray(data) ? data : (data.data || []);
       return { status: true, data: list };
     }
   } catch (e) {
-    console.error("Failed to fetch category-list", e);
+    // Silently proceed to fallback or return empty
   }
 
   // Fallback to simple categories
   try {
-    const res = await fetch(`${API_URL}/categories`, {
+    const res = await fetchWithTimeout(`${API_URL}/categories`, {
       next: { revalidate: 60 },
-    });
+    }, 3000);
     if (!res.ok) return { status: false, data: [] };
     const data = await res.json();
 
@@ -173,46 +187,63 @@ export const getProducts = async (
 ): Promise<PaginatedResponse<Product>> => {
   let url = `${API_URL}/v2/products?page=${page}`;
 
-  // NOTE: Backend controller mainly filters by 'category_id'. 
-  // 'category_slug' support depends on implementation, but standard Laravel uses ID.
-  // We assume 'category_slug' param is translated or handled by backend if passed as filter.
-  // If backend expects ID, we'd need to fetch category first. 
-  // For now, let's pass both 'category' and 'category_slug' if possible if logic supports strict slug.
-  // Actually, let's pass `category_slug` as `category` parameter if backend supports slug resolution on 'category' field.
-  // If not, we rely on ID.
-  // Assuming backend handles logic.
   if (categorySlug) url += `&category_slug=${categorySlug}`;
   if (search) url += `&search=${encodeURIComponent(search)}`;
   if (minPrice !== undefined) url += `&min_price=${minPrice}`;
   if (maxPrice !== undefined) url += `&max_price=${maxPrice}`;
-  if (sort) url += `&sort_by=${sort}`; // Backend check: $sorting = $request->get('sorting') ?? $request->get('sort_by');
+  if (sort) url += `&sort_by=${sort}`;
 
-  const res = await fetch(url, {
-    cache: 'no-store'
-  });
-  if (!res.ok) {
-    throw new Error('Failed to fetch products');
+  const defaultPaginated: PaginatedResponse<Product> = {
+    status: false,
+    data: {
+      current_page: page,
+      data: [],
+      first_page_url: '',
+      from: 0,
+      last_page: 1,
+      last_page_url: '',
+      links: [],
+      next_page_url: null,
+      path: '',
+      per_page: 10,
+      prev_page_url: null,
+      to: 0,
+      total: 0,
+    }
+  };
+
+  try {
+    const res = await fetchWithTimeout(url, {
+      cache: 'no-store'
+    }, 4000);
+    if (!res.ok) {
+      return defaultPaginated;
+    }
+    return await res.json();
+  } catch (e) {
+    return defaultPaginated;
   }
-  return res.json();
 };
 
 export const getProduct = async (slug: string): Promise<SingleResponse<Product>> => {
-  const res = await fetch(`${API_URL}/v2/products/${slug}`, {
-    cache: 'no-store',
-  });
-  if (!res.ok) {
+  try {
+    const res = await fetchWithTimeout(`${API_URL}/v2/products/${slug}`, {
+      cache: 'no-store',
+    }, 4000);
+    if (!res.ok) {
+      return { status: false, data: {} as Product, message: 'Product not found' };
+    }
+    return await res.json();
+  } catch (e) {
     return { status: false, data: {} as Product, message: 'Product not found' };
   }
-  return res.json();
 };
-
-
 
 export const getCategory = async (slug: string): Promise<SingleResponse<Category & { meta_title?: string; meta_description?: string; meta_keywords?: string }>> => {
   try {
-    const res = await fetch(`${API_URL}/categories/${slug}`, {
+    const res = await fetchWithTimeout(`${API_URL}/categories/${slug}`, {
       next: { revalidate: 60 },
-    });
+    }, 4000);
     if (!res.ok) return { status: false, data: {} as any, message: 'Category not found' };
     const data = await res.json();
     return { status: true, data };
@@ -236,9 +267,9 @@ export interface CategorySection {
 
 export const getBanners = async (): Promise<Banner[]> => {
   try {
-    const res = await fetch(`${API_URL}/banners`, {
+    const res = await fetchWithTimeout(`${API_URL}/banners`, {
       next: { revalidate: 60 },
-    }); // exists at root /api/banners
+    }, 4000);
     if (!res.ok) return [];
     const data = await res.json();
     return Array.isArray(data) ? data : (data.data || []);
@@ -249,9 +280,9 @@ export const getBanners = async (): Promise<Banner[]> => {
 
 export const getCategorySections = async (): Promise<CategorySection[]> => {
   try {
-    const res = await fetch(`${API_URL}/v1/categories-with-products`, {
+    const res = await fetchWithTimeout(`${API_URL}/v1/categories-with-products`, {
       next: { revalidate: 60 },
-    });
+    }, 4000);
     if (!res.ok) return [];
     const data = await res.json();
     return Array.isArray(data) ? data : (data.data || []);
@@ -262,12 +293,11 @@ export const getCategorySections = async (): Promise<CategorySection[]> => {
 
 export const getNewArrivals = async (): Promise<Product[]> => {
   try {
-    const res = await fetch(`${API_URL}/v1/items-sections?type=newarrival&limit=24`, {
+    const res = await fetchWithTimeout(`${API_URL}/v1/items-sections?type=newarrival&limit=24`, {
       cache: 'no-store',
-    });
+    }, 4000);
     if (!res.ok) return [];
     const data = await res.json();
-    // API returns { results: { products: [] } } or similar based on home.jsx analysis
     return data.results?.products || data.products || [];
   } catch (e) {
     return [];
@@ -276,9 +306,9 @@ export const getNewArrivals = async (): Promise<Product[]> => {
 
 export const getRecommendedProducts = async (): Promise<Product[]> => {
   try {
-    const res = await fetch(`${API_URL}/v1/recommended-products`, {
+    const res = await fetchWithTimeout(`${API_URL}/v1/recommended-products`, {
       next: { revalidate: 60 },
-    });
+    }, 4000);
     if (!res.ok) return [];
     const data = await res.json();
     return data.products || data.data || [];
@@ -290,7 +320,7 @@ export const getRecommendedProducts = async (): Promise<Product[]> => {
 
 export const getSettings = async (options: RequestInit = { next: { revalidate: 60 } }): Promise<Record<string, string>> => {
   try {
-    const res = await fetch(`${API_URL}/settings`, options);
+    const res = await fetchWithTimeout(`${API_URL}/settings`, options, 4000);
 
     if (!res.ok) return {};
     const data = await res.json();
@@ -306,10 +336,9 @@ export const getSettings = async (options: RequestInit = { next: { revalidate: 6
 
 export const getCategoryBar = async (): Promise<SingleResponse<Category[]>> => {
   try {
-
-    const res = await fetch(`${API_URL}/v1/category-bars`, {
+    const res = await fetchWithTimeout(`${API_URL}/v1/category-bars`, {
       next: { revalidate: 60 },
-    });
+    }, 4000);
     if (!res.ok) return { status: false, data: [] };
     const data = await res.json();
     return { status: true, data: Array.isArray(data) ? data : (data.data || []) };
@@ -320,9 +349,9 @@ export const getCategoryBar = async (): Promise<SingleResponse<Category[]>> => {
 
 export const getStoreInfo = async (username: string): Promise<SingleResponse<any>> => {
   try {
-    const res = await fetch(`${API_URL}/v2/store/${username}`, {
+    const res = await fetchWithTimeout(`${API_URL}/v2/store/${username}`, {
       next: { revalidate: 60 }
-    });
+    }, 4000);
     if (!res.ok) return { status: false, data: null };
     return res.json();
   } catch (e) {
@@ -331,11 +360,11 @@ export const getStoreInfo = async (username: string): Promise<SingleResponse<any
 };
 export const sendOrderInvoice = async (orderId: string, email: string) => {
   try {
-    const res = await fetch(`${API_URL}/v1/orders/${orderId}/send-invoice`, {
+    const res = await fetchWithTimeout(`${API_URL}/v1/orders/${orderId}/send-invoice`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email }),
-    });
+    }, 5000);
     return await res.json();
   } catch (e) {
     return { status: false, message: 'Failed to connect to server' };
@@ -344,7 +373,7 @@ export const sendOrderInvoice = async (orderId: string, email: string) => {
 
 export const getOrderSuccessDetails = async (orderId: string) => {
   try {
-    const res = await fetch(`${API_URL}/v1/orders/${orderId}/success-details`);
+    const res = await fetchWithTimeout(`${API_URL}/v1/orders/${orderId}/success-details`, {}, 4000);
     if (!res.ok) return { status: false, message: 'Order not found' };
     return await res.json();
   } catch (e) {
@@ -386,7 +415,7 @@ export const getBlogs = async (categorySlug?: string): Promise<Blog[]> => {
   try {
     let url = `${API_URL}/blogs`;
     if (categorySlug) url += `?category=${categorySlug}`;
-    const res = await fetch(url, { next: { revalidate: 60 } });
+    const res = await fetchWithTimeout(url, { next: { revalidate: 60 } }, 4000);
     if (!res.ok) return [];
     return await res.json();
   } catch (e) {
@@ -396,7 +425,7 @@ export const getBlogs = async (categorySlug?: string): Promise<Blog[]> => {
 
 export const getFeaturedBlogs = async (): Promise<Blog[]> => {
   try {
-    const res = await fetch(`${API_URL}/blogs/featured`, { next: { revalidate: 60 } });
+    const res = await fetchWithTimeout(`${API_URL}/blogs/featured`, { next: { revalidate: 60 } }, 4000);
     if (!res.ok) return [];
     return await res.json();
   } catch (e) {
@@ -406,7 +435,7 @@ export const getFeaturedBlogs = async (): Promise<Blog[]> => {
 
 export const getBlogCategories = async (): Promise<BlogCategory[]> => {
   try {
-    const res = await fetch(`${API_URL}/blogs/categories`, { next: { revalidate: 60 } });
+    const res = await fetchWithTimeout(`${API_URL}/blogs/categories`, { next: { revalidate: 60 } }, 4000);
     if (!res.ok) return [];
     return await res.json();
   } catch (e) {
@@ -416,7 +445,7 @@ export const getBlogCategories = async (): Promise<BlogCategory[]> => {
 
 export const getBlogBySlug = async (slug: string): Promise<Blog | null> => {
   try {
-    const res = await fetch(`${API_URL}/blogs/${slug}`, { cache: 'no-store' });
+    const res = await fetchWithTimeout(`${API_URL}/blogs/${slug}`, { cache: 'no-store' }, 4000);
     if (!res.ok) return null;
     return await res.json();
   } catch (e) {

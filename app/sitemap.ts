@@ -19,8 +19,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
             const lastPage = productsRes.data.last_page
             if (lastPage > 1) {
-                // Fetch up to 20 pages for a more comprehensive sitemap
-                const maxPages = Math.min(lastPage, 20)
+                // Fetch up to 3 pages during generation to prevent build timeouts
+                const maxPages = Math.min(lastPage, 3)
                 for (let i = 2; i <= maxPages; i++) {
                     const nextRes = await getProducts(i)
                     if (nextRes.data && nextRes.data.data) {
