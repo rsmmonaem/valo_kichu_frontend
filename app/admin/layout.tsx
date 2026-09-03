@@ -6,8 +6,19 @@ import { useRouter, usePathname } from 'next/navigation';
 import AdminSidebar from '@/components/admin/Sidebar';
 import { Menu } from 'lucide-react';
 
-const ALLOWED_ADMIN_ROLES = ['admin', 'super_admin', 'child_admin', 'blogger', 'content_writer', 'blog_manager', 'blog_editor'];
-const BLOGGER_ROLES = ['blogger', 'content_writer', 'blog_manager', 'blog_editor'];
+const ALLOWED_ADMIN_ROLES = [
+    'admin',
+    'super_admin',
+    'child_admin',
+    'blogger',
+    'content_writer',
+    'blog_manager',
+    'blog_editor',
+    'order_manager',
+    'product_manager',
+    'staff',
+    'custom'
+];
 
 export default function AdminLayout({
     children,
@@ -23,13 +34,33 @@ export default function AdminLayout({
         if (!loading) {
             if (!user) {
                 router.push('/login');
-            } else if (!ALLOWED_ADMIN_ROLES.includes(user.role)) {
+                return;
+            }
+            
+            const isAllowedRole = user.role && (ALLOWED_ADMIN_ROLES.includes(user.role) || user.is_staff);
+            if (!isAllowedRole) {
                 router.push('/');
-            } else if (BLOGGER_ROLES.includes(user.role)) {
-                // If user is a blogger, restrict them strictly to blogs and profile
+                return;
+            }
+
+            // Super Admin has unrestricted access
+            if (user.role === 'super_admin') {
+                return;
+            }
+
+            // Check staff management page restriction
+            if (pathname.startsWith('/admin/staff') && !user.permissions?.includes('users') && user.role !== 'super_admin') {
+                router.replace('/admin/dashboard');
+                return;
+            }
+
+            // Blogger route restriction
+            const isBloggerOnly = ['blogger', 'content_writer', 'blog_manager', 'blog_editor'].includes(user.role);
+            if (isBloggerOnly) {
                 const isAllowedPage = pathname.startsWith('/admin/blogs') || pathname.startsWith('/admin/profile');
                 if (!isAllowedPage) {
                     router.replace('/admin/blogs');
+                    return;
                 }
             }
         }

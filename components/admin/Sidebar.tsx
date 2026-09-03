@@ -66,48 +66,55 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, setIsOpen }) => {
         router.push('/login');
     };
 
-    const fullNavItems = [
-        { path: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-        { path: '/admin/products', label: 'Products', icon: Package },
+    const hasPermission = (perm: string) => {
+        if (!user) return false;
+        if (user.role === 'super_admin') return true;
+        if (user.role === 'admin') return perm !== 'users';
+        if (user.permissions?.includes('*')) return true;
+        if (isBlogger && perm === 'blogs') return true;
+        return !!(user.permissions && user.permissions.includes(perm));
+    };
+
+    const allNavItems = [
+        { path: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard, show: hasPermission('orders') || hasPermission('products') || user?.role === 'admin' || user?.role === 'super_admin' },
+        { path: '/admin/staff', label: 'Staff & Roles', icon: ShieldAlert, show: user?.role === 'super_admin' || hasPermission('users') },
+        { path: '/admin/products', label: 'Products', icon: Package, show: hasPermission('products') },
         {
             label: 'Orders',
             icon: ShoppingCart,
+            show: hasPermission('orders'),
             subItems: [
                 { path: '/admin/orders?type=customer', label: 'Customer Orders' },
                 { path: '/admin/orders?type=dropshipper', label: 'Dropshipper Orders' }
             ]
         },
-        { path: '/admin/categories', label: 'Categories', icon: FolderTree },
-        { path: '/admin/sub-categories', label: 'Sub Categories', icon: Folder },
-        { path: '/admin/sub-sub-categories', label: 'Sub Sub Categories', icon: FolderOpen },
-        { path: '/admin/brands', label: 'Brands', icon: Tags },
-        { path: '/admin/banners', label: 'Banners', icon: ImageIcon },
-        { path: '/admin/blogs', label: 'Blogs', icon: Newspaper },
-        { path: '/admin/customers', label: 'Customers', icon: Users },
-        { path: '/admin/checkout-leads', label: 'Checkout Leads', icon: ClipboardList },
-        { path: '/admin/visitors', label: 'Visitors', icon: Activity },
+        { path: '/admin/categories', label: 'Categories', icon: FolderTree, show: hasPermission('products') },
+        { path: '/admin/sub-categories', label: 'Sub Categories', icon: Folder, show: hasPermission('products') },
+        { path: '/admin/sub-sub-categories', label: 'Sub Sub Categories', icon: FolderOpen, show: hasPermission('products') },
+        { path: '/admin/brands', label: 'Brands', icon: Tags, show: hasPermission('products') },
+        { path: '/admin/banners', label: 'Banners', icon: ImageIcon, show: hasPermission('products') },
+        { path: '/admin/blogs', label: 'Blogs', icon: Newspaper, show: hasPermission('blogs') },
+        { path: '/admin/customers', label: 'Customers', icon: Users, show: hasPermission('customers') || hasPermission('orders') },
+        { path: '/admin/checkout-leads', label: 'Checkout Leads', icon: ClipboardList, show: hasPermission('customers') || hasPermission('orders') },
+        { path: '/admin/visitors', label: 'Visitors', icon: Activity, show: hasPermission('customers') || hasPermission('orders') },
         {
             label: 'Reports',
             icon: BarChart3,
+            show: hasPermission('reports') || hasPermission('orders'),
             subItems: [
                 { path: '/admin/reports/courier', label: 'Courier Reports' }
             ]
         },
-        { path: '/admin/shipping', label: 'Shipping', icon: Truck },
-        { path: '/admin/dropshippers', label: 'Dropshippers', icon: Users },
-        { path: '/admin/ip-logs', label: 'IP Logs & Limits', icon: ShieldAlert },
-        { path: '/admin/profile', label: 'Profile Settings', icon: User },
-        { path: '/admin/settings', label: 'Global Settings', icon: Settings },
-        { path: '/admin/home-settings', label: 'Home Settings', icon: LayoutDashboard },
-        { path: '/admin/page-settings', label: 'Page Settings', icon: FileText },
+        { path: '/admin/shipping', label: 'Shipping', icon: Truck, show: hasPermission('orders') },
+        { path: '/admin/dropshippers', label: 'Dropshippers', icon: Users, show: hasPermission('dropshippers') },
+        { path: '/admin/ip-logs', label: 'IP Logs & Limits', icon: ShieldAlert, show: hasPermission('settings') },
+        { path: '/admin/settings', label: 'Global Settings', icon: Settings, show: hasPermission('settings') },
+        { path: '/admin/home-settings', label: 'Home Settings', icon: LayoutDashboard, show: hasPermission('settings') },
+        { path: '/admin/page-settings', label: 'Page Settings', icon: FileText, show: hasPermission('settings') },
+        { path: '/admin/profile', label: 'Profile Settings', icon: User, show: true },
     ];
 
-    const bloggerNavItems = [
-        { path: '/admin/blogs', label: 'Blogs & Articles', icon: Newspaper },
-        { path: '/admin/profile', label: 'Profile Settings', icon: User },
-    ];
-
-    const navItems = isBlogger ? bloggerNavItems : fullNavItems;
+    const navItems = allNavItems.filter(item => item.show !== false);
 
     return (
         <>
@@ -142,6 +149,12 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, setIsOpen }) => {
                         <div className="flex items-center gap-1.5 mt-1 bg-blue-950/60 border border-blue-800/40 px-2.5 py-1 rounded-lg">
                             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                             <span className="text-[11px] font-semibold text-blue-300">Content Writer Access</span>
+                        </div>
+                    )}
+                    {user?.role === 'super_admin' && (
+                        <div className="flex items-center gap-1.5 mt-1 bg-rose-950/60 border border-rose-800/40 px-2.5 py-1 rounded-lg">
+                            <span className="w-2 h-2 rounded-full bg-rose-400"></span>
+                            <span className="text-[11px] font-semibold text-rose-300">Super Administrator</span>
                         </div>
                     )}
                 </div>
@@ -181,7 +194,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, setIsOpen }) => {
                                             </div>
                                             {isOpenDropdown ? <ChevronDown size={16} className="text-slate-400 group-hover:text-white relative z-10" /> : <ChevronRight size={16} className="text-slate-400 group-hover:text-white relative z-10" />}
                                         </button>
- 
+
                                         {/* Sub Items */}
                                         <div className={clsx(
                                             "pl-8 space-y-1 transition-all duration-200 overflow-hidden",

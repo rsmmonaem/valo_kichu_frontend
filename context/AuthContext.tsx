@@ -8,6 +8,8 @@ interface User {
     name: string;
     email: string;
     role?: string;
+    is_staff?: boolean;
+    permissions?: string[];
     first_name?: string;
     last_name?: string;
     phone?: string;
