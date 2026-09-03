@@ -559,12 +559,12 @@ export default function AdminStaffPage() {
 
                                 <div>
                                     <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">
-                                        Mobile Number (Login ID) *
+                                        Mobile Number or Email (Login ID) *
                                     </label>
                                     <input
                                         type="text"
                                         required
-                                        placeholder="e.g. 01700000000"
+                                        placeholder="e.g. 01700000000 or email@domain.com"
                                         value={formData.phone_number}
                                         onChange={e => setFormData({ ...formData, phone_number: e.target.value })}
                                         className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-mono"
