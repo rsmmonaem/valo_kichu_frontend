@@ -46,12 +46,12 @@ export const viewport = {
   themeColor: '#f97316',
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
+  maximumScale: 5,
 };
 
 import { Inter } from 'next/font/google';
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
+const inter = Inter({ subsets: ['latin'], variable: '--font-sans', display: 'swap' });
 
 import { SettingsProvider } from '@/context/SettingsContext';
 import { UIProvider } from '@/context/UIContext';
@@ -68,6 +68,13 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        {/* Preconnect & DNS-Prefetch for Key Origins */}
+        <link rel="preconnect" href="https://backend.valokichu.com" />
+        <link rel="dns-prefetch" href="https://backend.valokichu.com" />
+        <link rel="preconnect" href="https://connect.facebook.net" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://scripts.clarity.ms" crossOrigin="anonymous" />
+
         {/* Google Tag Manager */}
         <script
           dangerouslySetInnerHTML={{

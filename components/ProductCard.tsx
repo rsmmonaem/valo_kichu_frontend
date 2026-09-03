@@ -121,6 +121,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, index, listName, lis
                         toggleWishlist(product);
                     }}
                     className="absolute top-2 right-2 p-2 bg-white/95 hover:bg-white text-gray-600 hover:text-red-500 rounded-full shadow-md z-20 transition duration-300 backdrop-blur-sm cursor-pointer hover:scale-105"
+                    aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
                     title={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
                 >
                     <Heart
@@ -132,9 +133,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, index, listName, lis
 
             <div className="p-3 flex flex-col flex-grow">
                 <div>
-                    <h4 className="text-sm text-gray-700 font-medium mb-1 line-clamp-2 leading-relaxed group-hover:text-blue-600 transition" title={product.name}>
+                    <h3 className="text-sm text-gray-700 font-medium mb-1 line-clamp-2 leading-relaxed group-hover:text-blue-600 transition" title={product.name}>
                         {product.name}
-                    </h4>
+                    </h3>
                     <div className="mt-auto pt-2">
                         <div className="flex items-baseline gap-2 mb-1">
                             <span className="text-lg font-bold text-blue-600">৳{formatAmount(hasDiscount ? salePrice : basePrice)}</span>

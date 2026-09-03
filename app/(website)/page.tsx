@@ -36,6 +36,8 @@ export default async function Home() {
 
   return (
     <div className="bg-gray-50 min-h-screen">
+      <h1 className="sr-only">Valokichu - Premium Wholesale Marketplace</h1>
+
       {/* Hero Slider Area */}  
       {settings.home_show_hero_slider !== 'false' && (
         <div className="bg-white">

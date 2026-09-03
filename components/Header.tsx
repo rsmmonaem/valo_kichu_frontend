@@ -105,8 +105,9 @@ const Header: React.FC<HeaderProps> = ({ categories }) => {
             {/* Logo */}
             <div className="flex items-center gap-3">
               <button
-                className="md:hidden p-2 -ml-2 hover:bg-gray-100 rounded-lg"
+                className="md:hidden p-2 -ml-2 hover:bg-gray-100 rounded-lg text-gray-700"
                 onClick={openSidebar}
+                aria-label="Open navigation menu"
               >
                 <Menu size={24} />
               </button>
@@ -114,7 +115,9 @@ const Header: React.FC<HeaderProps> = ({ categories }) => {
                 {settings.site_logo ? (
                   <img
                     src={getImageUrl(settings.site_logo)}
-                    alt={settings.site_name || "Logo"}
+                    alt={settings.site_name || "Valokichu Logo"}
+                    width={180}
+                    height={60}
                     className="h-14 md:h-20 w-auto group-hover:scale-105 transition-transform object-contain"
                   />
                 ) : (
@@ -136,9 +139,11 @@ const Header: React.FC<HeaderProps> = ({ categories }) => {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   onKeyDown={handleKeyDown}
+                  aria-label="Search products"
                 />
                 <button
                   onClick={handleSearch}
+                  aria-label="Search"
                   className="absolute right-0 top-0 bottom-1 bg-blue-600 text-white w-11 h-11 rounded-full hover:bg-blue-700 transition-transform hover:scale-105 flex items-center justify-center shadow-md shadow-blue-500/30"
                 >
                   <Search size={18} />

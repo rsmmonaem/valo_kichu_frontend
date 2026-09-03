@@ -284,6 +284,7 @@ export default function Footer() {
                       href={settings.footer_facebook_url}
                       target="_blank"
                       rel="noreferrer"
+                      aria-label="Follow Valokichu on Facebook"
                       className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center hover:scale-110 transition-transform"
                     >
                       <Facebook size={18} />
@@ -294,6 +295,7 @@ export default function Footer() {
                       href={settings.footer_youtube_url}
                       target="_blank"
                       rel="noreferrer"
+                      aria-label="Follow Valokichu on YouTube"
                       className="w-10 h-10 bg-red-600 text-white rounded-full flex items-center justify-center hover:scale-110 transition-transform"
                     >
                       <Youtube size={18} />
@@ -304,6 +306,7 @@ export default function Footer() {
                       href={settings.footer_instagram_url}
                       target="_blank"
                       rel="noreferrer"
+                      aria-label="Follow Valokichu on Instagram"
                       className="w-10 h-10 bg-pink-600 text-white rounded-full flex items-center justify-center hover:scale-110 transition-transform"
                     >
                       <Instagram size={18} />
@@ -314,6 +317,7 @@ export default function Footer() {
                       href={settings.footer_twitter_url}
                       target="_blank"
                       rel="noreferrer"
+                      aria-label="Follow Valokichu on Twitter"
                       className="w-10 h-10 bg-sky-500 text-white rounded-full flex items-center justify-center hover:scale-110 transition-transform"
                     >
                       <Twitter size={18} />
@@ -336,27 +340,30 @@ export default function Footer() {
               <div>
                 <img
                   src={`/bkash.jpeg`}
-                  alt={settings.site_name || "Logo"}
-                  className="h-10 w-auto group-hover:scale-105 transition-transform object-contain"
+                  alt="bKash payment gateway"
+                  width={60}
+                  height={32}
+                  className="h-8 w-auto group-hover:scale-105 transition-transform object-contain"
                 />
               </div>
               <div>
                 <img
                   src={`/nagad.png`}
-                  alt={settings.site_name || "Logo"}
-                  className="h-10 w-auto group-hover:scale-105 transition-transform object-contain"
+                  alt="Nagad payment gateway"
+                  width={60}
+                  height={32}
+                  className="h-8 w-auto group-hover:scale-105 transition-transform object-contain"
                 />
               </div>
               <div>
                 <img
                   src={`/visa.png`}
-                  alt={settings.site_name || "Logo"}
-                  className="h-10 w-auto group-hover:scale-105 transition-transform object-contain"
+                  alt="Visa card payment"
+                  width={60}
+                  height={32}
+                  className="h-8 w-auto group-hover:scale-105 transition-transform object-contain"
                 />
               </div>
-              {/* <div className="h-6 w-10 bg-pink-600 rounded text-[8px] text-white flex items-center justify-center font-bold">bKash</div>
-                            <div className="h-6 w-10 bg-orange-600 rounded text-[8px] text-white flex items-center justify-center font-bold">Nagad</div>
-                            <div className="h-6 w-10 bg-blue-800 rounded text-[8px] text-white flex items-center justify-center font-bold">VISA</div> */}
             </div>
           </div>
         </div>

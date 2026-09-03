@@ -75,7 +75,7 @@ const HeroSlider: React.FC<HeroSliderProps> = ({ banners }) => {
                                 src={banner.image_url || ((banner.image && banner.image.startsWith('http')) ? banner.image : `${process.env.NEXT_PUBLIC_API_URL}/storage/${banner.image}`)}
                                 alt={banner.title || 'Banner'}
                                 fill
-                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 100vw"
+                                sizes="(max-width: 768px) 100vw, (max-width: 1280px) 80vw, 1200px"
                                 className="object-cover"
                                 priority={index === 0}
                             />
@@ -85,7 +85,7 @@ const HeroSlider: React.FC<HeroSliderProps> = ({ banners }) => {
                             src={banner.image_url || ((banner.image && banner.image.startsWith('http')) ? banner.image : `${process.env.NEXT_PUBLIC_API_URL}/storage/${banner.image}`)}
                             alt={banner.title || 'Banner'}
                             fill
-                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 100vw"
+                            sizes="(max-width: 768px) 100vw, (max-width: 1280px) 80vw, 1200px"
                             className="object-cover"
                             priority={index === 0}
                         />
@@ -116,6 +116,7 @@ const HeroSlider: React.FC<HeroSliderProps> = ({ banners }) => {
                         <button
                             key={index}
                             onClick={() => setCurrentIndex(index)}
+                            aria-label={`Go to slide ${index + 1}`}
                             className={clsx(
                                 "w-2 h-2 rounded-full transition-all",
                                 index === currentIndex ? "bg-blue-600 w-6" : "bg-white/50"

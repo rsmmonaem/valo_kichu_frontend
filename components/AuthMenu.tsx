@@ -16,6 +16,7 @@ const AuthMenu = () => {
                     className="flex flex-col items-center gap-0.5 text-gray-600 hover:text-blue-600 transition-colors outline-none"
                     onClick={() => setIsOpen(!isOpen)}
                     onBlur={() => setTimeout(() => setIsOpen(false), 200)}
+                    aria-label="User login menu"
                 >
                     <User size={24} />
                     <span className="text-[10px] font-medium">Login</span>
@@ -41,6 +42,7 @@ const AuthMenu = () => {
                 className="flex flex-col items-center gap-0.5 text-gray-600 hover:text-blue-600 transition-colors outline-none"
                 onClick={() => setIsOpen(!isOpen)}
                 onBlur={() => setTimeout(() => setIsOpen(false), 200)}
+                aria-label="User account menu"
             >
                 <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs uppercase">
                     {user.name ? user.name.charAt(0) : (
