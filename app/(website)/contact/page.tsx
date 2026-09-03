@@ -1,18 +1,9 @@
 import React from 'react';
-import axios from 'axios';
 import { Mail } from 'lucide-react';
-
-async function getPageData() {
-  try {
-    const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/pages/contact_us`);
-    return res.data;
-  } catch (error) {
-    return null;
-  }
-}
+import { getPageContent } from '@/lib/api';
 
 export default async function ContactPage() {
-  const pageData = await getPageData();
+  const pageData = await getPageContent('contact_us');
   let content = pageData?.data?.content || '<p class="text-gray-500">Contact Us content coming soon...</p>';
   // Replace non-breaking spaces with normal spaces to fix mobile responsiveness / wrapping
   content = content.replace(/&nbsp;|\u00a0/g, " ");

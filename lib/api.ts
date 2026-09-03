@@ -452,3 +452,16 @@ export const getBlogBySlug = async (slug: string): Promise<Blog | null> => {
     return null;
   }
 };
+
+export const getPageContent = async (slug: string) => {
+  try {
+    const res = await fetchWithTimeout(`${API_URL}/pages/${slug}`, {
+      next: { revalidate: 60 }
+    }, 4000);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (e) {
+    return null;
+  }
+};
+

@@ -1,18 +1,9 @@
 import React from 'react';
-import axios from 'axios';
 import { RotateCcw } from 'lucide-react';
+import { getPageContent } from '@/lib/api';
 
-async function getPageData() {
-  try {
-    const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/pages/returns_and_refunds`);
-    return res.data;
-  } catch (error) {
-    return null;
-  }
-}
-
-export default async function ReturnsPage() {
-  const pageData = await getPageData();
+export default async function ReturnsRefundsPage() {
+  const pageData = await getPageContent('returns_and_refunds');
   const content = pageData?.data?.content || '<p class="text-gray-500">Returns & Refunds content coming soon...</p>';
   const title = pageData?.data?.title || 'Returns & Refunds';
 

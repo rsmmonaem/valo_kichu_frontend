@@ -1,5 +1,5 @@
 import { MetadataRoute } from 'next'
-import { getCategoryList, getProducts, Product, Category } from '@/lib/api'
+import { getCategoryList, getProducts, getBlogs, Product, Category, Blog } from '@/lib/api'
 
 export const dynamic = 'force-dynamic';
 
@@ -33,6 +33,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         console.error('Sitemap product fetch error:', error)
     }
 
+    // Fetch blogs
+    let allBlogs: Blog[] = []
+    try {
+        allBlogs = await getBlogs()
+    } catch (error) {
+        console.error('Sitemap blogs fetch error:', error)
+    }
+
     const categoryEntries = categories.map((category: Category) => ({
         url: `${baseUrl}/categories/${category.slug}`,
         lastModified: new Date(),
@@ -47,12 +55,27 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.7,
     }))
 
+    const blogEntries = allBlogs.map((blog: Blog) => ({
+        url: `${baseUrl}/blogs/${blog.slug}`,
+        lastModified: blog.updated_at ? new Date(blog.updated_at) : new Date(),
+        changeFrequency: 'weekly' as const,
+        priority: 0.7,
+    }))
+
     const staticEndpoints = [
         { url: baseUrl, priority: 1.0, changeFrequency: 'daily' as const },
         { url: `${baseUrl}/products`, priority: 0.9, changeFrequency: 'daily' as const },
         { url: `${baseUrl}/categories`, priority: 0.8, changeFrequency: 'weekly' as const },
+        { url: `${baseUrl}/blogs`, priority: 0.8, changeFrequency: 'daily' as const },
         { url: `${baseUrl}/dropshipper`, priority: 0.8, changeFrequency: 'monthly' as const },
         { url: `${baseUrl}/dropshipper/signup`, priority: 0.8, changeFrequency: 'monthly' as const },
+        { url: `${baseUrl}/about`, priority: 0.6, changeFrequency: 'monthly' as const },
+        { url: `${baseUrl}/contact`, priority: 0.6, changeFrequency: 'monthly' as const },
+        { url: `${baseUrl}/privacy`, priority: 0.5, changeFrequency: 'monthly' as const },
+        { url: `${baseUrl}/terms`, priority: 0.5, changeFrequency: 'monthly' as const },
+        { url: `${baseUrl}/returns`, priority: 0.5, changeFrequency: 'monthly' as const },
+        { url: `${baseUrl}/shipping`, priority: 0.5, changeFrequency: 'monthly' as const },
+        { url: `${baseUrl}/track-order`, priority: 0.6, changeFrequency: 'monthly' as const },
         { url: `${baseUrl}/register`, priority: 0.5, changeFrequency: 'monthly' as const },
         { url: `${baseUrl}/login`, priority: 0.5, changeFrequency: 'monthly' as const },
     ]
@@ -64,5 +87,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         })),
         ...categoryEntries,
         ...productEntries,
+        ...blogEntries,
     ]
 }

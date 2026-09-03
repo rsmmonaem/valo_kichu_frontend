@@ -1,18 +1,9 @@
 import React from 'react';
-import axios from 'axios';
 import { FileSignature } from 'lucide-react';
-
-async function getPageData() {
-  try {
-    const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/pages/terms_and_conditions`);
-    return res.data;
-  } catch (error) {
-    return null;
-  }
-}
+import { getPageContent } from '@/lib/api';
 
 export default async function TermsAndConditionsPage() {
-  const pageData = await getPageData();
+  const pageData = await getPageContent('terms_and_conditions');
   const content = pageData?.data?.content || '<p class="text-gray-500">Terms & Conditions content coming soon...</p>';
   const title = pageData?.data?.title || 'Terms & Conditions';
 

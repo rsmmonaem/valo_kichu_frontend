@@ -1,18 +1,9 @@
 import React from 'react';
-import axios from 'axios';
 import { ShieldCheck } from 'lucide-react';
-
-async function getPageData() {
-  try {
-    const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/pages/privacy_policy`);
-    return res.data;
-  } catch (error) {
-    return null;
-  }
-}
+import { getPageContent } from '@/lib/api';
 
 export default async function PrivacyPolicyPage() {
-  const pageData = await getPageData();
+  const pageData = await getPageContent('privacy_policy');
   const content = pageData?.data?.content || '<p class="text-gray-500">Privacy Policy content coming soon...</p>';
   const title = pageData?.data?.title || 'Privacy Policy';
 

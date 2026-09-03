@@ -1,18 +1,9 @@
 import React from 'react';
-import axios from 'axios';
 import { Truck } from 'lucide-react';
-
-async function getPageData() {
-  try {
-    const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/pages/shipping_info`);
-    return res.data;
-  } catch (error) {
-    return null;
-  }
-}
+import { getPageContent } from '@/lib/api';
 
 export default async function ShippingPage() {
-  const pageData = await getPageData();
+  const pageData = await getPageContent('shipping_info');
   const content = pageData?.data?.content || '<p class="text-gray-500">Shipping Info content coming soon...</p>';
   const title = pageData?.data?.title || 'Shipping Info';
 

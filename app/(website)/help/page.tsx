@@ -1,18 +1,9 @@
 import React from 'react';
-import axios from 'axios';
 import { HelpCircle } from 'lucide-react';
-
-async function getPageData() {
-  try {
-    const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/pages/help_center`);
-    return res.data;
-  } catch (error) {
-    return null;
-  }
-}
+import { getPageContent } from '@/lib/api';
 
 export default async function HelpCenterPage() {
-  const pageData = await getPageData();
+  const pageData = await getPageContent('help_center');
   const content = pageData?.data?.content || '<p class="text-gray-500">Help Center content coming soon...</p>';
   const title = pageData?.data?.title || 'Help Center';
 
