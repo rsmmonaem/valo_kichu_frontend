@@ -27,6 +27,9 @@ export const metadata: Metadata = {
 
   verification: {
     google: 'wBgt_-cjgzjf8qCBOdlubW9YH3IJwzBouZ9w_FFq6i0',
+    other: {
+      'facebook-domain-verification': '1yuaban0rr5t111p4812r81m8pd06s',
+    },
   },
   icons: {
     icon: '/fav1.png',
