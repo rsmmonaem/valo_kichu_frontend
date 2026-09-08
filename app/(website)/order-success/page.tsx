@@ -20,8 +20,12 @@ const OrderSuccessContent = () => {
     const [orderDetails, setOrderDetails] = useState<any>(null);
     const [loadingDetails, setLoadingDetails] = useState(false);
 
+    const cartClearedRef = React.useRef(false);
     useEffect(() => {
-        clearCart();
+        if (!cartClearedRef.current) {
+            cartClearedRef.current = true;
+            clearCart();
+        }
     }, [clearCart]);
 
     useEffect(() => {

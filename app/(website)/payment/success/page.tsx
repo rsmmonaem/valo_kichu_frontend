@@ -12,8 +12,12 @@ const PaymentSuccessContent = () => {
     const status = searchParams.get('Status') || searchParams.get('status');
     const { clearCart } = useCart();
 
+    const cartClearedRef = React.useRef(false);
     React.useEffect(() => {
-        clearCart();
+        if (!cartClearedRef.current) {
+            cartClearedRef.current = true;
+            clearCart();
+        }
     }, [clearCart]);
 
     React.useEffect(() => {

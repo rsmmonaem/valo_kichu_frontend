@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import * as fpixel from '@/lib/fpixel';
 import { trackAddToCart, trackRemoveFromCart, mapCartItemToGAItem } from '@/lib/gtm';
 
@@ -65,7 +65,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     }, [cart, isInitialized]);
 
-    const addToCart = (newItem: CartItem) => {
+    const addToCart = useCallback((newItem: CartItem) => {
         setCart((prevCart) => {
             const existingItemIndex = prevCart.findIndex(
                 (item) => item.id === newItem.id && item.variant?.id === newItem.variant?.id
@@ -84,35 +84,37 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Unified GA4 dataLayer & Meta Pixel AddToCart
         const gaItem = mapCartItemToGAItem(newItem);
         trackAddToCart([gaItem], Number(newItem.price || 0) * (newItem.quantity || 1));
-    };
+    }, []);
 
-    const removeFromCart = (id: number, variantId?: string | number) => {
-        const itemToRemove = cart.find((item) => item.id === id && item.variant?.id === variantId);
-        if (itemToRemove) {
-            const gaItem = mapCartItemToGAItem(itemToRemove);
-            trackRemoveFromCart([gaItem], Number(itemToRemove.price || 0) * (itemToRemove.quantity || 1));
-        }
-        setCart((prevCart) => prevCart.filter((item) => !(item.id === id && item.variant?.id === variantId)));
-    };
+    const removeFromCart = useCallback((id: number, variantId?: string | number) => {
+        setCart((prevCart) => {
+            const itemToRemove = prevCart.find((item) => item.id === id && item.variant?.id === variantId);
+            if (itemToRemove) {
+                const gaItem = mapCartItemToGAItem(itemToRemove);
+                trackRemoveFromCart([gaItem], Number(itemToRemove.price || 0) * (itemToRemove.quantity || 1));
+            }
+            return prevCart.filter((item) => !(item.id === id && item.variant?.id === variantId));
+        });
+    }, []);
 
-    const updateQuantity = (id: number, quantity: number, variantId?: string | number) => {
+    const updateQuantity = useCallback((id: number, quantity: number, variantId?: string | number) => {
         if (quantity < 1) return;
         setCart((prevCart) =>
             prevCart.map((item) =>
                 item.id === id && item.variant?.id === variantId ? { ...item, quantity } : item
             )
         );
-    };
+    }, []);
 
-    const clearCart = () => {
-        setCart([]);
-    };
+    const clearCart = useCallback(() => {
+        setCart((prev) => (prev.length === 0 ? prev : []));
+    }, []);
 
-    const toggleCart = () => {
-        setIsCartOpen(!isCartOpen);
-    };
+    const toggleCart = useCallback(() => {
+        setIsCartOpen((prev) => !prev);
+    }, []);
 
-    const getDiscountedPrice = (item: CartItem) => {
+    const getDiscountedPrice = useCallback((item: CartItem) => {
         const basePrice = item.price || 0;
         const cumulativeQty = cart
             .filter((i) => i.id === item.id)
@@ -129,38 +131,55 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
         }
         return Math.max(0, basePrice - bulkDiscountPerItem);
-    };
+    }, [cart]);
 
-    const cartTotal = cart.reduce((total, item) => {
-        const finalPrice = getDiscountedPrice(item);
-        return total + finalPrice * item.quantity;
-    }, 0);
+    const cartTotal = useMemo(() => {
+        return cart.reduce((total, item) => {
+            const finalPrice = getDiscountedPrice(item);
+            return total + finalPrice * item.quantity;
+        }, 0);
+    }, [cart, getDiscountedPrice]);
 
-    const cartSubtotal = cart.reduce((total, item) => {
-        return total + (item.price || 0) * item.quantity;
-    }, 0);
+    const cartSubtotal = useMemo(() => {
+        return cart.reduce((total, item) => {
+            return total + (item.price || 0) * item.quantity;
+        }, 0);
+    }, [cart]);
 
-    const cartDiscount = Math.max(0, cartSubtotal - cartTotal);
+    const cartDiscount = useMemo(() => Math.max(0, cartSubtotal - cartTotal), [cartSubtotal, cartTotal]);
 
-    const cartCount = cart.reduce((count, item) => count + item.quantity, 0);
+    const cartCount = useMemo(() => cart.reduce((count, item) => count + item.quantity, 0), [cart]);
+
+    const contextValue = useMemo(() => ({
+        cart,
+        addToCart,
+        removeFromCart,
+        updateQuantity,
+        clearCart,
+        cartTotal,
+        cartSubtotal,
+        cartDiscount,
+        cartCount,
+        isCartOpen,
+        toggleCart,
+        getDiscountedPrice,
+    }), [
+        cart,
+        addToCart,
+        removeFromCart,
+        updateQuantity,
+        clearCart,
+        cartTotal,
+        cartSubtotal,
+        cartDiscount,
+        cartCount,
+        isCartOpen,
+        toggleCart,
+        getDiscountedPrice,
+    ]);
 
     return (
-        <CartContext.Provider
-            value={{
-                cart,
-                addToCart,
-                removeFromCart,
-                updateQuantity,
-                clearCart,
-                cartTotal,
-                cartSubtotal,
-                cartDiscount,
-                cartCount,
-                isCartOpen,
-                toggleCart,
-                getDiscountedPrice,
-            }}
-        >
+        <CartContext.Provider value={contextValue}>
             {children}
         </CartContext.Provider>
     );
