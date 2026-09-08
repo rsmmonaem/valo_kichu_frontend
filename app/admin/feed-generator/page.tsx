@@ -71,7 +71,7 @@ export default function FeedGeneratorPage() {
     const [sortBy, setSortBy] = useState<string>('id');
     const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
     const [feedFormat, setFeedFormat] = useState<string>('facebook_csv');
-    const [utmCampaign, setUtmCampaign] = useState<string>('facebook_feed');
+    const [utmCampaign, setUtmCampaign] = useState<string>('');
     const [searchQuery, setSearchQuery] = useState<string>('');
 
     // Live Preview state
@@ -163,6 +163,9 @@ export default function FeedGeneratorPage() {
             if (searchQuery.trim()) {
                 params.set('search', searchQuery.trim());
             }
+            if (utmCampaign.trim()) {
+                params.set('utm_campaign', utmCampaign.trim());
+            }
 
             const res = await authFetch(`/admin/v1/feeds/preview?${params.toString()}`);
             if (res.ok) {
@@ -186,7 +189,7 @@ export default function FeedGeneratorPage() {
         }, 300);
         return () => clearTimeout(timer);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [categoryMode, selectedCategoryIds, stockStatus, sortBy, sortOrder, searchQuery]);
+    }, [categoryMode, selectedCategoryIds, stockStatus, sortBy, sortOrder, searchQuery, utmCampaign]);
 
     // Handle Category Toggles
     const toggleCategory = (id: number) => {
@@ -212,8 +215,10 @@ export default function FeedGeneratorPage() {
         params.set('stock_status', stockStatus);
         params.set('sort_by', sortBy);
         params.set('sort_order', sortOrder);
-        params.set('utm_campaign', utmCampaign.trim() || 'facebook_feed');
-        params.set('feed_name', utmCampaign.trim() || 'facebook_catalog');
+        if (utmCampaign.trim()) {
+            params.set('utm_campaign', utmCampaign.trim());
+        }
+        params.set('feed_name', utmCampaign.trim() || `catalog_${stockStatus}`);
         params.set('download', '1');
 
         const toastId = toast.loading('Generating and downloading CSV feed...');
@@ -611,17 +616,17 @@ export default function FeedGeneratorPage() {
 
                                 <div>
                                     <label className="text-xs font-bold text-gray-700 block mb-1.5">
-                                        UTM Campaign Tag (for Ad tracking)
+                                        UTM Campaign Tag (Optional for Ad tracking)
                                     </label>
                                     <input
                                         type="text"
                                         value={utmCampaign}
                                         onChange={e => setUtmCampaign(e.target.value)}
-                                        placeholder="e.g. facebook_feed"
+                                        placeholder="Leave empty for clean URLs (e.g. https://valokichu.com/products/slug)"
                                         className="w-full text-xs bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:border-blue-500"
                                     />
                                     <p className="text-[11px] text-gray-400 mt-1">
-                                        Links will look like: <code className="text-blue-600">https://valokichu.com/products/slug?utm_source=facebook&utm_campaign={utmCampaign || 'catalog'}</code>
+                                        Links will look like: <code className="text-blue-600">https://valokichu.com/products/slug{utmCampaign.trim() ? `?utm_source=facebook&utm_campaign=${utmCampaign.trim()}` : ''}</code>
                                     </p>
                                 </div>
                             </div>
@@ -739,7 +744,10 @@ export default function FeedGeneratorPage() {
                                                                     src={p.image_url}
                                                                     alt={p.name}
                                                                     className="w-9 h-9 rounded-lg object-cover border border-gray-100 shrink-0"
-                                                                    onError={(e: any) => { e.target.src = '/placeholder.png'; }}
+                                                                    onError={(e: any) => { 
+                                                                        e.currentTarget.onerror = null;
+                                                                        e.currentTarget.src = '/placeholder.png'; 
+                                                                    }}
                                                                 />
                                                             ) : (
                                                                 <div className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 shrink-0">
