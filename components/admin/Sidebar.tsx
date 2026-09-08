@@ -25,7 +25,8 @@ import {
     Activity,
     BarChart3,
     User,
-    Newspaper
+    Newspaper,
+    Share2
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import clsx from 'clsx';
@@ -93,6 +94,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, setIsOpen }) => {
         { path: '/admin/sub-sub-categories', label: 'Sub Sub Categories', icon: FolderOpen, show: hasPermission('products') },
         { path: '/admin/brands', label: 'Brands', icon: Tags, show: hasPermission('products') },
         { path: '/admin/banners', label: 'Banners', icon: ImageIcon, show: hasPermission('products') },
+        { path: '/admin/feed-generator', label: 'Feed Generator', icon: Share2, show: hasPermission('products') || hasPermission('settings') || user?.role === 'admin' || user?.role === 'super_admin' },
         { path: '/admin/blogs', label: 'Blogs', icon: Newspaper, show: hasPermission('blogs') },
         { path: '/admin/customers', label: 'Customers', icon: Users, show: hasPermission('customers') || hasPermission('orders') },
         { path: '/admin/checkout-leads', label: 'Checkout Leads', icon: ClipboardList, show: hasPermission('customers') || hasPermission('orders') },
