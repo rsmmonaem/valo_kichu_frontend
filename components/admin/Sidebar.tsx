@@ -44,7 +44,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, setIsOpen }) => {
     const pathname = usePathname();
     const searchParams = useSearchParams();
     const currentType = searchParams.get('type');
-    const isBlogger = !!(user && BLOGGER_ROLES.includes(user.role));
+    const isBlogger = !!(user?.role && BLOGGER_ROLES.includes(user.role));
 
     const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>({
         Orders: pathname.startsWith('/admin/orders'),
@@ -73,6 +73,8 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, setIsOpen }) => {
         if (user.role === 'admin') return perm !== 'users';
         if (user.permissions?.includes('*')) return true;
         if (isBlogger && perm === 'blogs') return true;
+        if (perm === 'feeds' && (user.permissions?.includes('feed_generator') || user.permissions?.includes('feeds'))) return true;
+        if (perm === 'feed_generator' && (user.permissions?.includes('feeds') || user.permissions?.includes('feed_generator'))) return true;
         return !!(user.permissions && user.permissions.includes(perm));
     };
 
@@ -94,7 +96,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, setIsOpen }) => {
         { path: '/admin/sub-sub-categories', label: 'Sub Sub Categories', icon: FolderOpen, show: hasPermission('products') },
         { path: '/admin/brands', label: 'Brands', icon: Tags, show: hasPermission('products') },
         { path: '/admin/banners', label: 'Banners', icon: ImageIcon, show: hasPermission('products') },
-        { path: '/admin/feed-generator', label: 'Feed Generator', icon: Share2, show: hasPermission('products') || hasPermission('settings') || user?.role === 'admin' || user?.role === 'super_admin' },
+        { path: '/admin/feed-generator', label: 'Feed Generator', icon: Share2, show: hasPermission('feeds') || hasPermission('feed_generator') || hasPermission('products') || hasPermission('settings') || user?.role === 'admin' || user?.role === 'super_admin' },
         { path: '/admin/blogs', label: 'Blogs', icon: Newspaper, show: hasPermission('blogs') },
         { path: '/admin/customers', label: 'Customers', icon: Users, show: hasPermission('customers') || hasPermission('orders') },
         { path: '/admin/checkout-leads', label: 'Checkout Leads', icon: ClipboardList, show: hasPermission('customers') || hasPermission('orders') },

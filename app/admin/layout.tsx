@@ -50,16 +50,38 @@ export default function AdminLayout({
                 return;
             }
 
+            // Helper for module permissions
+            const hasModulePerm = (perm: string) => {
+                if (!user) return false;
+                if (user.role === 'super_admin' || user.role === 'admin') return true;
+                if (user.permissions?.includes('*')) return true;
+                if (perm === 'feeds' && (user.permissions?.includes('feed_generator') || user.permissions?.includes('feeds'))) return true;
+                return !!(user.permissions && user.permissions.includes(perm));
+            };
+
             // Check staff management page restriction
             if (pathname.startsWith('/admin/staff') && !user.permissions?.includes('users') && user.role !== 'super_admin') {
                 router.replace('/admin/dashboard');
                 return;
             }
 
+            // Feed Generator page restriction
+            if (pathname.startsWith('/admin/feed-generator')) {
+                const canAccessFeeds = hasModulePerm('feeds') || hasModulePerm('products') || hasModulePerm('settings');
+                if (!canAccessFeeds) {
+                    const isBloggerUser = !!(user.role && ['blogger', 'content_writer', 'blog_manager', 'blog_editor'].includes(user.role));
+                    router.replace(isBloggerUser ? '/admin/blogs' : '/admin/dashboard');
+                    return;
+                }
+            }
+
             // Blogger route restriction
-            const isBloggerOnly = ['blogger', 'content_writer', 'blog_manager', 'blog_editor'].includes(user.role);
+            const isBloggerOnly = !!(user.role && ['blogger', 'content_writer', 'blog_manager', 'blog_editor'].includes(user.role));
             if (isBloggerOnly) {
-                const isAllowedPage = pathname.startsWith('/admin/blogs') || pathname.startsWith('/admin/profile');
+                const canAccessFeeds = hasModulePerm('feeds') || hasModulePerm('products') || hasModulePerm('settings');
+                const isAllowedPage = pathname.startsWith('/admin/blogs') ||
+                    pathname.startsWith('/admin/profile') ||
+                    (pathname.startsWith('/admin/feed-generator') && canAccessFeeds);
                 if (!isAllowedPage) {
                     router.replace('/admin/blogs');
                     return;

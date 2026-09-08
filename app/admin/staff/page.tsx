@@ -23,7 +23,8 @@ import {
     Lock,
     Eye,
     EyeOff,
-    RefreshCw
+    RefreshCw,
+    Share2
 } from "lucide-react";
 
 interface StaffMember {
@@ -43,6 +44,7 @@ interface StaffMember {
 const AVAILABLE_PERMISSIONS = [
     { id: "blogs", label: "Blogs & Articles", desc: "Create, edit, delete and publish blogs", icon: Newspaper },
     { id: "products", label: "Products & Catalog", desc: "Manage products, categories, brands & banners", icon: Package },
+    { id: "feeds", label: "Feed Generator", desc: "Generate & export Facebook & Google product catalog feeds", icon: Share2 },
     { id: "orders", label: "Orders & Shipping", desc: "Manage customer/dropshipper orders & courier dispatch", icon: ShoppingCart },
     { id: "customers", label: "Customers & Leads", desc: "View customer profiles, checkout leads & visitors", icon: Users },
     { id: "dropshippers", label: "Dropshippers", desc: "Manage dropshipper approvals, wallets & withdrawals", icon: UserCheck },
@@ -69,15 +71,15 @@ const ROLE_PRESETS = [
     {
         id: "product_manager",
         title: "Product Manager",
-        desc: "Manage products, categories, brands & banners",
-        permissions: ["products"],
+        desc: "Manage products, categories, brands, banners & feeds",
+        permissions: ["products", "feeds"],
         badgeColor: "bg-purple-50 text-purple-700 border-purple-200"
     },
     {
         id: "admin",
         title: "Administrator",
         desc: "Full access to all store operational modules",
-        permissions: ["blogs", "products", "orders", "customers", "dropshippers", "reports", "settings"],
+        permissions: ["blogs", "products", "feeds", "orders", "customers", "dropshippers", "reports", "settings"],
         badgeColor: "bg-emerald-50 text-emerald-700 border-emerald-200"
     },
     {
@@ -189,6 +191,17 @@ export default function AdminStaffPage() {
     const togglePermission = (permId: string) => {
         setFormData(prev => {
             const current = [...prev.permissions];
+            const isFeeds = permId === 'feeds' || permId === 'feed_generator';
+            const hasFeeds = current.includes('feeds') || current.includes('feed_generator');
+
+            if (isFeeds) {
+                if (hasFeeds) {
+                    return { ...prev, permissions: current.filter(p => p !== 'feeds' && p !== 'feed_generator') };
+                } else {
+                    return { ...prev, permissions: [...current, 'feeds'] };
+                }
+            }
+
             if (current.includes(permId)) {
                 return { ...prev, permissions: current.filter(p => p !== permId) };
             } else {
@@ -464,11 +477,15 @@ export default function AdminStaffPage() {
                                                             All Permissions (*)
                                                         </span>
                                                     ) : staff.permissions && staff.permissions.length > 0 ? (
-                                                        staff.permissions.map(perm => (
-                                                            <span key={perm} className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-[11px] font-medium">
-                                                                {perm}
-                                                            </span>
-                                                        ))
+                                                        staff.permissions.map(perm => {
+                                                            const found = AVAILABLE_PERMISSIONS.find(p => p.id === perm);
+                                                            const label = found ? found.label : (perm === 'feed_generator' || perm === 'feeds' ? 'Feed Generator' : perm);
+                                                            return (
+                                                                <span key={perm} className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-[11px] font-medium">
+                                                                    {label}
+                                                                </span>
+                                                            );
+                                                        })
                                                     ) : (
                                                         <span className="text-xs text-gray-400 italic">None assigned</span>
                                                     )}
@@ -654,7 +671,9 @@ export default function AdminStaffPage() {
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                                     {AVAILABLE_PERMISSIONS.map(perm => {
-                                        const isChecked = formData.permissions.includes(perm.id) || formData.permissions.includes('*');
+                                        const isChecked = formData.permissions.includes(perm.id) ||
+                                            (perm.id === 'feeds' && formData.permissions.includes('feed_generator')) ||
+                                            formData.permissions.includes('*');
                                         const Icon = perm.icon;
 
                                         return (

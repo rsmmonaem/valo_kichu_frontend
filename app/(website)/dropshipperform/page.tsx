@@ -60,7 +60,7 @@ const DropShipperForm = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12">
+        <div className="min-screen flex items-center justify-center bg-gray-50 px-4 py-12">
             <div className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full border border-gray-100">
                 <div className="text-center mb-8">
                     <h2 className="text-3xl font-bold text-gray-800">Add DropShipper</h2>
