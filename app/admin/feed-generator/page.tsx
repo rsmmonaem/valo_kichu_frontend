@@ -23,6 +23,7 @@ import {
     Eye
 } from 'lucide-react';
 import { authFetch, getCategoryList, Category } from '@/lib/api';
+import { getImageUrl } from '@/lib/utils';
 import toast from 'react-hot-toast';
 import Image from 'next/image';
 import clsx from 'clsx';
@@ -741,7 +742,7 @@ export default function FeedGeneratorPage() {
                                                         <div className="flex items-center gap-2.5 max-w-xs">
                                                             {p.image_url ? (
                                                                 <img
-                                                                    src={p.image_url}
+                                                                    src={getImageUrl(p.image_url)}
                                                                     alt={p.name}
                                                                     className="w-9 h-9 rounded-lg object-cover border border-gray-100 shrink-0"
                                                                     onError={(e: any) => { 
