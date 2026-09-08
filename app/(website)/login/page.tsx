@@ -78,11 +78,11 @@ const LoginPage = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12">
+        <div className="min-screen flex items-center justify-center bg-gray-50 px-4 py-12">
             <div className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full border border-gray-100">
                 <div className="text-center mb-8">
                     <h2 className="text-3xl font-bold text-gray-800">Account Login</h2>
-                    <p className="text-gray-500 mt-2">Access your shopping or management account</p>
+                    <p className="text-gray-500 mt-2">Access your shopping or management account.</p>
                 </div>
 
                 {error && (
