@@ -22,12 +22,13 @@ const LoginPage = () => {
         setError('');
 
         try {
-            // First get CSRF cookie if needed, but for API token based auth it might not be strictly required if using 'api/*' routes loosely
-            // await authFetch('/sanctum/csrf-cookie', { method: 'GET' }); 
+            const trimmed = email.trim();
+            const isEmail = trimmed.includes('@');
+            const payload = isEmail ? { email: trimmed, password } : { phone_number: trimmed, password };
 
             const res = await authFetch('/login', {
                 method: 'POST',
-                body: JSON.stringify({ email, password }),
+                body: JSON.stringify(payload),
             });
 
             const data = await res.json();
@@ -51,18 +52,23 @@ const LoginPage = () => {
                 login(data.access_token, userData);
 
                 // GA4: Track login
-                trackLogin('email');
+                trackLogin(isEmail ? 'email' : 'phone');
 
                 // Redirect based on role
-                if (userData.role === 'admin' || userData.role === 'super_admin') {
+                const userRole = userData.role || '';
+                if (userRole === 'admin' || userRole === 'super_admin' || userRole === 'child_admin') {
                     router.push('/admin/dashboard');
-                } else if (['dropshipper', 'sub_dropshipper', 'sub_sub_dropshipper'].includes(userData.role || '')) {
+                } else if (['blogger', 'content_writer', 'blog_manager', 'blog_editor'].includes(userRole)) {
+                    router.push('/admin/blogs');
+                } else if (userData.is_staff || (userData.permissions && userData.permissions.length > 0)) {
+                    router.push('/admin/dashboard');
+                } else if (['dropshipper', 'sub_dropshipper', 'sub_sub_dropshipper'].includes(userRole)) {
                     router.push('/dropshipper/dashboard');
                 } else {
                     router.push('/customer/dashboard'); // Default for regular customers
                 }
             } else {
-                setError(data.message || 'Invalid email or password');
+                setError(data.error || data.message || 'Invalid email/phone or password');
             }
         } catch (err) {
             setError('Something went wrong. Please try again.');
@@ -75,8 +81,8 @@ const LoginPage = () => {
         <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12">
             <div className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full border border-gray-100">
                 <div className="text-center mb-8">
-                    <h2 className="text-3xl font-bold text-gray-800">Customer Login</h2>
-                    <p className="text-gray-500 mt-2">Access your shopping dashboard</p>
+                    <h2 className="text-3xl font-bold text-gray-800">Account Login</h2>
+                    <p className="text-gray-500 mt-2">Access your shopping or management account</p>
                 </div>
 
                 {error && (
@@ -87,13 +93,13 @@ const LoginPage = () => {
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Mobile Number or Email</label>
                         <div className="relative">
                             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                             <input
-                                type="email"
-                                className="w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 outline-none transition"
-                                placeholder="you@example.com"
+                                type="text"
+                                className="w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 outline-none transition font-sans"
+                                placeholder="017XXXXXXXX or you@example.com"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
