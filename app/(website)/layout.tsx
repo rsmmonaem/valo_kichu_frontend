@@ -66,11 +66,12 @@ export default async function WebsiteLayout({
 }>) {
     const { data: categories } = await getCategoryList();
     const settingsMap = await getSettings({ next: { revalidate: 60 } } as any);
-    const googleAnalyticsId = settingsMap.google_analytics_id;
+    const googleAnalyticsId = settingsMap.google_analytics_id || settingsMap.ga4_measurement_id;
+    const isGa4Enabled = (settingsMap.google_analytics_enabled !== 'false' && settingsMap.ga4_enabled !== 'false') && !!googleAnalyticsId;
 
     return (
         <>
-            {googleAnalyticsId && (
+            {isGa4Enabled && (
                 <>
                     <Script
                         strategy="afterInteractive"

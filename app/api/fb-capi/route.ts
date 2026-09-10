@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import crypto from 'crypto';
+import { getSettings } from '@/lib/api';
 
 function hashValue(value: string | undefined): string | undefined {
   if (!value) return undefined;
@@ -39,8 +40,16 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { event_name, event_id, event_source_url, custom_data, user_data } = body;
 
-    const PIXEL_ID = process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID;
-    const ACCESS_TOKEN = process.env.FACEBOOK_ACCESS_TOKEN;
+    // Verify if CAPI is enabled in database settings
+    const settings = await getSettings().catch(() => ({} as Record<string, string>));
+    const isCapiEnabled = settings.facebook_capi_enabled === 'true' || settings.facebook_capi_enabled === '1';
+
+    if (!isCapiEnabled) {
+      return NextResponse.json({ success: false, message: 'Facebook Conversions API (CAPI) is disabled in Admin Settings.' }, { status: 202 });
+    }
+
+    const PIXEL_ID = settings.facebook_pixel_id || process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID;
+    const ACCESS_TOKEN = settings.facebook_access_token || process.env.FACEBOOK_ACCESS_TOKEN;
 
     if (!PIXEL_ID || !ACCESS_TOKEN) {
       // Returning 202 (Accepted) instead of 500 to prevent console error spam on localhost
@@ -116,8 +125,9 @@ export async function POST(req: Request) {
       ],
     };
 
-    if (process.env.NEXT_PUBLIC_FACEBOOK_TEST_EVENT_CODE) {
-      (payload as any).test_event_code = process.env.NEXT_PUBLIC_FACEBOOK_TEST_EVENT_CODE;
+    const testEventCode = settings.facebook_test_event_code || process.env.NEXT_PUBLIC_FACEBOOK_TEST_EVENT_CODE;
+    if (testEventCode) {
+      (payload as any).test_event_code = testEventCode;
     }
 
     const response = await fetch(`https://graph.facebook.com/v19.0/${PIXEL_ID}/events?access_token=${ACCESS_TOKEN}`, {

@@ -4,6 +4,7 @@ import { useEffect, Suspense } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import Script from 'next/script';
 import * as fpixel from '@/lib/fpixel';
+import { useSettings } from '@/context/SettingsContext';
 
 function NavigationEvents() {
   const pathname = usePathname();
@@ -17,10 +18,24 @@ function NavigationEvents() {
 }
 
 export default function FacebookPixel() {
-  // Temporarily disabled
-  return null;
+  const { settings, loading } = useSettings();
+
+  useEffect(() => {
+    if (!loading && settings) {
+      fpixel.syncPixelSettings(settings);
+    }
+  }, [settings, loading]);
+
+  const config = fpixel.getPixelConfig();
+  const pixelId = settings?.facebook_pixel_id || config.pixelId || process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID;
   
-  if (!fpixel.FB_PIXEL_ID) return null;
+  const isBrowserPixelEnabled = settings?.facebook_pixel_enabled !== undefined
+    ? (settings.facebook_pixel_enabled === 'true' || settings.facebook_pixel_enabled === '1')
+    : config.enableBrowserPixel;
+
+  if (!isBrowserPixelEnabled || !pixelId) {
+    return null;
+  }
 
   return (
     <>
@@ -37,7 +52,7 @@ export default function FacebookPixel() {
             t.src=v;s=b.getElementsByTagName(e)[0];
             s.parentNode.insertBefore(t,s)}(window, document,'script',
             'https://connect.facebook.net/en_US/fbevents.js');
-            fbq('init', '${fpixel.FB_PIXEL_ID}');
+            fbq('init', '${pixelId}');
           `,
         }}
       />
@@ -46,7 +61,7 @@ export default function FacebookPixel() {
           height="1"
           width="1"
           style={{ display: 'none' }}
-          src={`https://www.facebook.com/tr?id=${fpixel.FB_PIXEL_ID}&ev=PageView&noscript=1`}
+          src={`https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1`}
           alt=""
         />
       </noscript>

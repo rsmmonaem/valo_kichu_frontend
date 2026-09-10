@@ -59,8 +59,42 @@ export interface GARefundParams {
     items?: GAItem[];
 }
 
-// Push safe wrapper
+interface GtmConfig {
+    gtmId: string;
+    enabled: boolean;
+    ga4Id?: string;
+    ga4Enabled?: boolean;
+}
+
+const gtmConfig: GtmConfig = {
+    gtmId: process.env.NEXT_PUBLIC_GTM_ID || 'GTM-WW3R96DZ',
+    enabled: true,
+    ga4Id: process.env.NEXT_PUBLIC_GA4_ID || '',
+    ga4Enabled: true,
+};
+
+export const getGtmConfig = (): GtmConfig => ({ ...gtmConfig });
+
+export const syncGtmSettings = (settings: Record<string, string>) => {
+    if (!settings) return;
+    if (settings.gtm_id) {
+        gtmConfig.gtmId = settings.gtm_id;
+    }
+    if (settings.gtm_enabled !== undefined) {
+        gtmConfig.enabled = settings.gtm_enabled === 'true' || settings.gtm_enabled === '1';
+    }
+    const ga4Id = settings.google_analytics_id || settings.ga4_measurement_id;
+    if (ga4Id) {
+        gtmConfig.ga4Id = ga4Id;
+    }
+    if (settings.google_analytics_enabled !== undefined || settings.ga4_enabled !== undefined) {
+        gtmConfig.ga4Enabled = (settings.google_analytics_enabled !== 'false' && settings.ga4_enabled !== 'false');
+    }
+};
+
+// Push safe wrapper: allow pushing if EITHER GTM or GA4 is enabled
 export const pushToDataLayer = (data: Record<string, any>) => {
+    if (!gtmConfig.enabled && !gtmConfig.ga4Enabled) return;
     if (typeof window !== 'undefined') {
         (window as any).dataLayer = (window as any).dataLayer || [];
         (window as any).dataLayer.push(data);

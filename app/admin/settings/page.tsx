@@ -5,6 +5,7 @@ import { authFetch } from '@/lib/api';
 import { toast } from 'react-hot-toast';
 import { Save, Loader2, Image as ImageIcon } from 'lucide-react';
 import { getImageUrl } from '@/lib/utils';
+import clsx from 'clsx';
 
 interface Setting {
     key: string;
@@ -226,6 +227,34 @@ const SettingsPage = () => {
                 const data: Setting[] = await res.json();
                 const settingsMap: Record<string, string> = {};
                 data.forEach(s => settingsMap[s.key] = s.value);
+
+                // Populate default tracking values if not yet set in database
+                if (!settingsMap.facebook_pixel_id) {
+                    settingsMap.facebook_pixel_id = process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID || '99611553309299';
+                }
+                if (settingsMap.facebook_pixel_enabled === undefined) {
+                    settingsMap.facebook_pixel_enabled = 'true';
+                }
+                if (settingsMap.facebook_capi_enabled === undefined) {
+                    settingsMap.facebook_capi_enabled = 'false';
+                }
+                if (!settingsMap.gtm_id) {
+                    settingsMap.gtm_id = process.env.NEXT_PUBLIC_GTM_ID || 'GTM-WW3R96DZ';
+                }
+                if (settingsMap.gtm_enabled === undefined) {
+                    settingsMap.gtm_enabled = 'true';
+                }
+                if (!settingsMap.google_analytics_id && settingsMap.ga4_measurement_id) {
+                    settingsMap.google_analytics_id = settingsMap.ga4_measurement_id;
+                }
+                if (!settingsMap.ga4_measurement_id && settingsMap.google_analytics_id) {
+                    settingsMap.ga4_measurement_id = settingsMap.google_analytics_id;
+                }
+                if (settingsMap.google_analytics_enabled === undefined && settingsMap.ga4_enabled === undefined) {
+                    settingsMap.google_analytics_enabled = settingsMap.google_analytics_id ? 'true' : 'false';
+                    settingsMap.ga4_enabled = settingsMap.google_analytics_enabled;
+                }
+
                 setSettings(settingsMap);
 
                 // Initialize dynamic arrays
@@ -791,6 +820,353 @@ const SettingsPage = () => {
                                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20 font-mono"
                                 placeholder="https://portal.steadfast.com.bd/api/v1"
                             />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Tracking & Analytics Configuration (Meta Pixel & Google Tag Manager) */}
+                <div className="border-t border-gray-100 pt-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
+                        <div>
+                            <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2 text-indigo-600">
+                                <span className="w-2.5 h-2.5 rounded-full bg-indigo-600"></span>
+                                Analytics & Tracking Settings (Meta Pixel & Google Tag Manager)
+                            </h2>
+                            <p className="text-xs text-gray-500 mt-0.5">Control Pixel IDs, GTM containers, browser tracking, and server CAPI events saved on server</p>
+                        </div>
+                    </div>
+
+                    <div className="space-y-6">
+                        {/* Meta (Facebook) Tracking Card */}
+                        <div className="p-5 bg-blue-50/30 rounded-xl border border-blue-100 space-y-5">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-blue-100">
+                                <h3 className="font-bold text-sm text-gray-800 flex items-center gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-blue-600"></span>
+                                    Meta (Facebook) Pixel & Conversions API (CAPI)
+                                </h3>
+                                {/* Status Summary Badge */}
+                                <div className="flex items-center gap-2 text-xs">
+                                    <span className="text-gray-500 font-medium">Events Manager Status:</span>
+                                    {settings.facebook_pixel_enabled !== 'false' && settings.facebook_capi_enabled === 'true' ? (
+                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-bold bg-blue-100 text-blue-800">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse"></span>
+                                            Multiple (Pixel + Server CAPI)
+                                        </span>
+                                    ) : settings.facebook_pixel_enabled !== 'false' ? (
+                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-bold bg-indigo-100 text-indigo-800">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-indigo-600"></span>
+                                            Meta pixel (Browser Only)
+                                        </span>
+                                    ) : settings.facebook_capi_enabled === 'true' ? (
+                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-bold bg-amber-100 text-amber-800">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
+                                            Conversions API only (Browser Off)
+                                        </span>
+                                    ) : (
+                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-bold bg-gray-100 text-gray-600">
+                                            Disabled
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Meta Toggles */}
+                            <div className="grid md:grid-cols-2 gap-4">
+                                {/* Browser Pixel Card */}
+                                <div className={clsx(
+                                    "p-4 rounded-xl border transition-all bg-white",
+                                    settings.facebook_pixel_enabled !== 'false' ? "border-blue-200 shadow-sm" : "border-gray-200 opacity-75"
+                                )}>
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div className="space-y-1">
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-bold text-sm text-gray-800">Meta Pixel (Browser)</span>
+                                                <span className={clsx(
+                                                    "text-[10px] font-bold px-2 py-0.5 rounded-full",
+                                                    settings.facebook_pixel_enabled !== 'false' ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-600"
+                                                )}>
+                                                    {settings.facebook_pixel_enabled !== 'false' ? 'ENABLED' : 'DISABLED'}
+                                                </span>
+                                            </div>
+                                            <p className="text-xs text-gray-500">
+                                                Injects Facebook Pixel script into visitor browsers. Tracks PageView, AddToCart, ViewContent, Purchase, etc.
+                                            </p>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleChange('facebook_pixel_enabled', settings.facebook_pixel_enabled === 'false' ? 'true' : 'false')}
+                                            className={clsx(
+                                                "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
+                                                settings.facebook_pixel_enabled !== 'false' ? "bg-blue-600" : "bg-gray-300"
+                                            )}
+                                            role="switch"
+                                            aria-checked={settings.facebook_pixel_enabled !== 'false'}
+                                        >
+                                            <span
+                                                className={clsx(
+                                                    "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
+                                                    settings.facebook_pixel_enabled !== 'false' ? "translate-x-5" : "translate-x-0"
+                                                )}
+                                            />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Server CAPI Card */}
+                                <div className={clsx(
+                                    "p-4 rounded-xl border transition-all bg-white",
+                                    settings.facebook_capi_enabled === 'true' ? "border-blue-200 shadow-sm" : "border-gray-200 opacity-75"
+                                )}>
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div className="space-y-1">
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-bold text-sm text-gray-800">Conversions API (CAPI Server)</span>
+                                                <span className={clsx(
+                                                    "text-[10px] font-bold px-2 py-0.5 rounded-full",
+                                                    settings.facebook_capi_enabled === 'true' ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"
+                                                )}>
+                                                    {settings.facebook_capi_enabled === 'true' ? 'ENABLED' : 'DISABLED'}
+                                                </span>
+                                            </div>
+                                            <p className="text-xs text-gray-500">
+                                                Sends server-side events directly to Meta Graph API. Bypasses ad blockers and iOS tracking restrictions.
+                                            </p>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleChange('facebook_capi_enabled', settings.facebook_capi_enabled === 'true' ? 'false' : 'true')}
+                                            className={clsx(
+                                                "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
+                                                settings.facebook_capi_enabled === 'true' ? "bg-blue-600" : "bg-gray-300"
+                                            )}
+                                            role="switch"
+                                            aria-checked={settings.facebook_capi_enabled === 'true'}
+                                        >
+                                            <span
+                                                className={clsx(
+                                                    "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
+                                                    settings.facebook_capi_enabled === 'true' ? "translate-x-5" : "translate-x-0"
+                                                )}
+                                            />
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Pixel Credentials & Test Code */}
+                            <div className="grid md:grid-cols-3 gap-4 pt-1">
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-700 mb-1">Facebook Pixel ID</label>
+                                    <input
+                                        type="text"
+                                        value={settings.facebook_pixel_id || ''}
+                                        onChange={(e) => handleChange('facebook_pixel_id', e.target.value)}
+                                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-blue-500/20 font-mono font-medium"
+                                        placeholder="e.g. 99611553309299"
+                                    />
+                                    <p className="text-[10px] text-gray-400 mt-1">Saved on server database; used for browser & CAPI</p>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-700 mb-1">CAPI Access Token (Optional)</label>
+                                    <input
+                                        type="password"
+                                        value={settings.facebook_access_token || ''}
+                                        onChange={(e) => handleChange('facebook_access_token', e.target.value)}
+                                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-blue-500/20 font-mono"
+                                        placeholder="EAAB..."
+                                    />
+                                    <p className="text-[10px] text-gray-400 mt-1">Leave empty to use default token from server .env</p>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-700 mb-1">Test Event Code (Optional)</label>
+                                    <input
+                                        type="text"
+                                        value={settings.facebook_test_event_code || ''}
+                                        onChange={(e) => handleChange('facebook_test_event_code', e.target.value)}
+                                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-blue-500/20 font-mono"
+                                        placeholder="e.g. TEST12345"
+                                    />
+                                    <p className="text-[10px] text-gray-400 mt-1">For debugging in Events Manager Test Events tab</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Google Tag Manager (GTM) Card */}
+                        <div className="p-5 bg-emerald-50/30 rounded-xl border border-emerald-100 space-y-5">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-emerald-100">
+                                <h3 className="font-bold text-sm text-gray-800 flex items-center gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
+                                    Google Tag Manager (GTM) & Google Analytics
+                                </h3>
+                                {/* Status Summary Badge */}
+                                <div className="flex items-center gap-2 text-xs">
+                                    <span className="text-gray-500 font-medium">GTM Status:</span>
+                                    {settings.gtm_enabled !== 'false' && settings.gtm_id ? (
+                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-800">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                                            Active ({settings.gtm_id})
+                                        </span>
+                                    ) : (
+                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-bold bg-gray-100 text-gray-600">
+                                            Disabled
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="grid md:grid-cols-2 gap-4">
+                                {/* GTM Toggle Card */}
+                                <div className={clsx(
+                                    "p-4 rounded-xl border transition-all bg-white",
+                                    settings.gtm_enabled !== 'false' ? "border-emerald-200 shadow-sm" : "border-gray-200 opacity-75"
+                                )}>
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div className="space-y-1">
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-bold text-sm text-gray-800">Google Tag Manager</span>
+                                                <span className={clsx(
+                                                    "text-[10px] font-bold px-2 py-0.5 rounded-full",
+                                                    settings.gtm_enabled !== 'false' ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-600"
+                                                )}>
+                                                    {settings.gtm_enabled !== 'false' ? 'ENABLED' : 'DISABLED'}
+                                                </span>
+                                            </div>
+                                            <p className="text-xs text-gray-500">
+                                                Loads the GTM container script and dataLayer events (ecommerce, purchase, add_to_cart).
+                                            </p>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleChange('gtm_enabled', settings.gtm_enabled === 'false' ? 'true' : 'false')}
+                                            className={clsx(
+                                                "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
+                                                settings.gtm_enabled !== 'false' ? "bg-emerald-600" : "bg-gray-300"
+                                            )}
+                                            role="switch"
+                                            aria-checked={settings.gtm_enabled !== 'false'}
+                                        >
+                                            <span
+                                                className={clsx(
+                                                    "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
+                                                    settings.gtm_enabled !== 'false' ? "translate-x-5" : "translate-x-0"
+                                                )}
+                                            />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* GTM Container ID Card */}
+                                <div className="p-4 rounded-xl border border-gray-200 bg-white space-y-2">
+                                    <label className="block text-xs font-semibold text-gray-700">GTM Container ID</label>
+                                    <input
+                                        type="text"
+                                        value={settings.gtm_id || ''}
+                                        onChange={(e) => handleChange('gtm_id', e.target.value)}
+                                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-emerald-500/20 font-mono font-medium"
+                                        placeholder="e.g. GTM-WW3R96DZ"
+                                    />
+                                    <p className="text-[10px] text-gray-400">Loads this Google Tag Manager container dynamically</p>
+                                </div>
+                            </div>
+
+                            {/* Clarity Project ID */}
+                            <div className="pt-1">
+                                <label className="block text-xs font-semibold text-gray-700 mb-1">Microsoft Clarity Project ID (Optional)</label>
+                                <input
+                                    type="text"
+                                    value={settings.clarity_id || ''}
+                                    onChange={(e) => handleChange('clarity_id', e.target.value)}
+                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-emerald-500/20 font-mono"
+                                    placeholder="e.g. your_clarity_id"
+                                />
+                                <p className="text-[10px] text-gray-400 mt-1">For session recording and heatmaps</p>
+                            </div>
+                        </div>
+
+                        {/* Google Analytics 4 (GA4) Card */}
+                        <div className="p-5 bg-amber-50/30 rounded-xl border border-amber-100 space-y-5">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-amber-100">
+                                <h3 className="font-bold text-sm text-gray-800 flex items-center gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-amber-600"></span>
+                                    Google Analytics 4 (GA4 / gtag.js)
+                                </h3>
+                                {/* Status Summary Badge */}
+                                <div className="flex items-center gap-2 text-xs">
+                                    <span className="text-gray-500 font-medium">GA4 Status:</span>
+                                    {(settings.google_analytics_enabled !== 'false' && settings.ga4_enabled !== 'false') && (settings.google_analytics_id || settings.ga4_measurement_id) ? (
+                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-bold bg-amber-100 text-amber-800">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
+                                            Active ({settings.google_analytics_id || settings.ga4_measurement_id})
+                                        </span>
+                                    ) : (
+                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-bold bg-gray-100 text-gray-600">
+                                            Disabled
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="grid md:grid-cols-2 gap-4">
+                                {/* GA4 Toggle Card */}
+                                <div className={clsx(
+                                    "p-4 rounded-xl border transition-all bg-white",
+                                    (settings.google_analytics_enabled !== 'false' && settings.ga4_enabled !== 'false') ? "border-amber-200 shadow-sm" : "border-gray-200 opacity-75"
+                                )}>
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div className="space-y-1">
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-bold text-sm text-gray-800">Google Analytics 4</span>
+                                                <span className={clsx(
+                                                    "text-[10px] font-bold px-2 py-0.5 rounded-full",
+                                                    (settings.google_analytics_enabled !== 'false' && settings.ga4_enabled !== 'false') ? "bg-amber-100 text-amber-700" : "bg-gray-100 text-gray-600"
+                                                )}>
+                                                    {(settings.google_analytics_enabled !== 'false' && settings.ga4_enabled !== 'false') ? 'ENABLED' : 'DISABLED'}
+                                                </span>
+                                            </div>
+                                            <p className="text-xs text-gray-500">
+                                                Loads the GA4 direct gtag.js tracking script and tracks page views and user events.
+                                            </p>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const next = (settings.google_analytics_enabled === 'false' || settings.ga4_enabled === 'false') ? 'true' : 'false';
+                                                handleChange('google_analytics_enabled', next);
+                                                handleChange('ga4_enabled', next);
+                                            }}
+                                            className={clsx(
+                                                "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
+                                                (settings.google_analytics_enabled !== 'false' && settings.ga4_enabled !== 'false') ? "bg-amber-600" : "bg-gray-300"
+                                            )}
+                                            role="switch"
+                                            aria-checked={(settings.google_analytics_enabled !== 'false' && settings.ga4_enabled !== 'false')}
+                                        >
+                                            <span
+                                                className={clsx(
+                                                    "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
+                                                    (settings.google_analytics_enabled !== 'false' && settings.ga4_enabled !== 'false') ? "translate-x-5" : "translate-x-0"
+                                                )}
+                                            />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* GA4 Measurement ID Card */}
+                                <div className="p-4 rounded-xl border border-gray-200 bg-white space-y-2">
+                                    <label className="block text-xs font-semibold text-gray-700">GA4 Measurement ID</label>
+                                    <input
+                                        type="text"
+                                        value={settings.google_analytics_id || settings.ga4_measurement_id || ''}
+                                        onChange={(e) => {
+                                            handleChange('google_analytics_id', e.target.value);
+                                            handleChange('ga4_measurement_id', e.target.value);
+                                        }}
+                                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-amber-500/20 font-mono font-medium"
+                                        placeholder="e.g. G-XXXXXXXXXX"
+                                    />
+                                    <p className="text-[10px] text-gray-400">Direct Google Analytics 4 measurement ID (gtag.js)</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
