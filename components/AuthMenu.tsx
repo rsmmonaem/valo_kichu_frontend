@@ -70,7 +70,7 @@ const AuthMenu = () => {
                             <LayoutDashboard size={16} /> Admin Panel
                         </Link>
                     )}
-                    {['blogger', 'content_writer', 'blog_manager', 'blog_editor'].includes(user.role) && (
+                    {user.role && ['blogger', 'content_writer', 'blog_manager', 'blog_editor'].includes(user.role) && (
                         <Link href="/admin/blogs" className="flex items-center gap-2 px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 font-semibold">
                             <LayoutDashboard size={16} /> Blog Management
                         </Link>

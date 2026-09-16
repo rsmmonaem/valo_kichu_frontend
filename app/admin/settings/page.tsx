@@ -254,6 +254,9 @@ const SettingsPage = () => {
                     settingsMap.google_analytics_enabled = settingsMap.google_analytics_id ? 'true' : 'false';
                     settingsMap.ga4_enabled = settingsMap.google_analytics_enabled;
                 }
+                if (settingsMap.clarity_enabled === undefined) {
+                    settingsMap.clarity_enabled = settingsMap.clarity_id ? 'true' : 'false';
+                }
 
                 setSettings(settingsMap);
 
@@ -1069,17 +1072,84 @@ const SettingsPage = () => {
                                 </div>
                             </div>
 
-                            {/* Clarity Project ID */}
-                            <div className="pt-1">
-                                <label className="block text-xs font-semibold text-gray-700 mb-1">Microsoft Clarity Project ID (Optional)</label>
-                                <input
-                                    type="text"
-                                    value={settings.clarity_id || ''}
-                                    onChange={(e) => handleChange('clarity_id', e.target.value)}
-                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-emerald-500/20 font-mono"
-                                    placeholder="e.g. your_clarity_id"
-                                />
-                                <p className="text-[10px] text-gray-400 mt-1">For session recording and heatmaps</p>
+                        </div>
+
+                        {/* Microsoft Clarity Card */}
+                        <div className="p-5 bg-purple-50/30 rounded-xl border border-purple-100 space-y-5">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-purple-100">
+                                <h3 className="font-bold text-sm text-gray-800 flex items-center gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-purple-600"></span>
+                                    Microsoft Clarity (Heatmaps & Session Recordings)
+                                </h3>
+                                {/* Status Summary Badge */}
+                                <div className="flex items-center gap-2 text-xs">
+                                    <span className="text-gray-500 font-medium">Clarity Status:</span>
+                                    {settings.clarity_enabled !== 'false' && settings.clarity_id ? (
+                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-bold bg-purple-100 text-purple-800">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-purple-600"></span>
+                                            Active ({settings.clarity_id})
+                                        </span>
+                                    ) : (
+                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-bold bg-gray-100 text-gray-600">
+                                            Disabled
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="grid md:grid-cols-2 gap-4">
+                                {/* Clarity Toggle Card */}
+                                <div className={clsx(
+                                    "p-4 rounded-xl border transition-all bg-white",
+                                    settings.clarity_enabled !== 'false' ? "border-purple-200 shadow-sm" : "border-gray-200 opacity-75"
+                                )}>
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div className="space-y-1">
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-bold text-sm text-gray-800">Microsoft Clarity</span>
+                                                <span className={clsx(
+                                                    "text-[10px] font-bold px-2 py-0.5 rounded-full",
+                                                    settings.clarity_enabled !== 'false' ? "bg-purple-100 text-purple-700" : "bg-gray-100 text-gray-600"
+                                                )}>
+                                                    {settings.clarity_enabled !== 'false' ? 'ENABLED' : 'DISABLED'}
+                                                </span>
+                                            </div>
+                                            <p className="text-xs text-gray-500">
+                                                Tracks visitor sessions, clicks, scroll heatmaps, and rage clicks to optimize UX and conversions.
+                                            </p>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleChange('clarity_enabled', settings.clarity_enabled === 'false' ? 'true' : 'false')}
+                                            className={clsx(
+                                                "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
+                                                settings.clarity_enabled !== 'false' ? "bg-purple-600" : "bg-gray-300"
+                                            )}
+                                            role="switch"
+                                            aria-checked={settings.clarity_enabled !== 'false'}
+                                        >
+                                            <span
+                                                className={clsx(
+                                                    "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
+                                                    settings.clarity_enabled !== 'false' ? "translate-x-5" : "translate-x-0"
+                                                )}
+                                            />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Clarity Project ID Card */}
+                                <div className="p-4 rounded-xl border border-gray-200 bg-white space-y-2">
+                                    <label className="block text-xs font-semibold text-gray-700">Clarity Project ID</label>
+                                    <input
+                                        type="text"
+                                        value={settings.clarity_id || ''}
+                                        onChange={(e) => handleChange('clarity_id', e.target.value)}
+                                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-purple-500/20 font-mono font-medium"
+                                        placeholder="e.g. k8s123xyz"
+                                    />
+                                    <p className="text-[10px] text-gray-400">Found in Microsoft Clarity project settings</p>
+                                </div>
                             </div>
                         </div>
 

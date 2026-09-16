@@ -793,7 +793,8 @@ export default function ProductModal({
 priority
                       className="object-cover transition-transform duration-500 group-hover/gallery:scale-110"
                       onLoad={(result) => {
-                        if (result.naturalWidth === 0) setHasImageError(true);
+                        const img = result.currentTarget;
+                        if (img && img.naturalWidth === 0) setHasImageError(true);
                       }}
                       onError={() => setHasImageError(true)}
                     />

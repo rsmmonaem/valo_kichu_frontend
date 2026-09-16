@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   ],
 
   verification: {
-    google: 'wBgt_-cjgzjf8qCBOdlubW9YH3IJwzBouZ9w_FFq6i0',
+    google: ['wBgt_-cjgzjf8qCBOdlubW9YH3IJwzBouZ9w_FFq6i0', 'DxIizZvA7ZYVOIytp2kAcC_xSBx0sA8obx3rVuxeN_Y'],
     other: {
       'facebook-domain-verification': '1yuaban0rr5t111p4812r81m8pd06s',
     },
@@ -60,6 +60,7 @@ import { SettingsProvider } from '@/context/SettingsContext';
 import { UIProvider } from '@/context/UIContext';
 import FacebookPixel from '@/components/FacebookPixel';
 import GoogleTagManager from '@/components/GoogleTagManager';
+import MicrosoftClarity from '@/components/MicrosoftClarity';
 import VisitorTracker from '@/components/VisitorTracker';
 
 import Script from 'next/script';
@@ -84,6 +85,7 @@ export default function RootLayout({
         <SettingsProvider>
           <GoogleTagManager />
           <FacebookPixel />
+          <MicrosoftClarity />
           <AuthProvider>
             <VisitorTracker />
             <CartProvider>

@@ -178,3 +178,44 @@ img {
 .rich-content-lg table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; border-radius: 0.5rem; overflow: hidden; }
 .rich-content-lg th { border: 1px solid #e5e7eb; padding: 0.75rem; background: #f9fafb; text-align: left; font-weight: 600; color: #374151; }
 .rich-content-lg td { border: 1px solid #e5e7eb; padding: 0.75rem; color: #4b5563; }
+
+/* CKEditor 5 Admin Panel Styling Overrides */
+.ckeditor-wrapper .ck.ck-editor {
+  width: 100%;
+}
+
+.ckeditor-wrapper .ck.ck-toolbar {
+  border-top-left-radius: 0.75rem !important;
+  border-top-right-radius: 0.75rem !important;
+  border-color: #e2e8f0 !important;
+  background-color: #f8fafc !important;
+  padding: 0.5rem !important;
+  box-shadow: none !important;
+}
+
+.ckeditor-wrapper .ck.ck-content.ck-editor__editable {
+  border-bottom-left-radius: 0.75rem !important;
+  border-bottom-right-radius: 0.75rem !important;
+  border-color: #e2e8f0 !important;
+  min-height: 480px !important;
+  max-height: 850px;
+  overflow-y: auto;
+  font-size: 1rem !important;
+  line-height: 1.75 !important;
+  color: #1e293b !important;
+  padding: 1.5rem !important;
+}
+
+.ckeditor-wrapper .ck.ck-content.ck-editor__editable:focus {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
+}
+
+/* Ensure CKEditor balloons & floating panels appear above sticky headers */
+.ck.ck-balloon-panel {
+  z-index: 99999 !important;
+}
+.ck.ck-body-wrapper {
+  z-index: 99999 !important;
+}
+

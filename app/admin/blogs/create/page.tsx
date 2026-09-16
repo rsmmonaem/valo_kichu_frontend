@@ -29,29 +29,7 @@ import {
     Search
 } from 'lucide-react';
 
-const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false });
-import 'react-quill-new/dist/quill.snow.css';
-
-const quillModules = {
-    toolbar: [
-        [{ header: [1, 2, 3, 4, 5, 6, false] }],
-        ['bold', 'italic', 'underline', 'strike', 'blockquote'],
-        [{ list: 'ordered' }, { list: 'bullet' }, { indent: '-1' }, { indent: '+1' }],
-        ['link', 'image', 'video'],
-        [{ align: [] }],
-        [{ color: [] }, { background: [] }],
-        ['code-block', 'clean'],
-    ],
-};
-
-const quillFormats = [
-    'header',
-    'bold', 'italic', 'underline', 'strike', 'blockquote',
-    'list', 'bullet', 'indent',
-    'link', 'image', 'video',
-    'align', 'color', 'background',
-    'code-block'
-];
+import CKEditorWrapper from '@/components/admin/CKEditorWrapper';
 
 export default function AdminBlogCreatePage() {
     const router = useRouter();
@@ -281,15 +259,12 @@ export default function AdminBlogCreatePage() {
                                 </div>
                             </div>
 
-                            {/* Quill Editor Component */}
-                            <div className="border border-slate-200 rounded-xl overflow-hidden [&_.ql-toolbar]:bg-slate-50/80 [&_.ql-toolbar]:border-none [&_.ql-toolbar]:border-b [&_.ql-toolbar]:border-slate-200 [&_.ql-container]:border-none [&_.ql-editor]:min-h-[480px] [&_.ql-editor]:text-base [&_.ql-editor]:text-slate-800 [&_.ql-editor]:leading-relaxed focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-600 transition">
-                                <ReactQuill
-                                    theme="snow"
+                            {/* CKEditor 5 Component */}
+                            <div className="rounded-xl overflow-hidden">
+                                <CKEditorWrapper
                                     value={form.description}
                                     onChange={(value: string) => setForm(prev => ({ ...prev, description: value }))}
-                                    modules={quillModules}
-                                    formats={quillFormats}
-                                    placeholder="Write your blog post content here... You can add headings, quotes, links, and format text."
+                                    placeholder="Write your blog post content here... You can add headings, quotes, tables, code blocks, and upload images."
                                 />
                             </div>
                         </div>
