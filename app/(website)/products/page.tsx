@@ -3,6 +3,7 @@ import ProductCard from '@/components/ProductCard';
 import ProductCatalog from '@/components/ProductCatalog';
 import { Metadata } from 'next';
 import CollapsibleFilterBar from '@/components/CollapsibleFilterBar';
+import { getImageUrl } from '@/lib/utils';
 
 type Props = {
     searchParams: Promise<{ [key: string]: string | string[] | undefined }>
@@ -29,6 +30,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
                 if (imageUrl.includes('/storage/') && !imageUrl.includes('/storage/categories/')) {
                     imageUrl = imageUrl.replace('/storage/', '/storage/categories/');
                 }
+                imageUrl = getImageUrl(imageUrl);
             }
 
             const title = category.meta_title || category.name + ' | ValoKichu';
