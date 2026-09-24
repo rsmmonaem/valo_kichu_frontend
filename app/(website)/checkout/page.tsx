@@ -101,35 +101,40 @@ const CheckoutPage = () => {
     setSessionToken(token);
   }, []);
 
-  // Debounced auto-save lead capture
+  // Auto-save checkout lead: Trigger immediately if cart has items, and debounced as customer enters info
   useEffect(() => {
-    if (!sessionToken) return;
+    if (!sessionToken || !cart || cart.length === 0) return;
 
-    // Send only if at least one identification field has content
-    if (
-      !checkoutData.name.trim() &&
-      !checkoutData.phone.trim() &&
-      !checkoutData.email.trim() &&
-      !checkoutData.address_line1.trim()
-    ) {
-      return;
-    }
+    // Helper: read cookie
+    const getCookie = (name: string): string | undefined => {
+      if (typeof document === "undefined") return undefined;
+      const match = document.cookie.match(new RegExp("(^|;\\s*)" + name + "=([^;]*)"));
+      return match ? decodeURIComponent(match[2]) : undefined;
+    };
+
+    const hasCustomerInput =
+      checkoutData.name.trim() ||
+      checkoutData.phone.trim() ||
+      checkoutData.email.trim() ||
+      checkoutData.address_line1.trim();
+
+    // Debounce typing (800ms) or save initial cart lead (500ms)
+    const delay = hasCustomerInput ? 800 : 500;
 
     const delayDebounceFn = setTimeout(async () => {
       try {
-        const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://backend.valokichu.com";
-        const baseUrl = API_URL.endsWith("/api") ? API_URL : `${API_URL}/api`;
+        let rawApi = process.env.NEXT_PUBLIC_API_URL || "https://backend.valokichu.com";
+        if (rawApi.endsWith("/api")) rawApi = rawApi.slice(0, -4);
+        rawApi = rawApi.replace(/\/$/, "");
+        const baseUrl = `${rawApi}/api`;
 
         const cartData = cart.map((item) => {
           const varDetails = [];
           if (item.variant?.size) varDetails.push(`Size: ${item.variant.size}`);
-          if (item.variant?.color)
-            varDetails.push(`Color: ${item.variant.color}`);
-          if (item.variant?.weight)
-            varDetails.push(`Weight: ${item.variant.weight}`);
+          if (item.variant?.color) varDetails.push(`Color: ${item.variant.color}`);
+          if (item.variant?.weight) varDetails.push(`Weight: ${item.variant.weight}`);
 
-          const variationSnapshot =
-            varDetails.length > 0 ? varDetails.join(", ") : null;
+          const variationSnapshot = varDetails.length > 0 ? varDetails.join(", ") : null;
 
           return {
             product_id: item.id,
@@ -142,13 +147,17 @@ const CheckoutPage = () => {
           };
         });
 
+        const fbp = getCookie("_fbp");
+        const fbc = getCookie("_fbc");
+        const fbEventId = `lead_${sessionToken}`;
+        const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
         await fetch(`${baseUrl}/v1/order/checkout-lead`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            ...(localStorage.getItem("token")
-              ? { Authorization: `Bearer ${localStorage.getItem("token")}` }
-              : {}),
+            "Accept": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
           body: JSON.stringify({
             session_token: sessionToken,
@@ -160,12 +169,16 @@ const CheckoutPage = () => {
             payment_method: checkoutData.payment_method,
             notes: checkoutData.notes,
             cart_data: cartData,
+            fb_event_id: fbEventId,
+            fbp: fbp || null,
+            fbc: fbc || null,
+            user_agent: typeof navigator !== "undefined" ? navigator.userAgent : null,
           }),
         });
       } catch (err) {
-        console.error("Error auto-saving lead:", err);
+        console.warn("Notice: checkout lead auto-save sync:", err);
       }
-    }, 1500);
+    }, delay);
 
     return () => clearTimeout(delayDebounceFn);
   }, [checkoutData, sessionToken, cart]);

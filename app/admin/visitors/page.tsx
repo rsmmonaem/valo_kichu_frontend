@@ -8,8 +8,9 @@ import clsx from 'clsx';
 export default function VisitorsPage() {
     const [visitors, setVisitors] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [stats, setStats] = useState({ total_unique: 0 });
+    const [stats, setStats] = useState({ total_unique: 0, today_unique: 0, filtered_total: 0 });
     const [filter, setFilter] = useState('');
+    const [search, setSearch] = useState('');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [page, setPage] = useState(1);
@@ -23,11 +24,21 @@ export default function VisitorsPage() {
         fetchVisitors();
     }, [filter, page]);
 
+    // Debounced search trigger
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setPage(1);
+            fetchVisitors();
+        }, 400);
+        return () => clearTimeout(timer);
+    }, [search]);
+
     const fetchVisitors = async () => {
         setLoading(true);
         try {
             let url = `/admin/v1/visitors?page=${page}`;
             if (filter) url += `&filter=${filter}`;
+            if (search) url += `&search=${encodeURIComponent(search)}`;
             if (startDate && endDate) {
                 url += `&start_date=${startDate}&end_date=${endDate}`;
             }
@@ -37,7 +48,7 @@ export default function VisitorsPage() {
                 const data = await res.json();
                 setVisitors(data.data.data);
                 setTotalPages(data.data.last_page);
-                setStats(data.stats);
+                setStats(data.stats || { total_unique: 0, today_unique: 0, filtered_total: 0 });
             }
         } catch (error) {
             console.error('Failed to fetch visitors:', error);
@@ -76,41 +87,67 @@ export default function VisitorsPage() {
     return (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <h1 className="text-2xl font-bold text-gray-800">Actual Visitors</h1>
-                <div className="bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-100 flex items-center gap-3">
-                    <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
-                        <Globe size={20} />
+                <div>
+                    <h1 className="text-2xl font-bold text-gray-800">Actual Visitors</h1>
+                    <p className="text-sm text-gray-500 mt-0.5">Real-time visitor logs, device info & Meta (FB) attribution</p>
+                </div>
+                <div className="flex flex-wrap items-center gap-3">
+                    <div className="bg-white px-4 py-2 rounded-xl shadow-xs border border-gray-100 flex items-center gap-3">
+                        <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                            <Globe size={18} />
+                        </div>
+                        <div>
+                            <p className="text-xs text-gray-500 font-medium">Total Unique</p>
+                            <p className="text-lg font-bold text-gray-800">{stats.total_unique || 0}</p>
+                        </div>
                     </div>
-                    <div>
-                        <p className="text-sm text-gray-500 font-medium">Total Unique Visitors</p>
-                        <p className="text-xl font-bold text-gray-800">{stats.total_unique}</p>
+                    <div className="bg-white px-4 py-2 rounded-xl shadow-xs border border-gray-100 flex items-center gap-3">
+                        <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
+                            <Calendar size={18} />
+                        </div>
+                        <div>
+                            <p className="text-xs text-gray-500 font-medium">Active Today</p>
+                            <p className="text-lg font-bold text-emerald-600">{stats.today_unique || 0}</p>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            {/* Filters */}
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-wrap gap-4 items-end">
-                <div>
-                    <label className="block text-sm text-gray-500 mb-1">Preset Filters</label>
-                    <select
-                        value={filter}
-                        onChange={(e) => {
-                            setFilter(e.target.value);
-                            setStartDate('');
-                            setEndDate('');
-                            setPage(1);
-                        }}
-                        className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
-                    >
-                        <option value="">All Time</option>
-                        <option value="daily">Today (Daily)</option>
-                        <option value="monthly">This Month</option>
-                    </select>
+            {/* Filters & Search */}
+            <div className="bg-white p-4 rounded-xl shadow-xs border border-gray-100 flex flex-wrap gap-4 items-end justify-between">
+                <div className="flex flex-wrap items-end gap-3 flex-1 min-w-[280px]">
+                    <div className="flex-1 min-w-[200px]">
+                        <label className="block text-xs text-gray-500 mb-1 font-medium">Search</label>
+                        <input
+                            type="text"
+                            placeholder="Search IP, location, or FB Event ID..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-xs text-gray-500 mb-1 font-medium">Preset Filter</label>
+                        <select
+                            value={filter}
+                            onChange={(e) => {
+                                setFilter(e.target.value);
+                                setStartDate('');
+                                setEndDate('');
+                                setPage(1);
+                            }}
+                            className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 bg-white"
+                        >
+                            <option value="">All Time</option>
+                            <option value="daily">Active Today (Daily)</option>
+                            <option value="monthly">Active This Month</option>
+                        </select>
+                    </div>
                 </div>
 
-                <div className="flex items-end gap-2">
+                <div className="flex items-end gap-2 flex-wrap">
                     <div>
-                        <label className="block text-sm text-gray-500 mb-1">From Date</label>
+                        <label className="block text-xs text-gray-500 mb-1 font-medium">From Date</label>
                         <input
                             type="date"
                             value={startDate}
@@ -119,7 +156,7 @@ export default function VisitorsPage() {
                         />
                     </div>
                     <div>
-                        <label className="block text-sm text-gray-500 mb-1">To Date</label>
+                        <label className="block text-xs text-gray-500 mb-1 font-medium">To Date</label>
                         <input
                             type="date"
                             value={endDate}
@@ -129,65 +166,117 @@ export default function VisitorsPage() {
                     </div>
                     <button
                         onClick={handleApplyDateFilter}
-                        className="bg-gray-800 text-white px-4 py-2 rounded-lg text-sm hover:bg-gray-700 transition-colors"
+                        className="bg-gray-800 text-white px-4 py-2 rounded-lg text-sm hover:bg-gray-700 transition font-medium cursor-pointer"
                     >
                         Apply Range
                     </button>
+                    {(search || filter || startDate || endDate) && (
+                        <button
+                            onClick={() => {
+                                setSearch('');
+                                setFilter('');
+                                setStartDate('');
+                                setEndDate('');
+                                setPage(1);
+                            }}
+                            className="text-xs text-gray-500 hover:text-red-600 px-2 py-2"
+                        >
+                            Reset
+                        </button>
+                    )}
                 </div>
             </div>
 
             {/* Table */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="bg-white rounded-xl shadow-xs border border-gray-100 overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="bg-gray-50 border-b border-gray-100 text-sm text-gray-500">
-                                <th className="px-6 py-4 font-medium">IP Address</th>
-                                <th className="px-6 py-4 font-medium">Location</th>
-                                <th className="px-6 py-4 font-medium">Date & Time</th>
-                                <th className="px-6 py-4 font-medium">Total Pages</th>
-                                <th className="px-6 py-4 font-medium text-right">Actions</th>
+                            <tr className="bg-gray-50 border-b border-gray-100 text-xs text-gray-500 uppercase tracking-wider font-semibold">
+                                <th className="px-6 py-3.5">IP & Device</th>
+                                <th className="px-6 py-3.5">Location</th>
+                                <th className="px-6 py-3.5">Facebook (Meta) Event</th>
+                                <th className="px-6 py-3.5">Last Active</th>
+                                <th className="px-6 py-3.5">Pages</th>
+                                <th className="px-6 py-3.5 text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
                             {loading ? (
                                 <tr>
-                                    <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                                    <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
                                         Loading visitors...
                                     </td>
                                 </tr>
                             ) : visitors.length === 0 ? (
                                 <tr>
-                                    <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
-                                        No visitors found.
+                                    <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                                        No visitors found matching your criteria.
                                     </td>
                                 </tr>
                             ) : (
                                 visitors.map((visitor: any) => (
                                     <tr key={visitor.id} className="hover:bg-gray-50 transition-colors">
                                         <td className="px-6 py-4 text-sm font-medium text-gray-800">
-                                            {visitor.ip_address}
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-gray-600">
-                                            <div className="flex items-center gap-1">
-                                                <MapPin size={14} className="text-gray-400" />
-                                                {visitor.location || 'Unknown'}
+                                            <div>{visitor.ip_address}</div>
+                                            <div className="flex items-center gap-1.5 mt-1">
+                                                {visitor.device_type && (
+                                                    <span className={clsx(
+                                                        "text-[10px] font-semibold px-2 py-0.5 rounded-md",
+                                                        visitor.device_type === 'Mobile' ? "bg-amber-50 text-amber-700" :
+                                                        visitor.device_type === 'Tablet' ? "bg-purple-50 text-purple-700" : "bg-gray-100 text-gray-700"
+                                                    )}>
+                                                        {visitor.device_type}
+                                                    </span>
+                                                )}
+                                                {visitor.referrer && (
+                                                    <span className="text-[11px] text-gray-400 truncate max-w-[150px]" title={visitor.referrer}>
+                                                        via {visitor.referrer.replace(/^https?:\/\//, '').split('/')[0]}
+                                                    </span>
+                                                )}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-sm text-gray-600">
-                                            {new Date(visitor.created_at).toLocaleString()}
+                                            <div className="flex items-center gap-1.5">
+                                                <MapPin size={14} className="text-gray-400 shrink-0" />
+                                                <span>{visitor.location || 'Unknown'}</span>
+                                            </div>
                                         </td>
                                         <td className="px-6 py-4 text-sm text-gray-600">
-                                            <span className="bg-blue-50 text-blue-600 px-2 py-1 rounded-md font-medium">
+                                            {visitor.fb_event_id ? (
+                                                <div className="space-y-1">
+                                                    <span className="inline-flex items-center text-xs font-mono bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-medium">
+                                                        {visitor.fb_event_id}
+                                                    </span>
+                                                    {visitor.fbc && (
+                                                        <div className="text-[10px] text-emerald-600 font-semibold">
+                                                            ✓ FB Ad Click (fbclid)
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <span className="text-xs text-gray-400 italic">Direct / Organic</span>
+                                            )}
+                                        </td>
+                                        <td className="px-6 py-4 text-sm text-gray-600">
+                                            <div className="font-medium text-gray-800">
+                                                {new Date(visitor.last_visited_at || visitor.updated_at || visitor.created_at).toLocaleString()}
+                                            </div>
+                                            <div className="text-[11px] text-gray-400 mt-0.5">
+                                                First: {new Date(visitor.created_at).toLocaleDateString()}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 text-sm text-gray-600">
+                                            <span className="bg-blue-50 text-blue-600 px-2.5 py-1 rounded-md font-semibold text-xs">
                                                 {visitor.page_views_count || 0}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <button
                                                 onClick={() => openVisitorModal(visitor.id)}
-                                                className="inline-flex items-center gap-1 bg-white border border-gray-200 hover:border-gray-300 text-gray-700 px-3 py-1.5 rounded-lg text-sm transition-colors shadow-sm"
+                                                className="inline-flex items-center gap-1 bg-white border border-gray-200 hover:border-gray-300 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shadow-xs cursor-pointer"
                                             >
-                                                <Eye size={14} /> Views Pages
+                                                <Eye size={13} /> View Pages
                                             </button>
                                         </td>
                                     </tr>
@@ -203,7 +292,7 @@ export default function VisitorsPage() {
                         <button
                             disabled={page === 1}
                             onClick={() => setPage(p => Math.max(1, p - 1))}
-                            className="px-3 py-1 bg-white border border-gray-200 rounded text-sm disabled:opacity-50"
+                            className="px-3 py-1 bg-white border border-gray-200 rounded text-sm disabled:opacity-50 cursor-pointer"
                         >
                             Previous
                         </button>
@@ -211,7 +300,7 @@ export default function VisitorsPage() {
                         <button
                             disabled={page === totalPages}
                             onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                            className="px-3 py-1 bg-white border border-gray-200 rounded text-sm disabled:opacity-50"
+                            className="px-3 py-1 bg-white border border-gray-200 rounded text-sm disabled:opacity-50 cursor-pointer"
                         >
                             Next
                         </button>

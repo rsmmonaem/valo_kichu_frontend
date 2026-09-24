@@ -25,6 +25,11 @@ interface Lead {
   order_id: number | null;
   created_at: string;
   updated_at: string;
+  ip_address?: string | null;
+  fb_event_id?: string | null;
+  fbp?: string | null;
+  fbc?: string | null;
+  user_agent?: string | null;
   cart_data?: Array<{
     product_id: number;
     name: string;
@@ -646,6 +651,12 @@ const CheckoutLeadsPage = () => {
                           <span>{lead.email}</span>
                         </div>
                       )}
+                      {(lead.ip_address || lead.fb_event_id) && (
+                        <div className="flex items-center gap-1.5 text-[11px] text-gray-400 mt-1">
+                          {lead.ip_address && <span className="bg-gray-100 text-gray-600 px-1.5 py-0.2 rounded font-mono">{lead.ip_address}</span>}
+                          {lead.fb_event_id && <span className="bg-blue-50 text-blue-600 px-1.5 py-0.2 rounded font-mono">FB</span>}
+                        </div>
+                      )}
                     </td>
                     <td className="p-4 max-w-xs">
                       {lead.address ? (
@@ -792,6 +803,18 @@ const CheckoutLeadsPage = () => {
                           <Mail size={14} className="text-gray-400" />
                           {selectedLead.email}
                         </p>
+                      </div>
+                    )}
+                    {selectedLead.ip_address && (
+                      <div>
+                        <p className="text-xs text-gray-505">IP Address</p>
+                        <p className="font-mono text-xs text-gray-700 mt-0.5">{selectedLead.ip_address}</p>
+                      </div>
+                    )}
+                    {selectedLead.fb_event_id && (
+                      <div>
+                        <p className="text-xs text-gray-505">Facebook (Meta) Event ID</p>
+                        <p className="font-mono text-xs text-blue-600 mt-0.5 bg-blue-50 px-2 py-1 rounded w-fit">{selectedLead.fb_event_id}</p>
                       </div>
                     )}
                   </div>
