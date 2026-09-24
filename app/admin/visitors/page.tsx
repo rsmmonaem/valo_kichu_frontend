@@ -45,14 +45,25 @@ export default function VisitorsPage() {
         return () => clearTimeout(timer);
     }, [search]);
 
-    const fetchVisitors = async (isSilent = false) => {
+    const isFiltered = Boolean(filter || (startDate && endDate) || search);
+
+    const fetchVisitors = async (
+        isSilent = false,
+        overrides?: { filter?: string; page?: number; startDate?: string; endDate?: string; search?: string }
+    ) => {
         if (!isSilent) setLoading(true);
         try {
-            let url = `/admin/v1/visitors?page=${page}`;
-            if (filter) url += `&filter=${filter}`;
-            if (search) url += `&search=${encodeURIComponent(search)}`;
-            if (startDate && endDate) {
-                url += `&start_date=${startDate}&end_date=${endDate}`;
+            const curPage = overrides?.page ?? page;
+            const curFilter = overrides?.filter !== undefined ? overrides.filter : filter;
+            const curSearch = overrides?.search !== undefined ? overrides.search : search;
+            const curStart = overrides?.startDate !== undefined ? overrides.startDate : startDate;
+            const curEnd = overrides?.endDate !== undefined ? overrides.endDate : endDate;
+
+            let url = `/admin/v1/visitors?page=${curPage}`;
+            if (curFilter) url += `&filter=${curFilter}`;
+            if (curSearch) url += `&search=${encodeURIComponent(curSearch)}`;
+            if (curStart && curEnd) {
+                url += `&start_date=${curStart}&end_date=${curEnd}`;
             }
 
             const res = await authFetch(url);
@@ -72,7 +83,7 @@ export default function VisitorsPage() {
     const handleApplyDateFilter = () => {
         setFilter(''); // clear preset filter when using date range
         setPage(1);
-        fetchVisitors();
+        fetchVisitors(false, { filter: '', page: 1, startDate, endDate });
     };
 
     const openVisitorModal = async (visitorId: number) => {
@@ -128,23 +139,38 @@ export default function VisitorsPage() {
                         </div>
                     </div>
 
+                    {/* Total Unique / Filtered Unique */}
                     <div className="bg-white px-4 py-2 rounded-xl shadow-xs border border-gray-100 flex items-center gap-3">
                         <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
                             <Globe size={18} />
                         </div>
                         <div>
-                            <p className="text-xs text-gray-500 font-medium">Total Unique</p>
-                            <p className="text-lg font-bold text-gray-800">{stats.total_unique || 0}</p>
+                            <p className="text-xs text-gray-500 font-medium">
+                                {isFiltered ? "Filtered Unique" : "Total Unique"}
+                            </p>
+                            <p className="text-lg font-bold text-gray-800">
+                                {isFiltered ? ((stats as any).filtered_total ?? 0) : (stats.total_unique || 0)}
+                            </p>
+                            {isFiltered && (
+                                <p className="text-[10px] text-gray-400">All-time: {stats.total_unique || 0}</p>
+                            )}
                         </div>
                     </div>
 
+                    {/* Today's Views / Views in Range */}
                     <div className="bg-white px-4 py-2 rounded-xl shadow-xs border border-gray-100 flex items-center gap-3">
                         <div className="p-2 bg-purple-50 text-purple-600 rounded-lg">
                             <Eye size={18} />
                         </div>
                         <div>
-                            <p className="text-xs text-gray-500 font-medium">Today's Views</p>
-                            <p className="text-lg font-bold text-purple-600">{(stats as any).today_page_views || 0}</p>
+                            <p className="text-xs text-gray-500 font-medium">
+                                {(startDate && endDate) || filter === 'monthly' ? "Views in Range" : "Today's Views"}
+                            </p>
+                            <p className="text-lg font-bold text-purple-600">
+                                {((startDate && endDate) || filter === 'monthly')
+                                    ? ((stats as any).filtered_page_views ?? (stats as any).today_page_views ?? 0)
+                                    : ((stats as any).today_page_views || 0)}
+                            </p>
                         </div>
                     </div>
 
@@ -181,10 +207,12 @@ export default function VisitorsPage() {
                         <select
                             value={filter}
                             onChange={(e) => {
-                                setFilter(e.target.value);
+                                const newFilter = e.target.value;
+                                setFilter(newFilter);
                                 setStartDate('');
                                 setEndDate('');
                                 setPage(1);
+                                fetchVisitors(false, { filter: newFilter, startDate: '', endDate: '', page: 1 });
                             }}
                             className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 bg-white"
                         >
@@ -229,8 +257,9 @@ export default function VisitorsPage() {
                                 setStartDate('');
                                 setEndDate('');
                                 setPage(1);
+                                fetchVisitors(false, { filter: '', search: '', startDate: '', endDate: '', page: 1 });
                             }}
-                            className="text-xs text-gray-500 hover:text-red-600 px-2 py-2"
+                            className="text-xs text-gray-500 hover:text-red-600 px-2 py-2 cursor-pointer font-medium"
                         >
                             Reset
                         </button>
