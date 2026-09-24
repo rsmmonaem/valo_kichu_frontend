@@ -8,13 +8,14 @@ import clsx from 'clsx';
 export default function VisitorsPage() {
     const [visitors, setVisitors] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [stats, setStats] = useState({ total_unique: 0, today_unique: 0, filtered_total: 0 });
+    const [stats, setStats] = useState({ total_unique: 0, today_unique: 0, online_now: 0, today_page_views: 0, filtered_total: 0 });
     const [filter, setFilter] = useState('');
     const [search, setSearch] = useState('');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
+    const [isLiveActive, setIsLiveActive] = useState(true);
 
     const [selectedVisitor, setSelectedVisitor] = useState<any>(null);
     const [modalLoading, setModalLoading] = useState(false);
@@ -23,6 +24,17 @@ export default function VisitorsPage() {
     useEffect(() => {
         fetchVisitors();
     }, [filter, page]);
+
+    // Live auto-refresh polling every 6 seconds for real-time online updates
+    useEffect(() => {
+        if (!isLiveActive || isModalOpen) return;
+
+        const interval = setInterval(() => {
+            fetchVisitors(true); // silent refresh (no full page loading flicker)
+        }, 6000);
+
+        return () => clearInterval(interval);
+    }, [isLiveActive, isModalOpen, filter, page, search, startDate, endDate]);
 
     // Debounced search trigger
     useEffect(() => {
@@ -33,8 +45,8 @@ export default function VisitorsPage() {
         return () => clearTimeout(timer);
     }, [search]);
 
-    const fetchVisitors = async () => {
-        setLoading(true);
+    const fetchVisitors = async (isSilent = false) => {
+        if (!isSilent) setLoading(true);
         try {
             let url = `/admin/v1/visitors?page=${page}`;
             if (filter) url += `&filter=${filter}`;
@@ -48,12 +60,12 @@ export default function VisitorsPage() {
                 const data = await res.json();
                 setVisitors(data.data.data);
                 setTotalPages(data.data.last_page);
-                setStats(data.stats || { total_unique: 0, today_unique: 0, filtered_total: 0 });
+                setStats(data.stats || { total_unique: 0, today_unique: 0, online_now: 0, today_page_views: 0, filtered_total: 0 });
             }
         } catch (error) {
             console.error('Failed to fetch visitors:', error);
         } finally {
-            setLoading(false);
+            if (!isSilent) setLoading(false);
         }
     };
 
@@ -92,6 +104,30 @@ export default function VisitorsPage() {
                     <p className="text-sm text-gray-500 mt-0.5">Real-time visitor logs, device info & Meta (FB) attribution</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
+                    {/* Live Online Right Now */}
+                    <div className="bg-white px-4 py-2 rounded-xl shadow-xs border border-emerald-200/80 flex items-center gap-3">
+                        <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg relative">
+                            <span className="relative flex h-3 w-3">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                            </span>
+                        </div>
+                        <div>
+                            <p className="text-xs text-emerald-800 font-semibold">Online Right Now</p>
+                            <p className="text-xl font-extrabold text-emerald-600">{(stats as any).online_now || 0}</p>
+                        </div>
+                    </div>
+
+                    <div className="bg-white px-4 py-2 rounded-xl shadow-xs border border-gray-100 flex items-center gap-3">
+                        <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
+                            <Calendar size={18} />
+                        </div>
+                        <div>
+                            <p className="text-xs text-gray-500 font-medium">Active Today</p>
+                            <p className="text-lg font-bold text-gray-800">{stats.today_unique || 0}</p>
+                        </div>
+                    </div>
+
                     <div className="bg-white px-4 py-2 rounded-xl shadow-xs border border-gray-100 flex items-center gap-3">
                         <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
                             <Globe size={18} />
@@ -101,15 +137,29 @@ export default function VisitorsPage() {
                             <p className="text-lg font-bold text-gray-800">{stats.total_unique || 0}</p>
                         </div>
                     </div>
+
                     <div className="bg-white px-4 py-2 rounded-xl shadow-xs border border-gray-100 flex items-center gap-3">
-                        <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
-                            <Calendar size={18} />
+                        <div className="p-2 bg-purple-50 text-purple-600 rounded-lg">
+                            <Eye size={18} />
                         </div>
                         <div>
-                            <p className="text-xs text-gray-500 font-medium">Active Today</p>
-                            <p className="text-lg font-bold text-emerald-600">{stats.today_unique || 0}</p>
+                            <p className="text-xs text-gray-500 font-medium">Today's Views</p>
+                            <p className="text-lg font-bold text-purple-600">{(stats as any).today_page_views || 0}</p>
                         </div>
                     </div>
+
+                    {/* Live Stream Switch */}
+                    <button
+                        onClick={() => setIsLiveActive(!isLiveActive)}
+                        className={clsx(
+                            "px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer shadow-xs border",
+                            isLiveActive ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-white text-gray-500 border-gray-200"
+                        )}
+                        title={isLiveActive ? "Live updates active (auto-polls every 6s)" : "Click to resume live auto-updates"}
+                    >
+                        <span className={clsx("h-2 w-2 rounded-full", isLiveActive ? "bg-emerald-500 animate-pulse" : "bg-gray-400")} />
+                        <span>{isLiveActive ? "Live ON" : "Paused"}</span>
+                    </button>
                 </div>
             </div>
 
@@ -139,6 +189,7 @@ export default function VisitorsPage() {
                             className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 bg-white"
                         >
                             <option value="">All Time</option>
+                            <option value="online">🟢 Online Right Now</option>
                             <option value="daily">Active Today (Daily)</option>
                             <option value="monthly">Active This Month</option>
                         </select>
@@ -218,7 +269,15 @@ export default function VisitorsPage() {
                                 visitors.map((visitor: any) => (
                                     <tr key={visitor.id} className="hover:bg-gray-50 transition-colors">
                                         <td className="px-6 py-4 text-sm font-medium text-gray-800">
-                                            <div>{visitor.ip_address}</div>
+                                            <div className="flex items-center gap-2">
+                                                <span>{visitor.ip_address}</span>
+                                                {visitor.is_online && (
+                                                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-1.5 py-0.5 rounded-full">
+                                                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                                        ONLINE
+                                                    </span>
+                                                )}
+                                            </div>
                                             <div className="flex items-center gap-1.5 mt-1">
                                                 {visitor.device_type && (
                                                     <span className={clsx(

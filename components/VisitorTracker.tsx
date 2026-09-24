@@ -74,6 +74,7 @@ function VisitorTrackerInner() {
         }
         baseUrl = baseUrl.replace(/\/$/, '');
 
+        // Send initial visit tracking
         fetch(`${baseUrl}/track-visitor`, {
             method: 'POST',
             headers: {
@@ -90,9 +91,34 @@ function VisitorTrackerInner() {
                 referrer: referrer || null,
             }),
         }).catch(err => {
-            // Silently fail network error without disrupting user
             console.warn('Visitor tracking notice:', err?.message || err);
         });
+
+        // Lightweight 30s Heartbeat: keeps active visitors marked "Online Now" in real-time
+        const heartbeatInterval = setInterval(() => {
+            if (typeof document !== 'undefined' && document.visibilityState !== 'visible') {
+                return; // pause heartbeat if user minimized or switched tab
+            }
+
+            fetch(`${baseUrl}/track-visitor`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({
+                    url,
+                    is_heartbeat: true,
+                    fb_event_id: fbEventId,
+                    fbp: fbp || null,
+                    fbc: fbc || null,
+                    device_type: deviceType,
+                    user_agent: userAgent,
+                }),
+            }).catch(() => {});
+        }, 30000);
+
+        return () => clearInterval(heartbeatInterval);
 
     }, [pathname, searchParams, loading]);
 
