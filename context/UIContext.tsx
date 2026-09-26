@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode } from "react";
+import { Toaster } from "react-hot-toast";
 
 interface UIContextType {
     isSidebarOpen: boolean;
@@ -21,6 +22,7 @@ export const UIProvider = ({ children }: { children: ReactNode }) => {
     return (
         <UIContext.Provider value={{ isSidebarOpen, openSidebar, closeSidebar, toggleSidebar }}>
             {children}
+            <Toaster position="top-right" />
         </UIContext.Provider>
     );
 };

@@ -9,6 +9,9 @@ interface User {
     email: string;
     role?: string;
     is_staff?: boolean;
+    is_approved?: boolean;
+    is_any_dropshipper?: boolean;
+    is_active?: boolean;
     permissions?: string[];
     first_name?: string;
     last_name?: string;

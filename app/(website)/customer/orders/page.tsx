@@ -2,10 +2,11 @@
 
 import React, { useEffect, useState } from "react";
 import { authFetch } from "@/lib/api";
-import { ShoppingBag, Calendar, Package, ChevronRight } from "lucide-react";
+import { ShoppingBag, Calendar, Package, ChevronRight, XCircle, AlertTriangle, X } from "lucide-react";
 import Link from "next/link";
 import clsx from "clsx";
 import { getImageUrl } from "@/lib/utils";
+import toast, { Toaster } from "react-hot-toast";
 
 interface Order {
     id: number;
@@ -32,6 +33,8 @@ const OrdersPage = () => {
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
     const [expandedOrder, setExpandedOrder] = useState<number | null>(null);
+    const [orderToCancel, setOrderToCancel] = useState<Order | null>(null);
+    const [isCancelling, setIsCancelling] = useState(false);
 
     useEffect(() => {
         fetchOrders();
@@ -48,6 +51,34 @@ const OrdersPage = () => {
             console.error("Fetch orders error:", error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const canCancelOrder = (status?: string) => {
+        if (!status) return true;
+        const s = status.toLowerCase();
+        return !['cancelled', 'delivered', 'complete', 'shipped', 'returned', 'refunded'].includes(s);
+    };
+
+    const handleCancelOrder = async () => {
+        if (!orderToCancel) return;
+        setIsCancelling(true);
+        try {
+            const res = await authFetch(`/v1/order/cancel/${orderToCancel.id}`, {
+                method: 'POST',
+            });
+            const data = await res.json();
+            if (res.ok) {
+                toast.success(data.message || data.detail || "Order cancelled successfully!");
+                setOrders(prev => prev.map(o => o.id === orderToCancel.id ? { ...o, status: 'cancelled' } : o));
+                setOrderToCancel(null);
+            } else {
+                toast.error(data.message || data.detail || data.error || "Failed to cancel order.");
+            }
+        } catch (err) {
+            toast.error("An error occurred while cancelling order. Please try again.");
+        } finally {
+            setIsCancelling(false);
         }
     };
 
@@ -115,11 +146,24 @@ const OrdersPage = () => {
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-6">
+                                <div className="flex items-center gap-3 sm:gap-5">
                                     <div className="text-right">
                                         <p className="text-xs text-gray-500 mb-0.5">Total Amount</p>
                                         <p className="font-bold text-gray-900 text-lg">৳{order.total_price}</p>
                                     </div>
+                                    {canCancelOrder(order.status) && (
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setOrderToCancel(order);
+                                            }}
+                                            className="px-3 py-1.5 text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg transition-colors flex items-center gap-1.5 shrink-0"
+                                        >
+                                            <XCircle size={14} />
+                                            Cancel
+                                        </button>
+                                    )}
                                     <button className={clsx(
                                         "p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-all duration-300",
                                         expandedOrder === order.id && "rotate-90 text-blue-600 bg-blue-50"
@@ -168,12 +212,78 @@ const OrdersPage = () => {
                                             </div>
                                         ))}
                                     </div>
+
+                                    {canCancelOrder(order.status) && (
+                                        <div className="mt-5 pt-4 border-t border-gray-200/70 flex flex-wrap items-center justify-between gap-3">
+                                            <p className="text-xs text-gray-500">Need to cancel this order? You can cancel it before shipment.</p>
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setOrderToCancel(order);
+                                                }}
+                                                className="px-4 py-2 text-xs font-bold text-red-600 bg-white hover:bg-red-50 border border-red-200 rounded-xl transition shadow-sm flex items-center gap-2"
+                                            >
+                                                <XCircle size={15} /> Cancel Order
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>
                     ))}
                 </div>
             )}
+
+            {/* Cancel Order Confirmation Modal */}
+            {orderToCancel && (
+                <div 
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200"
+                    onClick={() => !isCancelling && setOrderToCancel(null)}
+                >
+                    <div 
+                        className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-red-100 text-center relative animate-in zoom-in-95 duration-200"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <button
+                            type="button"
+                            disabled={isCancelling}
+                            onClick={() => setOrderToCancel(null)}
+                            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 p-1 rounded-lg transition disabled:opacity-50"
+                            aria-label="Close"
+                        >
+                            <X size={20} />
+                        </button>
+                        <div className="w-16 h-16 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                            <AlertTriangle size={32} />
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-900 mb-2">Cancel Order?</h3>
+                        <p className="text-gray-600 text-sm mb-6 leading-relaxed">
+                            Are you sure you want to cancel order <span className="font-semibold text-gray-900">#{orderToCancel.order_number}</span>? This action cannot be undone.
+                        </p>
+                        <div className="grid grid-cols-2 gap-3">
+                            <button
+                                type="button"
+                                disabled={isCancelling}
+                                onClick={() => setOrderToCancel(null)}
+                                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2.5 px-4 rounded-xl transition text-sm disabled:opacity-50"
+                            >
+                                No, Keep
+                            </button>
+                            <button
+                                type="button"
+                                disabled={isCancelling}
+                                onClick={handleCancelOrder}
+                                className="w-full bg-red-600 hover:bg-red-700 active:scale-95 text-white font-semibold py-2.5 px-4 rounded-xl transition text-sm shadow-lg shadow-red-600/25 flex items-center justify-center gap-2 disabled:opacity-50"
+                            >
+                                {isCancelling ? 'Cancelling...' : 'Yes, Cancel'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <Toaster position="top-center" reverseOrder={false} />
         </div>
     );
 };

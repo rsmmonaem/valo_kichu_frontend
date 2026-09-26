@@ -3,10 +3,11 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Lock, Mail } from 'lucide-react';
+import { Lock, Mail, Clock, X, MessageCircle } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { authFetch } from '@/lib/api';
 import { trackLogin } from '@/lib/gtm';
+import toast, { Toaster } from 'react-hot-toast';
 
 const LoginPage = () => {
     const { login } = useAuth();
@@ -15,6 +16,8 @@ const LoginPage = () => {
     const [password, setPassword] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
+    const [showApprovalModal, setShowApprovalModal] = useState(false);
+    const [approvalMessage, setApprovalMessage] = useState('');
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -68,10 +71,26 @@ const LoginPage = () => {
                     router.push('/customer/dashboard'); // Default for regular customers
                 }
             } else {
-                setError(data.error || data.message || 'Invalid email/phone or password');
+                const isPending = data.is_approved === false ||
+                    (data.error && typeof data.error === 'string' && data.error.toLowerCase().includes('approval')) ||
+                    (data.message && typeof data.message === 'string' && data.message.toLowerCase().includes('approval'));
+
+                if (isPending) {
+                    const msg = "Your dropshipper account is pending admin approval. Please contact with admin for approval.";
+                    setError(msg);
+                    setApprovalMessage(msg);
+                    setShowApprovalModal(true);
+                    toast.error(msg, { duration: 6000 });
+                } else {
+                    const errorMsg = data.error || data.message || 'Invalid email/phone or password';
+                    setError(errorMsg);
+                    toast.error(errorMsg);
+                }
             }
         } catch (err) {
-            setError('Something went wrong. Please try again.');
+            const errMsg = 'Something went wrong. Please try again.';
+            setError(errMsg);
+            toast.error(errMsg);
         } finally {
             setIsSubmitting(false);
         }
@@ -143,6 +162,57 @@ const LoginPage = () => {
                     Don't have an account? <Link href="/register" className="text-blue-600 hover:text-blue-700 font-bold">Create Account</Link>
                 </p>
             </div>
+
+            {/* Admin Approval Pending Modal */}
+            {showApprovalModal && (
+                <div 
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200"
+                    onClick={() => setShowApprovalModal(false)}
+                >
+                    <div 
+                        className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-amber-100 text-center relative animate-in zoom-in-95 duration-200"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <button
+                            type="button"
+                            onClick={() => setShowApprovalModal(false)}
+                            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 p-1 rounded-lg transition"
+                            aria-label="Close"
+                        >
+                            <X size={20} />
+                        </button>
+                        <div className="w-16 h-16 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                            <Clock size={32} className="animate-pulse" />
+                        </div>
+                        <span className="inline-block px-3 py-1 bg-amber-50 text-amber-700 text-xs font-semibold rounded-full uppercase tracking-wider mb-2 border border-amber-200">
+                            Approval Required
+                        </span>
+                        <h3 className="text-xl font-bold text-gray-900 mb-2">Pending Admin Approval</h3>
+                        <p className="text-gray-600 text-sm mb-6 leading-relaxed">
+                            {approvalMessage || 'Your dropshipper account is pending admin approval. Please contact with admin for approval.'}
+                        </p>
+                        <div className="space-y-3">
+                            <a
+                                href="https://wa.me/8801898888062?text=Hello%20Admin,%20please%20approve%20my%20dropshipper%20account"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-full inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-xl transition shadow-lg shadow-emerald-600/20"
+                            >
+                                <MessageCircle size={18} /> Contact Admin on WhatsApp
+                            </a>
+                            <button
+                                type="button"
+                                onClick={() => setShowApprovalModal(false)}
+                                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-2.5 px-4 rounded-xl transition"
+                            >
+                                OK
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <Toaster position="top-center" reverseOrder={false} />
         </div>
     );
 };

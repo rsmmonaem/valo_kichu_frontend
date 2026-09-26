@@ -25,6 +25,7 @@ import { authFetch } from '@/lib/api';
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { trackSearch } from "@/lib/gtm";
+import toast from "react-hot-toast";
 
 interface HeaderProps {
   categories: Category[];
@@ -91,9 +92,12 @@ const Header: React.FC<HeaderProps> = ({ categories }) => {
       user.role === 'sub_sub_dropshipper';
 
     if (isDropshipper) {
+      if (user.is_approved === false) {
+        toast.error("Your dropshipper account is pending admin approval. Please contact with admin for approval.");
+      }
       router.push("/dropshipper/dashboard");
     } else {
-      router.push("/dropshipperform");
+      router.push("/dropshipper/signup");
     }
   }
 

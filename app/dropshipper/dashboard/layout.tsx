@@ -15,16 +15,22 @@ import {
     ChevronRight,
     ExternalLink,
     Menu,
-    X
+    X,
+    Clock,
+    MessageCircle
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { authFetch } from '@/lib/api';
+import toast, { Toaster } from 'react-hot-toast';
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
     const pathname = usePathname();
     const router = useRouter();
-    const { user, logout, loading } = useAuth();
+    const { user, login, logout, loading } = useAuth();
     const [mounted, setMounted] = React.useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
+    const [isApplying, setIsApplying] = React.useState(false);
+    const [applyError, setApplyError] = React.useState('');
 
     useEffect(() => {
         setMounted(true);
@@ -34,16 +40,39 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
         if (!loading) {
             if (!user) {
                 router.push('/dropshipper/login?redirect=' + pathname);
-            } else {
-                const isDropshipper = user.role === 'dropshipper' ||
-                    user.role === 'sub_dropshipper' ||
-                    user.role === 'sub_sub_dropshipper';
-                if (!isDropshipper) {
-                    router.push('/dropshipperform');
-                }
             }
         }
     }, [user, loading, router, pathname]);
+
+    const handleApplyAsDropshipper = async () => {
+        setIsApplying(true);
+        setApplyError('');
+        try {
+            const res = await authFetch('/dropshipper/apply', { method: 'POST' });
+            const data = await res.json();
+            if (res.ok) {
+                const userRes = await authFetch('/v1/auth/user');
+                if (userRes.ok) {
+                    const refreshed = await userRes.json();
+                    const userData = refreshed.data || refreshed;
+                    login(localStorage.getItem('token') || '', userData);
+                } else if (data.user) {
+                    login(localStorage.getItem('token') || '', data.user);
+                }
+                toast.success('Dropshipper application submitted! Waiting for admin approval.');
+            } else {
+                const msg = data.error || data.message || 'Failed to submit application.';
+                setApplyError(msg);
+                toast.error(msg);
+            }
+        } catch (e) {
+            const msg = 'Failed to connect to server. Please try again.';
+            setApplyError(msg);
+            toast.error(msg);
+        } finally {
+            setIsApplying(false);
+        }
+    };
 
     if (!mounted) return null;
 
@@ -56,6 +85,94 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
     }
 
     if (!user) return null;
+
+    const isDropshipper = user.role === 'dropshipper' ||
+        user.role === 'sub_dropshipper' ||
+        user.role === 'sub_sub_dropshipper' ||
+        Boolean((user as any).is_any_dropshipper);
+
+    // If user is a customer (not dropshipper), show prompt to activate dropshipper account
+    if (!isDropshipper) {
+        const whatsappText = encodeURIComponent(`Hello Admin, please activate my account (${user.email || user.phone_number}) as a Dropshipper.`);
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+                <div className="max-w-md w-full bg-white rounded-3xl p-8 shadow-xl border border-blue-100 text-center">
+                    <div className="w-20 h-20 bg-blue-100 text-blue-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-inner">
+                        <Users size={40} />
+                    </div>
+                    <span className="inline-block px-3 py-1 bg-blue-50 text-blue-700 text-xs font-semibold rounded-full uppercase tracking-wider mb-3 border border-blue-200">
+                        Customer Account Detected
+                    </span>
+                    <h2 className="text-2xl font-black text-gray-900 mb-3">Dropshipper Account Required</h2>
+                    <p className="text-gray-600 text-sm leading-relaxed mb-6">
+                        You are logged in with <strong>{user.email || user.phone_number}</strong>, which is currently registered as a <strong>Customer</strong> account. To access the Dropshipper Dashboard, your account role needs to be activated by the admin.
+                    </p>
+                    <div className="space-y-3">
+                        <a
+                            href={`https://wa.me/8801898888062?text=${whatsappText}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-6 rounded-2xl transition shadow-lg shadow-emerald-600/20"
+                        >
+                            <MessageCircle size={20} /> Contact Admin on WhatsApp to Activate
+                        </a>
+                        <Link
+                            href="/customer/dashboard"
+                            className="w-full inline-flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-2xl transition"
+                        >
+                            Go to Customer Portal
+                        </Link>
+                        <button
+                            type="button"
+                            onClick={() => logout()}
+                            className="w-full text-xs text-gray-400 hover:text-gray-600 pt-2 transition"
+                        >
+                            Sign Out
+                        </button>
+                    </div>
+                </div>
+                <Toaster position="top-center" />
+            </div>
+        );
+    }
+
+    // If user is a dropshipper but pending approval, show dedicated pending notice
+    if (isDropshipper && user.is_approved === false) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+                <div className="max-w-md w-full bg-white rounded-3xl p-8 shadow-xl border border-amber-100 text-center">
+                    <div className="w-20 h-20 bg-amber-100 text-amber-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-inner">
+                        <Clock size={40} className="animate-pulse" />
+                    </div>
+                    <span className="inline-block px-3 py-1 bg-amber-50 text-amber-700 text-xs font-semibold rounded-full uppercase tracking-wider mb-3 border border-amber-200">
+                        Pending Admin Approval
+                    </span>
+                    <h2 className="text-2xl font-black text-gray-900 mb-3">Account Under Review</h2>
+                    <p className="text-gray-600 text-sm leading-relaxed mb-6">
+                        Your dropshipper account is pending admin approval. Please contact with admin for approval to start accessing the dropshipper panel and products.
+                    </p>
+                    <div className="space-y-3">
+                        <a
+                            href="https://wa.me/8801898888062?text=Hello%20Admin,%20please%20approve%20my%20dropshipper%20account"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-6 rounded-2xl transition shadow-lg shadow-emerald-600/20"
+                        >
+                            <MessageCircle size={20} /> Contact Admin on WhatsApp
+                        </a>
+                        <button
+                            type="button"
+                            onClick={() => logout()}
+                            className="w-full inline-flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-2xl transition"
+                        >
+                            <LogOut size={18} /> Logout
+                        </button>
+                    </div>
+                </div>
+                <Toaster position="top-center" />
+            </div>
+        );
+    }
 
     const menuItems = [
         { name: 'Overview', icon: LayoutDashboard, path: '/dropshipper/dashboard' },

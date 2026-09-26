@@ -3,11 +3,12 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Lock, Mail, User,Phone } from 'lucide-react';
+import { Lock, Mail, User, Phone, AlertCircle, X } from 'lucide-react';
 import { authFetch } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import * as fpixel from '@/lib/fpixel';
 import { trackSignUp } from '@/lib/gtm';
+import toast, { Toaster } from 'react-hot-toast';
 
 const RegisterPage = () => {
     const { login } = useAuth();
@@ -19,12 +20,82 @@ const RegisterPage = () => {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
+    const [showErrorModal, setShowErrorModal] = useState(false);
+
+    const getErrorMessage = (data: any): string => {
+        if (!data) return 'Registration failed. Please try again.';
+
+        // Handle Laravel validation errors object: { errors: { email: ['The email has already been taken.'] } }
+        if (data.errors && typeof data.errors === 'object') {
+            const messages: string[] = [];
+            for (const field of Object.keys(data.errors)) {
+                const val = data.errors[field];
+                if (Array.isArray(val)) {
+                    messages.push(...val);
+                } else if (typeof val === 'string') {
+                    messages.push(val);
+                }
+            }
+            if (messages.length > 0) {
+                return messages.join('\n');
+            }
+        }
+
+        if (typeof data.message === 'string' && data.message.trim() && data.message !== 'The given data was invalid.') {
+            return data.message;
+        }
+
+        if (typeof data.error === 'string' && data.error.trim()) {
+            return data.error;
+        }
+
+        return 'Registration failed. Please check your information and try again.';
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        // 1. Validate actual email format
+        const trimmedEmail = email.trim().toLowerCase();
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!emailRegex.test(trimmedEmail)) {
+            const msg = "Please enter a valid email address (e.g. name@gmail.com)";
+            setError(msg);
+            toast.error(msg);
+            setShowErrorModal(true);
+            return;
+        }
+
+        // 2. Validate actual Bangladeshi phone number
+        let cleanPhone = phone_number.trim().replace(/[\s-]/g, '');
+        if (cleanPhone.startsWith('+880')) {
+            cleanPhone = '0' + cleanPhone.slice(4);
+        } else if (cleanPhone.startsWith('880')) {
+            cleanPhone = '0' + cleanPhone.slice(3);
+        }
+
+        const bdPhoneRegex = /^01[3-9]\d{8}$/;
+        if (!bdPhoneRegex.test(cleanPhone)) {
+            const msg = "Please enter a valid 11-digit Bangladeshi mobile number starting with 013-019 (e.g. 017XXXXXXXX)";
+            setError(msg);
+            toast.error(msg);
+            setShowErrorModal(true);
+            return;
+        }
+
         if (password !== confirmPassword) {
-            setError("Passwords do not match");
+            const msg = "Passwords do not match";
+            setError(msg);
+            toast.error(msg);
+            setShowErrorModal(true);
+            return;
+        }
+
+        if (password.length < 6) {
+            const msg = "Password must be at least 6 characters long";
+            setError(msg);
+            toast.error(msg);
+            setShowErrorModal(true);
             return;
         }
 
@@ -34,7 +105,13 @@ const RegisterPage = () => {
         try {
             const res = await authFetch('/register', {
                 method: 'POST',
-                body: JSON.stringify({ name, email,phone_number, password, password_confirmation: confirmPassword }),
+                body: JSON.stringify({ 
+                    name: name.trim(), 
+                    email: trimmedEmail, 
+                    phone_number: cleanPhone, 
+                    password, 
+                    password_confirmation: confirmPassword 
+                }),
             });
 
             const data = await res.json();
@@ -52,7 +129,7 @@ const RegisterPage = () => {
                 }
 
                 if (!userData) {
-                    userData = { name, email, id: 0, role: 'customer' };
+                    userData = { name, email: trimmedEmail, id: 0, role: 'customer' };
                 }
 
                 login(data.access_token, userData);
@@ -63,12 +140,14 @@ const RegisterPage = () => {
 
                 // Unified GA4 sign_up & Meta Pixel CompleteRegistration
                 trackSignUp('email', {
-                    email: email || undefined,
-                    phone: phone_number || undefined,
+                    email: trimmedEmail || undefined,
+                    phone: cleanPhone || undefined,
                     firstName: firstName || undefined,
                     lastName: lastName || undefined,
                     externalId: userData?.id ? String(userData.id) : undefined
                 });
+
+                toast.success('Account created successfully!');
 
                 // Redirect based on role
                 if (userData.role === 'admin' || userData.role === 'super_admin') {
@@ -79,10 +158,16 @@ const RegisterPage = () => {
                     router.push('/customer/dashboard');
                 }
             } else {
-                setError(data.message || data.error || 'Registration failed');
+                const errorMsg = getErrorMessage(data);
+                setError(errorMsg);
+                toast.error(errorMsg);
+                setShowErrorModal(true);
             }
         } catch (err) {
-            setError('Something went wrong. Please try again.');
+            const networkErrorMsg = 'Something went wrong. Please try again.';
+            setError(networkErrorMsg);
+            toast.error(networkErrorMsg);
+            setShowErrorModal(true);
         } finally {
             setIsSubmitting(false);
         }
@@ -122,13 +207,15 @@ const RegisterPage = () => {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Email Address <span className="text-red-500">*</span>
+                        </label>
                         <div className="relative">
                             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                             <input
                                 type="email"
                                 className="w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 outline-none transition"
-                                placeholder="you@example.com"
+                                placeholder="name@gmail.com"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
@@ -137,19 +224,25 @@ const RegisterPage = () => {
                     </div>
 
                     <div>
-    <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-    <div className="relative">
-        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-        <input
-            type="tel"
-            className="w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 outline-none transition"
-            placeholder="01XXXXXXXXX"
-            value={phone_number}
-            onChange={(e) => setPhoneNumber(e.target.value)}
-            required
-        />
-    </div>
-</div>
+                        <div className="flex items-center justify-between mb-1">
+                            <label className="block text-sm font-medium text-gray-700">
+                                Mobile Number (BD) <span className="text-red-500">*</span>
+                            </label>
+                            <span className="text-xs text-gray-400 font-sans">013 - 019 (11 digits)</span>
+                        </div>
+                        <div className="relative">
+                            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                            <input
+                                type="tel"
+                                maxLength={14}
+                                className="w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 outline-none transition font-sans"
+                                placeholder="017XXXXXXXX"
+                                value={phone_number}
+                                onChange={(e) => setPhoneNumber(e.target.value)}
+                                required
+                            />
+                        </div>
+                    </div>
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
@@ -201,6 +294,44 @@ const RegisterPage = () => {
                     Already have an account? <Link href="/login" className="text-blue-600 hover:text-blue-700 font-bold">Sign In</Link>
                 </p>
             </div>
+
+            {/* Error Popup Modal */}
+            {showErrorModal && (
+                <div 
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200"
+                    onClick={() => setShowErrorModal(false)}
+                >
+                    <div 
+                        className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-red-100 text-center relative animate-in zoom-in-95 duration-200"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <button
+                            type="button"
+                            onClick={() => setShowErrorModal(false)}
+                            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 p-1 rounded-lg transition"
+                            aria-label="Close"
+                        >
+                            <X size={20} />
+                        </button>
+                        <div className="w-14 h-14 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <AlertCircle size={32} />
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-900 mb-2">Registration Error</h3>
+                        <div className="bg-red-50 text-red-700 p-3.5 rounded-xl mb-6 text-sm font-medium whitespace-pre-line border border-red-100 text-left">
+                            {error}
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setShowErrorModal(false)}
+                            className="w-full bg-red-600 hover:bg-red-700 active:scale-95 text-white font-semibold py-2.5 px-4 rounded-xl transition shadow-lg shadow-red-600/25"
+                        >
+                            OK
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            <Toaster position="top-center" reverseOrder={false} />
         </div>
     );
 };

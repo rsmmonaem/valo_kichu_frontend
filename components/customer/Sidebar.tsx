@@ -20,7 +20,7 @@ const CustomerSidebar = () => {
     const navItems = [
         { path: '/customer/dashboard', label: 'My Profile', icon: User },
         { path: '/customer/orders', label: 'My Orders', icon: Package },
-        { path: '/customer/wishlist', label: 'Wishlist', icon: Heart },
+        { path: '/wishlist', label: 'Wishlist', icon: Heart },
     ];
 
     return (
