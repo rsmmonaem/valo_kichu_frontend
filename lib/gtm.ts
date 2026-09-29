@@ -582,6 +582,20 @@ export const trackAddPaymentInfo = (
 export const trackPurchase = (params: GAPurchaseParams, userData: any = {}) => {
     // Deterministic event ID tied to order transaction_id
     const eventId = params.event_id || `purchase_${params.transaction_id}`;
+
+    // Universal deduplication guard: prevent tracking the same transaction_id multiple times per session
+    if (typeof window !== 'undefined' && params.transaction_id) {
+        const dedupeKey = `tracked_purchase_${params.transaction_id}`;
+        try {
+            if (sessionStorage.getItem(dedupeKey)) {
+                return eventId;
+            }
+            sessionStorage.setItem(dedupeKey, 'true');
+        } catch (e) {
+            // Ignore sessionStorage quota or access errors
+        }
+    }
+
     clearEcommerce();
     const finalUserData = extractUserData(params, userData);
     const numItems = params.items.reduce((acc, it) => acc + Number(it.quantity || 1), 0);

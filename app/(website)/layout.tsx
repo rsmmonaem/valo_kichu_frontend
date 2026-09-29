@@ -67,7 +67,9 @@ export default async function WebsiteLayout({
     const { data: categories } = await getCategoryList();
     const settingsMap = await getSettings({ next: { revalidate: 60 } } as any);
     const googleAnalyticsId = settingsMap.google_analytics_id || settingsMap.ga4_measurement_id;
-    const isGa4Enabled = (settingsMap.google_analytics_enabled !== 'false' && settingsMap.ga4_enabled !== 'false') && !!googleAnalyticsId;
+    // Industry Best Practice: If GTM container is active, GA4 should be tracked via GTM dataLayer to prevent dual-tagging and duplicate hits.
+    const isGtmActive = (settingsMap.gtm_enabled === 'true' || settingsMap.gtm_enabled === '1' || (settingsMap.gtm_enabled === undefined && !!(settingsMap.gtm_id || process.env.NEXT_PUBLIC_GTM_ID)));
+    const isGa4Enabled = (settingsMap.google_analytics_enabled !== 'false' && settingsMap.ga4_enabled !== 'false') && !!googleAnalyticsId && !isGtmActive;
 
     return (
         <>

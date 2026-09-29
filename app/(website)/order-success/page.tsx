@@ -37,10 +37,15 @@ const OrderSuccessContent = () => {
                 if (res.status && res.data) {
                     setOrderDetails(res.data);
 
-                    // GA4: Track purchase if not already tracked in this browser session
-                    const trackedKey = `ga_purchase_tracked_${orderId}`;
-                    if (typeof window !== 'undefined' && !sessionStorage.getItem(trackedKey)) {
+                    // GA4 & Meta Pixel: Track purchase if not already tracked in this browser session
+                    const finalOrderId = res.data.order_number || res.data.id || orderId;
+                    const trackedKey = `ga_purchase_tracked_${finalOrderId}`;
+                    const trackedInitialKey = `ga_purchase_tracked_${orderId}`;
+
+                    if (typeof window !== 'undefined' && !sessionStorage.getItem(trackedKey) && !sessionStorage.getItem(trackedInitialKey)) {
                         sessionStorage.setItem(trackedKey, 'true');
+                        sessionStorage.setItem(trackedInitialKey, 'true');
+
                         const items = Array.isArray(res.data.items || res.data.products)
                             ? (res.data.items || res.data.products).map((item: any, idx: number) => ({
                                 item_id: String(item.product_id || item.id || ''),
@@ -56,17 +61,29 @@ const OrderSuccessContent = () => {
                             ? `${res.data.area} (৳${Math.floor(shipCost)})`
                             : (shipCost === 80 ? "Inside Dhaka (৳80)" : (shipCost === 120 ? "Outside Dhaka (৳120)" : undefined));
 
+                        const customerRawName = res.data.shipping_address?.name || res.data.customer_name || res.data.name || '';
+                        const nameParts = customerRawName.trim().split(/\s+/);
+                        const purchaseFirstName = nameParts[0] || '';
+                        const purchaseLastName = nameParts.slice(1).join(' ') || '';
+
                         trackPurchase({
-                            transaction_id: res.data.order_number || res.data.id || orderId,
+                            transaction_id: finalOrderId,
                             value: Number(res.data.total_amount || res.data.grand_total || res.data.total || 0),
                             shipping: shipCost,
                             currency: 'BDT',
-                            customer_name: res.data.shipping_address?.name || res.data.customer_name || res.data.name || undefined,
+                            customer_name: customerRawName || undefined,
                             customer_phone: res.data.contact_number || res.data.phone || undefined,
                             customer_email: res.data.email || undefined,
                             customer_address: typeof res.data.shipping_address === 'string' ? res.data.shipping_address : undefined,
                             delivery_area: deliveryAreaString,
                             items
+                        }, {
+                            email: res.data.email || undefined,
+                            phone: res.data.contact_number || res.data.phone || undefined,
+                            firstName: purchaseFirstName || undefined,
+                            lastName: purchaseLastName || undefined,
+                            city: res.data.area || res.data.city || undefined,
+                            country: 'Bangladesh',
                         });
                     }
                 }

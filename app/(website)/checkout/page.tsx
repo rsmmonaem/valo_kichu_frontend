@@ -415,27 +415,38 @@ const CheckoutPage = () => {
         const purchaseFirstName = purchaseNameParts[0] || '';
         const purchaseLastName = purchaseNameParts.slice(1).join(' ') || '';
 
-        trackPurchase({
-          transaction_id: orderId,
-          value: Number(cartTotal || 0) + Number(shippingCost || 0),
-          shipping: Number(shippingCost || 0),
-          currency: 'BDT',
-          customer_name: checkoutData.name,
-          customer_phone: checkoutData.phone,
-          customer_email: checkoutData.email,
-          customer_address: fullAddress || checkoutData.address_line1,
-          delivery_area: deliveryAreaString,
-          items: checkoutGaItems
-        }, {
-          email: checkoutData.email || undefined,
-          phone: checkoutData.phone || undefined,
-          firstName: purchaseFirstName || undefined,
-          lastName: purchaseLastName || undefined,
-          city: checkoutData.city || undefined,
-          country: checkoutData.country || undefined,
-          zip: checkoutData.zip_code || undefined,
-          externalId: user?.id ? String(user.id) : undefined,
-        });
+        // Unified GA4 purchase & Meta Pixel Purchase (only track immediately if not redirecting to payment gateway)
+        if (checkoutData.payment_method !== 'eps') {
+          trackPurchase({
+            transaction_id: orderId,
+            value: Number(cartTotal || 0) + Number(shippingCost || 0),
+            shipping: Number(shippingCost || 0),
+            currency: 'BDT',
+            customer_name: checkoutData.name,
+            customer_phone: checkoutData.phone,
+            customer_email: checkoutData.email,
+            customer_address: fullAddress || checkoutData.address_line1,
+            delivery_area: deliveryAreaString,
+            items: checkoutGaItems
+          }, {
+            email: checkoutData.email || undefined,
+            phone: checkoutData.phone || undefined,
+            firstName: purchaseFirstName || undefined,
+            lastName: purchaseLastName || undefined,
+            city: checkoutData.city || undefined,
+            country: checkoutData.country || undefined,
+            zip: checkoutData.zip_code || undefined,
+            externalId: user?.id ? String(user.id) : undefined,
+          });
+
+          // Mark order as tracked in sessionStorage to prevent order-success page from re-tracking
+          if (typeof window !== 'undefined' && orderId) {
+            try {
+              sessionStorage.setItem(`ga_purchase_tracked_${orderId}`, 'true');
+              sessionStorage.setItem(`tracked_purchase_${orderId}`, 'true');
+            } catch (e) {}
+          }
+        }
 
         // Handle success and possible payment gateway redirect
         const redirectUrl = data.payment_result?.data?.redirect_url || data.payment_result?.redirect_url;

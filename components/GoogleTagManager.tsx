@@ -1,9 +1,39 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef, Suspense } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
 import Script from 'next/script';
 import { useSettings } from '@/context/SettingsContext';
 import * as gtm from '@/lib/gtm';
+
+function GtmNavigationEvents() {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const isFirstRender = useRef(true);
+
+  useEffect(() => {
+    // Avoid double firing on initial page load as gtm.js handles initial load
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
+    const url = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : '');
+
+    // Clear previous ecommerce object
+    gtm.clearEcommerce();
+
+    // Push virtual pageview event for GA4 / GTM
+    gtm.pushToDataLayer({
+      event: 'page_view',
+      page_path: url,
+      page_location: typeof window !== 'undefined' ? window.location.href : '',
+      page_title: typeof document !== 'undefined' ? document.title : '',
+    });
+  }, [pathname, searchParams]);
+
+  return null;
+}
 
 export default function GoogleTagManager() {
   const { settings, loading } = useSettings();
@@ -47,6 +77,9 @@ if(f&&f.parentNode){f.parentNode.insertBefore(j,f);}else{(d.head||d.documentElem
           style={{ display: 'none', visibility: 'hidden' }}
         />
       </noscript>
+      <Suspense fallback={null}>
+        <GtmNavigationEvents />
+      </Suspense>
     </>
   );
 }
