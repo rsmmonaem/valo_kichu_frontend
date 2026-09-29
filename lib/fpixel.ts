@@ -42,7 +42,10 @@ export const getPixelConfig = (): PixelConfig => ({ ...currentConfig });
 export const syncPixelSettings = (settings: Record<string, string>) => {
   if (!settings) return;
 
-  const pixelId = settings.facebook_pixel_id || process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID || '';
+  let pixelId = settings.facebook_pixel_id || process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID || '';
+  if (pixelId === '99611553309299') {
+    pixelId = process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID || '996111553309299';
+  }
   // Default to true if not explicitly set to 'false'
   const enableBrowserPixel = settings.facebook_pixel_enabled !== undefined
     ? (settings.facebook_pixel_enabled === 'true' || settings.facebook_pixel_enabled === '1')

@@ -48,7 +48,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, message: 'Facebook Conversions API (CAPI) is disabled in Admin Settings.' }, { status: 202 });
     }
 
-    const PIXEL_ID = settings.facebook_pixel_id || process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID;
+    let PIXEL_ID = settings.facebook_pixel_id || process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID;
+    if (PIXEL_ID === '99611553309299') {
+      PIXEL_ID = process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID || '996111553309299';
+    }
     const ACCESS_TOKEN = settings.facebook_access_token || process.env.FACEBOOK_ACCESS_TOKEN;
 
     if (!PIXEL_ID || !ACCESS_TOKEN) {

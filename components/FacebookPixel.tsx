@@ -27,7 +27,10 @@ export default function FacebookPixel() {
   }, [settings, loading]);
 
   const config = fpixel.getPixelConfig();
-  const pixelId = settings?.facebook_pixel_id || config.pixelId || process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID;
+  let pixelId = settings?.facebook_pixel_id || config.pixelId || process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID;
+  if (pixelId === '99611553309299') {
+    pixelId = process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID || '996111553309299';
+  }
   
   const isBrowserPixelEnabled = settings?.facebook_pixel_enabled !== undefined
     ? (settings.facebook_pixel_enabled === 'true' || settings.facebook_pixel_enabled === '1')

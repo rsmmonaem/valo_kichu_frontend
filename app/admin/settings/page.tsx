@@ -229,8 +229,8 @@ const SettingsPage = () => {
                 data.forEach(s => settingsMap[s.key] = s.value);
 
                 // Populate default tracking values if not yet set in database
-                if (!settingsMap.facebook_pixel_id) {
-                    settingsMap.facebook_pixel_id = process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID || '99611553309299';
+                if (!settingsMap.facebook_pixel_id || settingsMap.facebook_pixel_id === '99611553309299') {
+                    settingsMap.facebook_pixel_id = process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID || '996111553309299';
                 }
                 if (settingsMap.facebook_pixel_enabled === undefined) {
                     settingsMap.facebook_pixel_enabled = 'true';
