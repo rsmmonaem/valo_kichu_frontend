@@ -100,7 +100,7 @@ export default function RootLayout({
           </AuthProvider>
         </SettingsProvider>
 
-        {/* Enterprise AI Commerce Chatbot Widget */}
+        {/* Enterprise AI Commerce Chatbot Widget
         <Script src="https://aichat-backend.npms.pro/static/widget.js" strategy="lazyOnload" />
         <Script id="enterprise-ai-chatbot" strategy="lazyOnload">
           {`
@@ -123,7 +123,7 @@ export default function RootLayout({
               }
             }, 1000);
           `}
-        </Script>
+        </Script> */}
       </body>
     </html>
   );
