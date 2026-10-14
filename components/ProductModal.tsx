@@ -176,6 +176,39 @@ export default function ProductModal({
     ? attrWeights
     : variationWeightNames.map((w: any, idx: number) => ({ id: idx + 1, name: w, img: "" }));
 
+  // Dynamic other attributes (e.g. Warranty Months, Month, Ram size, etc.)
+  const otherAttributes = useMemo(() => {
+    const list: { name: string; values: string[] }[] = [];
+    const knownKeys = new Set(["color", "size", "weight"]);
+
+    productAttributes.forEach((a) => {
+      const name = a.name || "";
+      if (!name || knownKeys.has(name.toLowerCase())) return;
+      const values = Array.isArray(a.values) ? a.values.map(String) : [];
+      list.push({ name, values });
+      knownKeys.add(name.toLowerCase());
+    });
+
+    parsedVariations.forEach((v: any) => {
+      let attrs = v.attributes || {};
+      if (typeof attrs === "string") {
+        try { attrs = JSON.parse(attrs); } catch { attrs = {}; }
+      }
+      Object.entries(attrs).forEach(([k, val]) => {
+        if (!k || knownKeys.has(k.toLowerCase())) return;
+        const existing = list.find((item) => item.name.toLowerCase() === k.toLowerCase());
+        const strVal = String(val);
+        if (existing) {
+          if (!existing.values.includes(strVal)) existing.values.push(strVal);
+        } else {
+          list.push({ name: k, values: [strVal] });
+        }
+      });
+    });
+
+    return list;
+  }, [productAttributes, parsedVariations]);
+
   // Gallery images for thumbnails
   const galleryImages = (product?.gallery_image_urls && product.gallery_image_urls.length > 0)
     ? product.gallery_image_urls.map((img: string, index: number) => ({ id: index + 1, img: resolveImageUrl(img) }))
@@ -201,6 +234,7 @@ export default function ProductModal({
       : colorData[0] || {}
   );
   const [weight, setWeight] = useState(weightData[0]);
+  const [customAttrs, setCustomAttrs] = useState<Record<string, string>>({});
 
 
   // ---------------- EFFECTS ----------------
@@ -316,7 +350,15 @@ export default function ProductModal({
 
     setPreview(initialPreview || "https://placehold.co/600x600?text=No+Image");
     setHasImageError(false);
-  }, [product]);
+
+    const initialCustom: Record<string, string> = {};
+    otherAttributes.forEach((attr) => {
+      if (attr.values.length > 0) {
+        initialCustom[attr.name] = attr.values[0];
+      }
+    });
+    setCustomAttrs(initialCustom);
+  }, [product, otherAttributes]);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -394,20 +436,30 @@ export default function ProductModal({
         ? rawImage
         : rawImage ? `${baseUrl}/storage/products/${rawImage.replace(/^\/?storage\/products\/?/, '')}` : '');
 
+    const customAttrValues = Object.entries(customAttrs)
+      .filter(([_, val]) => Boolean(val))
+      .map(([k, val]) => `${k}:${val}`);
+
     const matchedVariation = parsedVariations.find((v: any) => {
-      const variationColorName = (v.color || '').toLowerCase();
+      const variationColorName = (v.color || getVariationAttr(v, 'color') || '').toLowerCase();
       const colorMatch = !variationColorName || variationColorName === (typeof color === 'string' ? color : color?.name || '').toLowerCase();
-      const variationSize = (v.size || '').toLowerCase();
+      const variationSize = (v.size || getVariationAttr(v, 'size') || '').toLowerCase();
       const sizeMatch = !variationSize || variationSize === (size || '').toLowerCase();
-      const variationWeight = (v.weight || '').toLowerCase();
+      const variationWeight = (v.weight || getVariationAttr(v, 'weight') || '').toLowerCase();
       const weightMatch = !variationWeight || variationWeight === (typeof weight === 'string' ? weight : weight?.name || '').toLowerCase();
-      return colorMatch && sizeMatch && weightMatch;
+      const customMatch = Object.entries(customAttrs).every(([attrName, selVal]) => {
+        if (!selVal) return true;
+        const varVal = getVariationAttr(v, attrName).toLowerCase();
+        return !varVal || varVal === selVal.toLowerCase();
+      });
+      return colorMatch && sizeMatch && weightMatch && customMatch;
     });
 
     const variantId = matchedVariation?.id || [
       typeof color === 'string' ? color : color?.name || '',
       size || '',
-      typeof weight === 'string' ? weight : weight?.name || ''
+      typeof weight === 'string' ? weight : weight?.name || '',
+      ...customAttrValues,
     ].filter(Boolean).join('-');
 
     const cartItem = {
@@ -423,6 +475,7 @@ export default function ProductModal({
         color: typeof color === 'string' ? color : color?.name,
         weight: typeof weight === "string" ? weight : weight?.name,
         image: color?.img || undefined,
+        attributes: customAttrs,
       },
       bulk_discount_rules: product.bulk_discount_rules,
     };
@@ -451,20 +504,30 @@ export default function ProductModal({
         ? rawImage
         : rawImage ? `${baseUrl}/storage/products/${rawImage.replace(/^\/?storage\/products\/?/, '')}` : '');
 
+    const customAttrValues = Object.entries(customAttrs)
+      .filter(([_, val]) => Boolean(val))
+      .map(([k, val]) => `${k}:${val}`);
+
     const matchedVariation = parsedVariations.find((v: any) => {
-      const variationColorName = (v.color || '').toLowerCase();
+      const variationColorName = (v.color || getVariationAttr(v, 'color') || '').toLowerCase();
       const colorMatch = !variationColorName || variationColorName === (typeof color === 'string' ? color : color?.name || '').toLowerCase();
-      const variationSize = (v.size || '').toLowerCase();
+      const variationSize = (v.size || getVariationAttr(v, 'size') || '').toLowerCase();
       const sizeMatch = !variationSize || variationSize === (size || '').toLowerCase();
-      const variationWeight = (v.weight || '').toLowerCase();
+      const variationWeight = (v.weight || getVariationAttr(v, 'weight') || '').toLowerCase();
       const weightMatch = !variationWeight || variationWeight === (typeof weight === 'string' ? weight : weight?.name || '').toLowerCase();
-      return colorMatch && sizeMatch && weightMatch;
+      const customMatch = Object.entries(customAttrs).every(([attrName, selVal]) => {
+        if (!selVal) return true;
+        const varVal = getVariationAttr(v, attrName).toLowerCase();
+        return !varVal || varVal === selVal.toLowerCase();
+      });
+      return colorMatch && sizeMatch && weightMatch && customMatch;
     });
 
     const variantId = matchedVariation?.id || [
       typeof color === 'string' ? color : color?.name || '',
       size || '',
-      typeof weight === 'string' ? weight : weight?.name || ''
+      typeof weight === 'string' ? weight : weight?.name || '',
+      ...customAttrValues,
     ].filter(Boolean).join('-');
 
     const cartItem = {
@@ -480,6 +543,7 @@ export default function ProductModal({
         color: typeof color === 'string' ? color : color?.name,
         weight: typeof weight === "string" ? weight : weight?.name,
         image: color?.img || undefined,
+        attributes: customAttrs,
       },
       bulk_discount_rules: product.bulk_discount_rules,
     };
@@ -681,7 +745,14 @@ export default function ProductModal({
       const variationWeight = (v.weight || getVariationAttr(v, 'weight') || '').toLowerCase();
       const weightMatch = !variationWeight || variationWeight === selectedWeightName;
 
-      return colorMatch && sizeMatch && weightMatch;
+      // Custom attributes matching (e.g. Warranty Months, etc.)
+      const customMatch = Object.entries(customAttrs).every(([attrName, selVal]) => {
+        if (!selVal) return true;
+        const varVal = getVariationAttr(v, attrName).toLowerCase();
+        return !varVal || varVal === selVal.toLowerCase();
+      });
+
+      return colorMatch && sizeMatch && weightMatch && customMatch;
     });
 
     if (matchedVariation) {
@@ -1136,6 +1207,42 @@ className="object-cover"
                     </div>
                   </div>
                 )}
+
+                {/* Other Dynamic Attributes Selection (e.g. Warranty Months, etc.) */}
+                {otherAttributes.map((attr, aIdx) => {
+                  const values = attr.values;
+                  if (values.length === 0) return null;
+                  const currentVal = customAttrs[attr.name] || values[0];
+                  return (
+                    <div key={aIdx} className="mb-3">
+                      <h3 className="font-semibold text-xs md:text-sm mb-2">
+                        {attr.name}: <span className="font-bold text-gray-900">{currentVal}</span>
+                      </h3>
+                      <div className="flex flex-wrap gap-2">
+                        {values.map((val: string, idx: number) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => {
+                              setCustomAttrs((prev) => ({
+                                ...prev,
+                                [attr.name]: val,
+                              }));
+                              setQuantity(1);
+                            }}
+                            className={`px-3 py-1.5 text-xs md:text-sm font-semibold rounded-lg cursor-pointer transition hover:scale-105 border ${
+                              val === currentVal
+                                ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                                : "bg-gray-100 border-transparent hover:border-gray-300"
+                            }`}
+                          >
+                            {val}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
 
                 {/* Quantity Selector */}
                 <div className="flex items-center gap-3 mb-4">

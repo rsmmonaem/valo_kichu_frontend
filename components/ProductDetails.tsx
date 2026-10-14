@@ -51,6 +51,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
   const [selectedColor, setSelectedColor] = useState<any>(null);
   const [selectedSize, setSelectedSize] = useState<any>(null);
   const [selectedWeight, setSelectedWeight] = useState<any>(null);
+  const [selectedCustomAttrs, setSelectedCustomAttrs] = useState<Record<string, string>>({});
   const [expanded, setExpanded] = useState<boolean>(false);
 
   // Standardize the API base URL to remove /api for storage links
@@ -175,6 +176,39 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
     ? attrWeights
     : variationWeightNames.map((w: any, idx: number) => ({ id: idx + 1, name: w, img: "" }));
 
+  // Dynamic other attributes (e.g. Warranty Months, Month, Ram size, etc.)
+  const otherAttributes = useMemo(() => {
+    const list: { name: string; values: string[] }[] = [];
+    const knownKeys = new Set(["color", "size", "weight"]);
+
+    productAttributes.forEach((a) => {
+      const name = a.name || "";
+      if (!name || knownKeys.has(name.toLowerCase())) return;
+      const values = Array.isArray(a.values) ? a.values.map(String) : [];
+      list.push({ name, values });
+      knownKeys.add(name.toLowerCase());
+    });
+
+    parsedVariations.forEach((v: any) => {
+      let attrs = v.attributes || {};
+      if (typeof attrs === "string") {
+        try { attrs = JSON.parse(attrs); } catch { attrs = {}; }
+      }
+      Object.entries(attrs).forEach(([k, val]) => {
+        if (!k || knownKeys.has(k.toLowerCase())) return;
+        const existing = list.find((item) => item.name.toLowerCase() === k.toLowerCase());
+        const strVal = String(val);
+        if (existing) {
+          if (!existing.values.includes(strVal)) existing.values.push(strVal);
+        } else {
+          list.push({ name: k, values: [strVal] });
+        }
+      });
+    });
+
+    return list;
+  }, [productAttributes, parsedVariations]);
+
   // Track recently viewed products
   useEffect(() => {
     if (product && product.slug) {
@@ -260,7 +294,16 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
     } else {
       setSelectedWeight(null);
     }
-  }, [product, parsedColors, parsedVariations]);
+
+    // Initialize custom dynamic attributes
+    const initialCustom: Record<string, string> = {};
+    otherAttributes.forEach((attr) => {
+      if (attr.values.length > 0) {
+        initialCustom[attr.name] = attr.values[0];
+      }
+    });
+    setSelectedCustomAttrs(initialCustom);
+  }, [product, parsedColors, parsedVariations, otherAttributes]);
 
   const basePrice = parseFloat(product.base_price || product.price || "0");
   const salePrice = product.sale_price ? parseFloat(product.sale_price) : null;
@@ -286,7 +329,14 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
       const variationWeight = (v.weight || getVariationAttr(v, 'weight') || '').toLowerCase();
       const weightMatch = !variationWeight || variationWeight === selectedWeightName;
 
-      return colorMatch && sizeMatch && weightMatch;
+      // Custom attributes matching (e.g. Warranty Months, Month, etc.)
+      const customMatch = Object.entries(selectedCustomAttrs).every(([attrName, selVal]) => {
+        if (!selVal) return true;
+        const varVal = getVariationAttr(v, attrName).toLowerCase();
+        return !varVal || varVal === selVal.toLowerCase();
+      });
+
+      return colorMatch && sizeMatch && weightMatch && customMatch;
     });
   };
 
@@ -313,21 +363,27 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
       const variantInfo = {
         color: selectedColor?.name,
         size: selectedSize,
-        weight: typeof selectedWeight === "string" ? selectedWeight : selectedWeight?.name || ""
+        weight: typeof selectedWeight === "string" ? selectedWeight : selectedWeight?.name || "",
+        ...selectedCustomAttrs,
       };
       const gaItem = mapProductToGAItem(product, undefined, quantity, variantInfo);
       gaItem.price = Number(displayPrice || gaItem.price || 0);
       trackViewItem(gaItem, Number(displayPrice || 0));
     }
-  }, [product.id, product.name, product.category?.name, displayPrice]);
+  }, [product.id, product.name, product.category?.name, displayPrice, selectedCustomAttrs]);
 
 
   const handleAddToCart = (redirect = false, targetEl?: HTMLElement | null) => {
     const matchedVariation = getMatchedVariation();
+    const customAttrValues = Object.entries(selectedCustomAttrs)
+      .filter(([_, val]) => Boolean(val))
+      .map(([k, val]) => `${k}:${val}`);
+
     const variantId = matchedVariation?.id || [
       typeof selectedColor === 'string' ? selectedColor : selectedColor?.name || '',
       selectedSize || '',
-      typeof selectedWeight === 'string' ? selectedWeight : selectedWeight?.name || ''
+      typeof selectedWeight === 'string' ? selectedWeight : selectedWeight?.name || '',
+      ...customAttrValues,
     ].filter(Boolean).join('-');
 
     const itemToAdd = {
@@ -342,6 +398,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
         color: selectedColor?.name,
         size: selectedSize,
         weight: typeof selectedWeight === "string" ? selectedWeight : selectedWeight?.name || "",
+        attributes: selectedCustomAttrs,
       },
       bulk_discount_rules: product.bulk_discount_rules,
     };
@@ -771,6 +828,43 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
                   </div>
                 </div>
               )}
+
+              {/* Other Dynamic Attributes (e.g. Warranty Months, Month, Ram size, etc.) */}
+              {otherAttributes.map((attr, aIdx) => {
+                const values = attr.values;
+                if (values.length === 0) return null;
+                const currentVal = selectedCustomAttrs[attr.name] || values[0];
+                return (
+                  <div key={aIdx}>
+                    <span className="font-semibold text-gray-800 text-xs md:text-sm block mb-1.5">
+                      {attr.name}: <span className="font-bold text-gray-900">{currentVal}</span>
+                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      {values.map((val: string, idx: number) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => {
+                            setSelectedCustomAttrs((prev) => ({
+                              ...prev,
+                              [attr.name]: val,
+                            }));
+                            setQuantity(1);
+                          }}
+                          className={clsx(
+                            "px-3 py-1.5 text-xs md:text-sm font-semibold rounded-lg border transition",
+                            currentVal === val
+                              ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                              : "bg-white text-gray-700 border-gray-200 hover:border-gray-300"
+                          )}
+                        >
+                          {val}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
 
               {/* Quantity Selector */}
               <div>
