@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { authFetch } from '@/lib/api';
 import { toast } from 'react-hot-toast';
-import { Save, Loader2, Image as ImageIcon } from 'lucide-react';
+import { Save, Loader2, Image as ImageIcon, Tags } from 'lucide-react';
 import { getImageUrl } from '@/lib/utils';
 import clsx from 'clsx';
 
@@ -518,6 +518,48 @@ const SettingsPage = () => {
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                {/* Product Attributes Section */}
+                <div className="border-b border-gray-100 pb-6">
+                    <div className="flex items-center gap-2 mb-4">
+                        <Tags className="text-blue-600" size={20} />
+                        <h2 className="text-lg font-semibold text-gray-800">Product Attributes</h2>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Product Attributes (Comma Separated)
+                        </label>
+                        <input
+                            type="text"
+                            value={settings.product_attributes || ''}
+                            onChange={(e) => handleChange('product_attributes', e.target.value)}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500/20 outline-none text-sm"
+                            placeholder="Weight, Size, Month, Ram size, Pic"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                            কমা (,) দিয়ে Product Attributes গুলোর নাম লিখুন (যেমন: <b>Weight, Size, Month</b>)। প্রোডাক্ট যুক্ত বা সম্পাদনা করার সময় ড্রপডাউনে এই অ্যাট্রিবিউটগুলো স্বয়ংক্রিয়ভাবে দেখাবে।
+                        </p>
+
+                        {/* Real-time Attribute Preview Badges */}
+                        {settings.product_attributes && (
+                            <div className="mt-3 flex flex-wrap gap-2 items-center">
+                                <span className="text-xs font-semibold text-gray-500">Preview:</span>
+                                {settings.product_attributes
+                                    .split(',')
+                                    .map((s) => s.trim())
+                                    .filter(Boolean)
+                                    .map((attrName, idx) => (
+                                        <span
+                                            key={idx}
+                                            className="px-2.5 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded-full border border-blue-200 shadow-sm"
+                                        >
+                                            {attrName}
+                                        </span>
+                                    ))}
+                            </div>
+                        )}
                     </div>
                 </div>
 
