@@ -142,20 +142,49 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = false }
         toast.success(`Color "${cleanedName}" added and selected`);
     };
 
-    const availAttributes = [
+    const defaultAttributes = [
         { id: 1, name: "Weight" },
         { id: 2, name: "Size" },
         { id: 3, name: "Ram size" },
         { id: 4, name: "Storage" },
     ];
+    const [availAttributes, setAvailAttributes] = useState(defaultAttributes);
 
     useEffect(() => {
         fetchCategories();
         fetchBrands();
+        fetchAttributes();
         if (initialData) {
             initializeForm(initialData);
         }
     }, [initialData]);
+
+    const fetchAttributes = async () => {
+        try {
+            const res = await authFetch('/admin/v1/settings');
+            if (res.ok) {
+                const data = await res.json();
+                if (Array.isArray(data)) {
+                    const setting = data.find((s: any) => s.key === 'product_attributes');
+                    if (setting && setting.value) {
+                        const parsed = setting.value
+                            .split(',')
+                            .map((s: string) => s.trim())
+                            .filter((s: string) => s.length > 0)
+                            .map((name: string, index: number) => ({
+                                id: index + 1,
+                                name,
+                            }));
+                        if (parsed.length > 0) {
+                            setAvailAttributes(parsed);
+                        }
+                    }
+                }
+            }
+        } catch (e) {
+            console.error('Failed to fetch product attributes setting', e);
+        }
+    };
 
     const initializeForm = (data: any) => {
         setFormData(prev => ({
