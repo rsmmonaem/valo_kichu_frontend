@@ -239,6 +239,46 @@ export const getProduct = async (slug: string): Promise<SingleResponse<Product>>
   }
 };
 
+export interface SearchSuggestions {
+  products: {
+    id: number;
+    name: string;
+    slug: string;
+    base_price: string | number;
+    sale_price: string | number | null;
+    unit_price: string | number | null;
+    image: string | null;
+    category?: { id: number; name: string; slug: string } | null;
+  }[];
+  categories: {
+    id: number;
+    name: string;
+    slug: string;
+    image: string | null;
+  }[];
+  keywords: string[];
+}
+
+export const getSearchSuggestions = async (query: string): Promise<SearchSuggestions> => {
+  if (!query || query.trim().length === 0) {
+    return { products: [], categories: [], keywords: [] };
+  }
+  try {
+    const res = await fetchWithTimeout(
+      `${API_URL}/v2/products/search/suggestions?q=${encodeURIComponent(query.trim())}`,
+      { cache: 'no-store' },
+      3000
+    );
+    if (!res.ok) {
+      return { products: [], categories: [], keywords: [] };
+    }
+    const json = await res.json();
+    return json.data || { products: [], categories: [], keywords: [] };
+  } catch (e) {
+    return { products: [], categories: [], keywords: [] };
+  }
+};
+
 export const getCategory = async (slug: string): Promise<SingleResponse<Category & { meta_title?: string; meta_description?: string; meta_keywords?: string }>> => {
   try {
     const res = await fetchWithTimeout(`${API_URL}/categories/${slug}`, {
