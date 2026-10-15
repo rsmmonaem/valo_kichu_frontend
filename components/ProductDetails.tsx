@@ -535,6 +535,8 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
             )}
 
             <button
+              type="button"
+              data-pixel-ignore="true"
               onClick={() => toggleWishlist(product)}
               className="absolute top-4 right-4 p-2.5 bg-white/95 hover:bg-white text-gray-600 hover:text-red-500 rounded-full shadow-md z-20 transition duration-300 backdrop-blur-sm cursor-pointer hover:scale-105"
               title={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
@@ -901,6 +903,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
 
             <button
               type="button"
+              data-pixel-ignore="true"
               onClick={(e) => handleAddToCart(false, e.currentTarget)}
               className="flex-1 bg-white border-2 border-blue-600 text-blue-600 py-3 rounded-xl font-bold hover:bg-blue-50 transition flex items-center justify-center gap-2 cursor-pointer text-sm md:text-base shadow-sm"
             >
@@ -908,6 +911,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
             </button>
             <button
               type="button"
+              data-pixel-ignore="true"
               onClick={() => {
                 handleAddToCart(true);
               }}

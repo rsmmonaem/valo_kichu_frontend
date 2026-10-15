@@ -248,6 +248,7 @@ export interface SearchSuggestions {
     sale_price: string | number | null;
     unit_price: string | number | null;
     image: string | null;
+    image_url?: string | null;
     category?: { id: number; name: string; slug: string } | null;
   }[];
   categories: {

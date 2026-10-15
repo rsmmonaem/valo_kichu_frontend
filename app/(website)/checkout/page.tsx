@@ -440,10 +440,22 @@ const CheckoutPage = () => {
           });
 
           // Mark order as tracked in sessionStorage to prevent order-success page from re-tracking
-          if (typeof window !== 'undefined' && orderId) {
+          if (typeof window !== 'undefined') {
+            const rawId = data.order ? data.order.id : data.id || data.order_id;
+            const orderNum = data.order?.order_number || data.order_number;
             try {
-              sessionStorage.setItem(`ga_purchase_tracked_${orderId}`, 'true');
-              sessionStorage.setItem(`tracked_purchase_${orderId}`, 'true');
+              if (orderId) {
+                sessionStorage.setItem(`ga_purchase_tracked_${orderId}`, 'true');
+                sessionStorage.setItem(`tracked_purchase_${orderId}`, 'true');
+              }
+              if (rawId) {
+                sessionStorage.setItem(`ga_purchase_tracked_${rawId}`, 'true');
+                sessionStorage.setItem(`tracked_purchase_${rawId}`, 'true');
+              }
+              if (orderNum) {
+                sessionStorage.setItem(`ga_purchase_tracked_${orderNum}`, 'true');
+                sessionStorage.setItem(`tracked_purchase_${orderNum}`, 'true');
+              }
             } catch (e) {}
           }
         }
@@ -460,6 +472,8 @@ const CheckoutPage = () => {
             alert(errorMsg);
           }
         } else {
+          // Brief pause ensuring Meta Pixel & CAPI network request dispatches cleanly before Next.js unloads the page
+          await new Promise((r) => setTimeout(r, 150));
           clearCart();
           router.push(
             `/order-success?order=${data.order ? data.order.id : data.id || data.order_id}`
@@ -952,6 +966,7 @@ const CheckoutPage = () => {
 
               <button
                 type="submit"
+                id="place-order-submit-btn"
                 disabled={loading || cart.length === 0}
                 className="w-full mt-6 bg-blue-600 text-white py-3.5 rounded-lg font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-200 disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
               >

@@ -60,6 +60,9 @@ export const syncPixelSettings = (settings: Record<string, string>) => {
   currentConfig.testEventCode = testEventCode;
 
   if (typeof window !== 'undefined') {
+    if (pixelId && (window as any).fbq) {
+      (window as any).fbq('set', 'autoConfig', false, pixelId);
+    }
     try {
       localStorage.setItem('fb_pixel_config', JSON.stringify({
         pixelId,
@@ -190,6 +193,9 @@ export const event = (name: string, options: any = {}, userData: any = {}, expli
     
     // Track via Browser Pixel with eventID (use trackCustom for non-standard events)
     if (currentConfig.enableBrowserPixel) {
+      if (currentConfig.pixelId && (window as any).fbq) {
+        (window as any).fbq('set', 'autoConfig', false, currentConfig.pixelId);
+      }
       const trackType = standardEvents.includes(name) ? 'track' : 'trackCustom';
       (window as any).fbq?.(trackType, name, payload, { eventID: eventId });
     }

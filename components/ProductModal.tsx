@@ -1364,6 +1364,7 @@ className="object-cover"
 
               <button
                 type="button"
+                data-pixel-ignore="true"
                 onClick={handleAddToCart}
                 className="w-full py-3 rounded-xl text-sm md:text-base font-bold bg-[#FFAC1C] text-white shadow-md hover:opacity-90 transition flex items-center justify-center gap-2 cursor-pointer"
               >
@@ -1375,6 +1376,7 @@ className="object-cover"
             {/* Buy Now Button */}
             <button
               type="button"
+              data-pixel-ignore="true"
               onClick={handleBuyNow}
               className="flex-1 py-3 rounded-xl text-sm md:text-base font-bold bg-[#FFAC1C] text-white shadow-md hover:opacity-90 transition cursor-pointer"
             >

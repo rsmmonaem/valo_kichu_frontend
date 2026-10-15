@@ -115,6 +115,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, index, listName, lis
 
                 <button
                     type="button"
+                    data-pixel-ignore="true"
                     onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();

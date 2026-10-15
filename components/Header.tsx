@@ -138,6 +138,21 @@ const Header: React.FC<HeaderProps> = ({ categories }) => {
     }
   };
 
+  const resolveSearchProductImage = (prod: { image?: string | null; image_url?: string | null }) => {
+    const raw = prod.image_url || prod.image;
+    if (!raw) return "/placeholder.png";
+    const url = raw.trim();
+    if (!url) return "/placeholder.png";
+
+    if (url.startsWith("http")) {
+      return getImageUrl(url.replace(/(\/api)(\/storage\/)/, "$2"));
+    }
+
+    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "https://backend.valokichu.com").replace(/\/api\/?$/, "");
+    const cleanFilename = url.replace(/^\/?(storage\/products|products|storage)\/?/, "");
+    return `${baseUrl}/storage/products/${cleanFilename}`;
+  };
+
   const renderSuggestionsDropdown = () => {
     if (!showSuggestions || !search.trim()) return null;
 
@@ -217,7 +232,7 @@ const Header: React.FC<HeaderProps> = ({ categories }) => {
                   prefetch={false}
                 >
                   <img
-                    src={getImageUrl(prod.image)}
+                    src={resolveSearchProductImage(prod)}
                     alt={prod.name}
                     className="w-12 h-12 object-cover rounded-lg border border-gray-100 bg-gray-50 shrink-0"
                     onError={(e) => {

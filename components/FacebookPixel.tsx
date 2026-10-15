@@ -56,6 +56,7 @@ export default function FacebookPixel() {
             if(s&&s.parentNode){s.parentNode.insertBefore(t,s);}else{(b.head||b.documentElement).appendChild(t);}
             }(window, document,'script',
             'https://connect.facebook.net/en_US/fbevents.js');
+            fbq('set', 'autoConfig', false, '${pixelId}');
             fbq('init', '${pixelId}');
           `,
         }}
