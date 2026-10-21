@@ -89,6 +89,7 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
   const [courierCodAmount, setCourierCodAmount] = useState<number | string>(0);
   const [courierNote, setCourierNote] = useState("");
   const [sendingToCourier, setSendingToCourier] = useState(false);
+  const [cancellingCourier, setCancellingCourier] = useState(false);
   const [courierError, setCourierError] = useState<string | null>(null);
 
   // Refund Modal States
@@ -649,6 +650,30 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
       toast.error(errMsg);
     } finally {
       setSendingToCourier(false);
+    }
+  };
+
+  const handleCancelCourier = async () => {
+    if (!window.confirm("Are you sure you want to cancel this order from Paperfly Courier via API?")) {
+      return;
+    }
+    setCancellingCourier(true);
+    try {
+      const res = await authFetch(`/admin/v1/orders/${orderId}/cancel-courier`, {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success(data.message || "Order successfully cancelled in Paperfly!");
+        fetchOrderDetails();
+      } else {
+        toast.error(data.message || "Failed to cancel order in Paperfly.");
+      }
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error?.message || "Something went wrong while cancelling courier order.");
+    } finally {
+      setCancellingCourier(false);
     }
   };
 
@@ -2215,6 +2240,28 @@ const OrderDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
                     <p className="text-gray-700 capitalize">
                       Courier Status: <span className="font-semibold text-emerald-700">{order.courier_status.replace(/_/g, " ")}</span>
                     </p>
+                  )}
+                  {order.courier_name && order.courier_name.toLowerCase() === 'paperfly' && order.courier_status !== 'cancelled' && (
+                    <div className="pt-2">
+                      <button
+                        type="button"
+                        disabled={cancellingCourier}
+                        onClick={handleCancelCourier}
+                        className="w-full text-xs bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-3 py-1.5 rounded-lg font-bold flex items-center justify-center gap-1.5 transition disabled:opacity-50"
+                      >
+                        {cancellingCourier ? (
+                          <>
+                            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-red-600"></div>
+                            Cancelling on Paperfly...
+                          </>
+                        ) : (
+                          <>
+                            <XCircle size={14} />
+                            Cancel Parcel in Paperfly (API)
+                          </>
+                        )}
+                      </button>
+                    </div>
                   )}
                 </div>
               )}
