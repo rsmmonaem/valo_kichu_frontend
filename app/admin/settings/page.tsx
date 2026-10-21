@@ -258,6 +258,20 @@ const SettingsPage = () => {
                     settingsMap.clarity_enabled = settingsMap.clarity_id ? 'true' : 'false';
                 }
 
+                // Default Paperfly credentials if not yet set
+                if (!settingsMap.paperfly_username) {
+                    settingsMap.paperfly_username = 'c179942';
+                }
+                if (!settingsMap.paperfly_password) {
+                    settingsMap.paperfly_password = '5650';
+                }
+                if (!settingsMap.paperfly_key) {
+                    settingsMap.paperfly_key = 'Paperfly_~La?Rj73FcLm';
+                }
+                if (!settingsMap.paperfly_base_url) {
+                    settingsMap.paperfly_base_url = 'https://api.paperfly.com.bd';
+                }
+
                 setSettings(settingsMap);
 
                 // Initialize dynamic arrays
@@ -268,11 +282,11 @@ const SettingsPage = () => {
                 try {
                     setQuickLinks(JSON.parse(settingsMap.footer_quick_links || '[]'));
                 } catch (e) { setQuickLinks([]); }
-                
+
                 try {
                     setTeamMembers(JSON.parse(settingsMap.our_teams_members || '[]'));
                 } catch (e) { setTeamMembers([]); }
-                
+
                 try {
                     setWorkflowImages(JSON.parse(settingsMap.our_workflow_images || '[]'));
                 } catch (e) { setWorkflowImages([]); }
@@ -431,47 +445,47 @@ const SettingsPage = () => {
 
     if (loading) return <div className="p-8 text-center text-gray-500">Loading settings...</div>;
 
-        const resolveSettingImageUrl = (imgNameOrUrl: string) => {
-            if (!imgNameOrUrl) return '';
-            const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://backend.valokichu.com').replace(/\/api\/?$/, '');
-            let cleanUrl = imgNameOrUrl;
-            if (!imgNameOrUrl.startsWith('http')) {
-                cleanUrl = `${baseUrl}/storage/${imgNameOrUrl.replace(/^\/?storage\/?/, '')}`;
-            }
-            return getImageUrl(cleanUrl);
-        };
+    const resolveSettingImageUrl = (imgNameOrUrl: string) => {
+        if (!imgNameOrUrl) return '';
+        const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://backend.valokichu.com').replace(/\/api\/?$/, '');
+        let cleanUrl = imgNameOrUrl;
+        if (!imgNameOrUrl.startsWith('http')) {
+            cleanUrl = `${baseUrl}/storage/${imgNameOrUrl.replace(/^\/?storage\/?/, '')}`;
+        }
+        return getImageUrl(cleanUrl);
+    };
 
-        return (
-            <div className="max-w-4xl mx-auto">
-                <div className="flex justify-between items-center mb-6">
-                    <h1 className="text-2xl font-bold text-gray-800">Global Settings</h1>
-                    <button
-                        onClick={handleSave}
-                        disabled={saving}
-                        className="bg-blue-600 text-white px-6 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 shadow-md shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        {saving ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
-                        Save Changes
-                    </button>
-                </div>
+    return (
+        <div className="max-w-4xl mx-auto">
+            <div className="flex justify-between items-center mb-6">
+                <h1 className="text-2xl font-bold text-gray-800">Global Settings</h1>
+                <button
+                    onClick={handleSave}
+                    disabled={saving}
+                    className="bg-blue-600 text-white px-6 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 shadow-md shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    {saving ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
+                    Save Changes
+                </button>
+            </div>
 
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-6">
 
-                    {/* Visual Identity Section */}
-                    <div className="border-b border-gray-100 pb-6">
-                        <h2 className="text-lg font-semibold text-gray-800 mb-4">Visual Identity</h2>
-                        <div className="grid md:grid-cols-2 gap-6">
-                            {/* Logo Upload */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Site Logo</label>
-                                <div className="flex items-center gap-4">
-                                    <div className="w-24 h-24 bg-gray-50 border border-gray-200 rounded-lg flex items-center justify-center overflow-hidden relative">
-                                        {settings.site_logo ? (
-                                            <img src={resolveSettingImageUrl(settings.site_logo)} className="w-full h-full object-contain" />
-                                        ) : (
-                                            <ImageIcon className="text-gray-300" />
-                                        )}
-                                    </div>
+                {/* Visual Identity Section */}
+                <div className="border-b border-gray-100 pb-6">
+                    <h2 className="text-lg font-semibold text-gray-800 mb-4">Visual Identity</h2>
+                    <div className="grid md:grid-cols-2 gap-6">
+                        {/* Logo Upload */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Site Logo</label>
+                            <div className="flex items-center gap-4">
+                                <div className="w-24 h-24 bg-gray-50 border border-gray-200 rounded-lg flex items-center justify-center overflow-hidden relative">
+                                    {settings.site_logo ? (
+                                        <img src={resolveSettingImageUrl(settings.site_logo)} className="w-full h-full object-contain" />
+                                    ) : (
+                                        <ImageIcon className="text-gray-300" />
+                                    )}
+                                </div>
                                 <label className="cursor-pointer bg-white border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 text-sm font-medium">
                                     Change Logo
                                     <input type="file" className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, 'site_logo')} />
@@ -865,6 +879,85 @@ const SettingsPage = () => {
                                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20 font-mono"
                                 placeholder="https://portal.steadfast.com.bd/api/v1"
                             />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Paperfly Courier API Configuration */}
+                <div className="border-t border-gray-100 pt-6">
+                    <div className="flex items-center justify-between mb-4">
+                        <div>
+                            <h2 className="text-lg font-semibold text-gray-800 text-blue-600 flex items-center gap-2">
+                                <span className="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+                                Paperfly Courier API Settings
+                            </h2>
+                            <p className="text-xs text-gray-500 mt-0.5">Configure Merchant credentials for Paperfly parcel dispatch & tracking</p>
+                        </div>
+                        <span className="px-2.5 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">
+                            Official Merchant API
+                        </span>
+                    </div>
+
+                    <div className="p-5 bg-blue-50/30 rounded-xl border border-blue-100 space-y-4">
+                        <div className="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Paperfly Merchant Username</label>
+                                <input
+                                    type="text"
+                                    value={settings.paperfly_username || ''}
+                                    onChange={(e) => handleChange('paperfly_username', e.target.value)}
+                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500/20 font-mono"
+                                    placeholder="e.g. c179942"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Paperfly Merchant Password</label>
+                                <input
+                                    type="password"
+                                    value={settings.paperfly_password || ''}
+                                    onChange={(e) => handleChange('paperfly_password', e.target.value)}
+                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500/20 font-mono"
+                                    placeholder="Enter Paperfly Password"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Paperfly API Key (Header `paperflykey`)</label>
+                                <input
+                                    type="text"
+                                    value={settings.paperfly_key || ''}
+                                    onChange={(e) => handleChange('paperfly_key', e.target.value)}
+                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500/20 font-mono"
+                                    placeholder="Paperfly_~La?Rj73FcLm"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Store Name (Shown on Parcel)</label>
+                                <input
+                                    type="text"
+                                    value={settings.paperfly_store_name || ''}
+                                    onChange={(e) => handleChange('paperfly_store_name', e.target.value)}
+                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500/20"
+                                    placeholder="e.g. Valokichu"
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Paperfly API Base URL</label>
+                            <input
+                                type="text"
+                                value={settings.paperfly_base_url || ''}
+                                onChange={(e) => handleChange('paperfly_base_url', e.target.value)}
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500/20 font-mono"
+                                placeholder="https://api.paperfly.com.bd"
+                            />
+                        </div>
+
+                        <div className="text-xs text-blue-700/80 bg-blue-100/40 p-3 rounded-lg border border-blue-200/50">
+                            <strong>Note:</strong> Paperfly requires an 11-digit customer phone number, customer name, and a minimum 10-character address. Parcels will be created via <code>https://api.paperfly.com.bd/merchant/api/service/new_order_v2.php</code>.
                         </div>
                     </div>
                 </div>

@@ -282,7 +282,7 @@ export default function CourierReportsPage() {
                     ))}
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                     {/* General Summary Card */}
                     <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between">
                         <div>
@@ -311,6 +311,28 @@ export default function CourierReportsPage() {
                                 <div className="flex items-center justify-between text-xs text-gray-500 mt-2">
                                     <span>Success: {sf?.success_rate || 0}%</span>
                                     <span className="font-bold text-gray-800">৳ {sf?.total_revenue.toLocaleString() || 0}</span>
+                                </div>
+                            </div>
+                        );
+                    })()}
+
+                    {/* Paperfly Summary Card */}
+                    {(() => {
+                        const pf = summaryData?.couriers.find(c => c.courier_name.toLowerCase().includes('paperfly'));
+                        return (
+                            <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-xs font-bold text-sky-600 uppercase tracking-wider mb-1">Paperfly Delivery</p>
+                                        <h3 className="text-3xl font-black text-gray-800">{pf?.total_orders || 0} <span className="text-xs font-medium text-gray-400">Orders</span></h3>
+                                    </div>
+                                    <div className="p-3 bg-sky-50 rounded-xl">
+                                        <Truck className="text-sky-500" size={24} />
+                                    </div>
+                                </div>
+                                <div className="flex items-center justify-between text-xs text-gray-500 mt-2">
+                                    <span>Success: {pf?.success_rate || 0}%</span>
+                                    <span className="font-bold text-gray-800">৳ {pf?.total_revenue ? pf.total_revenue.toLocaleString() : 0}</span>
                                 </div>
                             </div>
                         );
@@ -370,6 +392,7 @@ export default function CourierReportsPage() {
                             >
                                 <option value="">All Courier Services</option>
                                 <option value="Steadfast">Steadfast</option>
+                                <option value="Paperfly">Paperfly</option>
                                 <option value="Self Delivery">Self Delivery</option>
                                 <option value="unassigned">Unassigned</option>
                             </select>

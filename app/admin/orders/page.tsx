@@ -383,7 +383,8 @@ const AdminOrdersPage = () => {
         fetchOrders();
         fetchStats();
         if (selectedOrder && selectedOrder.id === courierTargetOrder.id) {
-          setSelectedOrder({ ...selectedOrder, status: 'transfer_to_courier', courier_name: 'Steadfast' });
+          const courierDisplayName = selectedCourier === 'paperfly' ? 'Paperfly' : selectedCourier === 'steadfast' ? 'Steadfast' : 'Self Delivery';
+          setSelectedOrder({ ...selectedOrder, status: 'transfer_to_courier', courier_name: courierDisplayName });
         }
       } else {
         const errMsg = data.message || "Failed to send order to courier";
@@ -726,7 +727,7 @@ const AdminOrdersPage = () => {
         <div className="flex gap-2 p-4 min-w-max">
           {statusTabs.map((tab) => {
             const isSelected = activeStatus === tab.key;
-            
+
             const tabStyleMap: Record<string, { activeBtn: string; activeBadge: string }> = {
               all: { activeBtn: "bg-slate-800 text-white border-slate-800 shadow-sm", activeBadge: "bg-slate-700 text-slate-100" },
               pending: { activeBtn: "bg-amber-50 text-amber-800 border-amber-300 font-bold", activeBadge: "bg-amber-200/80 text-amber-900" },
@@ -1423,11 +1424,10 @@ const AdminOrdersPage = () => {
                 </label>
                 <div className="space-y-2">
                   <label
-                    className={`flex items-center justify-between p-3.5 border rounded-xl cursor-pointer transition ${
-                      selectedCourier === "steadfast"
+                    className={`flex items-center justify-between p-3.5 border rounded-xl cursor-pointer transition ${selectedCourier === "steadfast"
                         ? "border-emerald-500 bg-emerald-50/40 shadow-sm"
                         : "border-gray-200 hover:bg-gray-50"
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center gap-3">
                       <input
@@ -1449,11 +1449,35 @@ const AdminOrdersPage = () => {
                   </label>
 
                   <label
-                    className={`flex items-center justify-between p-3.5 border rounded-xl cursor-pointer transition ${
-                      selectedCourier === "self"
+                    className={`flex items-center justify-between p-3.5 border rounded-xl cursor-pointer transition ${selectedCourier === "paperfly"
                         ? "border-blue-500 bg-blue-50/40 shadow-sm"
                         : "border-gray-200 hover:bg-gray-50"
-                    }`}
+                      }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="radio"
+                        name="courier"
+                        value="paperfly"
+                        checked={selectedCourier === "paperfly"}
+                        onChange={(e) => setSelectedCourier(e.target.value)}
+                        className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                      />
+                      <div>
+                        <p className="font-bold text-gray-900">Paperfly Courier</p>
+                        <p className="text-xs text-gray-500">Auto-create parcel & tracking (Official API)</p>
+                      </div>
+                    </div>
+                    <span className="px-2.5 py-1 bg-blue-100 text-blue-800 text-[10px] font-extrabold uppercase rounded-md">
+                      Active API
+                    </span>
+                  </label>
+
+                  <label
+                    className={`flex items-center justify-between p-3.5 border rounded-xl cursor-pointer transition ${selectedCourier === "self"
+                        ? "border-amber-500 bg-amber-50/40 shadow-sm"
+                        : "border-gray-200 hover:bg-gray-50"
+                      }`}
                   >
                     <div className="flex items-center gap-3">
                       <input
@@ -1462,14 +1486,14 @@ const AdminOrdersPage = () => {
                         value="self"
                         checked={selectedCourier === "self"}
                         onChange={(e) => setSelectedCourier(e.target.value)}
-                        className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                        className="w-4 h-4 text-amber-600 focus:ring-amber-500"
                       />
                       <div>
                         <p className="font-bold text-gray-900">Self Delivery (In-House)</p>
                         <p className="text-xs text-gray-500">Confirm order without sending to external courier</p>
                       </div>
                     </div>
-                    <span className="px-2.5 py-1 bg-blue-100 text-blue-800 text-[10px] font-extrabold uppercase rounded-md">
+                    <span className="px-2.5 py-1 bg-amber-100 text-amber-800 text-[10px] font-extrabold uppercase rounded-md">
                       Self
                     </span>
                   </label>
@@ -1554,7 +1578,7 @@ const AdminOrdersPage = () => {
                 {sendingToCourier ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    Sending to Steadfast...
+                    Sending to {selectedCourier === "paperfly" ? "Paperfly" : selectedCourier === "steadfast" ? "Steadfast" : "Courier"}...
                   </>
                 ) : (
                   <>
